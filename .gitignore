@@ -1,0 +1,10 @@
+CMakeFiles
+Debug
+Game.dir
+*.vcxproj
+*.vcxproj.filters
+CMakeCache.txt
+cmake_install.cmake
+.vs
+*.opendb
+*.db
