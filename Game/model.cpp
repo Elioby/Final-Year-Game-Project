@@ -13,13 +13,13 @@ inline u32 pack_vec3_into_u32(vec3 vec)
 {
 	u32 result = 0;
 	u8* dst = (u8*)&result;
+
 	dst[0] = u8(to_unsigned_normal(vec.x * 0.5f + 0.5f, 255.0f));
 	dst[1] = u8(to_unsigned_normal(vec.y * 0.5f + 0.5f, 255.0f));
 	dst[2] = u8(to_unsigned_normal(vec.z * 0.5f + 0.5f, 255.0f));
+
 	return result;
 }
-
-
 
 // @Cleanup
 // @Todo: I think this is a mesh, not a model!
@@ -104,8 +104,9 @@ model load_obj_model(char* filename)
 		vertices[i] = { ver.x, ver.y, ver.z, pack_vec3_into_u32(norm) };
 	}
 
-	const bgfx_memory_t* verticies_mem = bgfx_make_ref(vertices, vertex_byte_count);
-	result.vb_handle = bgfx_create_vertex_buffer(verticies_mem, &decl, BGFX_BUFFER_NONE);
+	const bgfx_memory_t* vertices_mem = bgfx_make_ref(vertices, vertex_byte_count);
+	result.vb_handle = bgfx_create_vertex_buffer(vertices_mem, &decl, BGFX_BUFFER_NONE);
+	result.vertices = vertices;
 	bgfx_make_ref_release(vertices, vertex_byte_count, 0, 0);
 
 	result.vertex_index_count = vertex_ids.size();
@@ -119,7 +120,10 @@ model load_obj_model(char* filename)
 
 	const bgfx_memory_t* vertex_index_mem = bgfx_make_ref(indices, vertex_index_byte_count);
 	result.vidb_handle = bgfx_create_index_buffer(vertex_index_mem, BGFX_BUFFER_NONE);
+	result.indices = indices;
 	bgfx_make_ref_release(vertex_index_mem, vertex_index_byte_count, 0, 0);
+
+	// Todo: free malloc'd memory?
 
 	return result;
 }

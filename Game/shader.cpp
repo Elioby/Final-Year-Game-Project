@@ -3,11 +3,13 @@
 #include <stdio.h>
 
 /* ------- Globals --------- */
+shader_program default_shader;
 shader_program diffuse_shader;
 
 void load_shaders()
 {
 	diffuse_shader = load_shader_program("res/vs_cubes.bin", "res/fs_cubes.bin");
+	default_shader = load_shader_program("res/default_vs.bin", "res/default_fs.bin");
 }
 
 // Load an individual vertex or fragment shader from a file path

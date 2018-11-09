@@ -110,7 +110,6 @@ void draw(float dt)
 	sinceStart += dt;
 	mat4 model_matrix = mat4(1.0f);
 	model_matrix = rotate(model_matrix, radians(sinceStart * 70), vec3(0.0f, 1.0f, 0.0f));
-	bgfx_set_transform(&model_matrix, 1);
-	draw_model(cube_model);
+	draw_model(cube_model, model_matrix);
 }
 

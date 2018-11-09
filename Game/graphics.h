@@ -10,6 +10,6 @@ extern bool graphics_debug_draw_normals;
 
 void graphics_init(int window_width, int window_height, float fov);
 
-void draw_model(model model);
+void draw_model(model model, mat4 model_matrix);
 
 #endif
