@@ -44,7 +44,7 @@ bgfx_shader_handle_t load_shader(char* filename)
 	return shader;
 }
 
-// @Todo: (for this and load model) use names instead of paths? i.e. shader vs_cube resolves to res/shaders/dx11/vs_cube.bin and model cube resolves to res/models/cube.obj
+// @Todo: (for this and load mesh) use names instead of paths? i.e. shader vs_cube resolves to res/shaders/dx11/vs_cube.bin and mesh cube resolves to res/meshes/cube.obj
 // @Todo: add support for other renderers with different shaders for each type? it's not hard, just different folders for each shader type, compile with shaderc, donezo
 shader_program load_shader_program(char* vs_filename, char* fs_filename)
 {

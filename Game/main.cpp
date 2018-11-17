@@ -21,7 +21,7 @@
 #include <bgfx/c99/platform.h>
 
 #include "graphics.h"
-#include "model.h"
+#include "mesh.h"
 #include "shader.h"
 
 using namespace glm;
@@ -29,11 +29,13 @@ using namespace glm;
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
-#define FOV 15.0f
+#define FOV 25.0f
 
-model cube_model;
+mesh cube_mesh;
+mesh terrain_mesh;
 
-void load_models();
+void load_meshes();
+void load_terrain();
 void draw(float dt);
 
 int main()
@@ -69,7 +71,8 @@ int main()
 	float time, dt;
 
 	load_shaders();
-	load_models();
+	load_terrain();
+	load_meshes();
 
 	while(!glfwWindowShouldClose(window))
 	{
@@ -98,9 +101,37 @@ int main()
 	return 0;
 }
 
-void load_models()
+void load_meshes()
 {
-	cube_model = load_obj_model("res/cube.obj");
+	cube_mesh = load_obj_mesh("res/newcube.obj");
+}
+
+u32 terrain_max_x = 10;
+u32 terrain_max_z = 10;
+
+void load_terrain()
+{
+	// x * y squares, 2 triangles per square, 3 vertices per triangle
+	u32 vertex_count = terrain_max_x * terrain_max_z * 3 * 2;
+	pos_normal_vertex* vertices = (pos_normal_vertex*) malloc(vertex_count * sizeof(pos_normal_vertex));
+
+	u32 i = 0;
+	u32 up_normal = pack_vec3_into_u32(vec3(0.0f, 1.0f, 0.0f));
+
+	for(float x = 0; x < terrain_max_x; x++)
+	{
+		for(float z = 0; z < terrain_max_z; z++)
+		{
+			vertices[i++] = { x, 0, z, up_normal };
+			vertices[i++] = { x + 1.0f, 0, z + 1.0f, up_normal };
+			vertices[i++] = { x + 1.0f, 0, z, up_normal };
+			vertices[i++] = { x, 0, z, up_normal };
+			vertices[i++] = { x, 0, z + 1.0f, up_normal };
+			vertices[i++] = { x + 1.0f, 0, z + 1.0f, up_normal };
+		}
+	}
+
+	terrain_mesh = create_mesh(vertices, vertex_count);
 }
 
 float sinceStart = 0;
@@ -108,8 +139,12 @@ float sinceStart = 0;
 void draw(float dt)
 {
 	sinceStart += dt;
-	mat4 model_matrix = mat4(1.0f);
-	model_matrix = rotate(model_matrix, radians(sinceStart * 70), vec3(0.0f, 1.0f, 0.0f));
-	draw_model(cube_model, model_matrix);
+	mat4 transform_matrix = mat4(1.0f);
+	transform_matrix *= translate(transform_matrix, vec3(0.0f, -0.7f, 0.0f));
+	transform_matrix *= rotate(transform_matrix, 0.0f, vec3(0.0f, 1.0f, 0.0f));
+	transform_matrix *= scale(transform_matrix, vec3(1.0f));
+	draw_mesh(cube_mesh, transform_matrix);
+
+	draw_mesh(terrain_mesh, transform_matrix);
 }
 

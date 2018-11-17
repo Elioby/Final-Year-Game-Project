@@ -5,11 +5,11 @@
 #include <vector>
 
 #include "shader.h"
-#include "model.h"
+#include "mesh.h"
 
 /* ------- Globals --------- */
 bgfx_renderer_type_t renderer_type;
-bool graphics_debug_draw_normals = true;
+bool graphics_debug_draw_normals = false;
 
 void bgfx_fatal_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, bgfx_fatal_t _code, const char* _str)
 {
@@ -42,7 +42,7 @@ void graphics_init(int window_width, int window_height, float fov)
 
 	bgfx_init(&init);
 
-	bgfx_reset(window_width, window_height, BGFX_RESET_VSYNC, init.resolution.format);
+	bgfx_reset(window_width, window_height, BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X16, init.resolution.format);
 
 	bgfx_set_debug(BGFX_DEBUG_TEXT | BGFX_DEBUG_WIREFRAME);
 
@@ -51,7 +51,7 @@ void graphics_init(int window_width, int window_height, float fov)
 	bgfx_set_view_clear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 
 	// setup view and projection matrix
-	mat4 view_matrix = lookAt(vec3(0.0f, 10.0f, -15.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	mat4 view_matrix = lookAt(vec3(0.0f, 10.0f, -15.0f), vec3(4.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 	mat4 projection_matrix = perspective(radians(fov), (float) window_width / (float) window_height, 0.1f, 10000.0f);
 
 	bgfx_set_view_transform(0, &view_matrix, &projection_matrix);
@@ -59,14 +59,14 @@ void graphics_init(int window_width, int window_height, float fov)
 	bgfx_set_view_rect(0, 0, 0, window_width, window_height);
 }
 
-void draw_model(model model, mat4 model_matrix)
+void draw_mesh(mesh mesh, mat4 transform_matrix)
 {
-	bgfx_set_vertex_buffer(0, model.vb_handle, 0, model.vertex_count);
-	bgfx_set_index_buffer(model.vidb_handle, 0, model.vertex_index_count);
+	bgfx_set_vertex_buffer(0, mesh.vb_handle, 0, mesh.vertex_count);
+	bgfx_set_index_buffer(mesh.idb_handle, 0, mesh.index_count);
 
-	bgfx_set_state(BGFX_STATE_WRITE_R | BGFX_STATE_WRITE_G | BGFX_STATE_WRITE_B | BGFX_STATE_WRITE_A | BGFX_STATE_CULL_CW, 0);
+	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW | BGFX_STATE_MSAA, 0);
 
-	bgfx_set_transform(&model_matrix, 1);
+	bgfx_set_transform(&transform_matrix, 1);
 
 	bgfx_submit(0, diffuse_shader.handle, 0, false);
 
@@ -80,20 +80,27 @@ void draw_model(model model, mat4 model_matrix)
 
 		std::vector<vec3> vertices;
 
-		for (u32 i = 0; i < model.vertex_index_count; i++)
+		float draw_width = 0.05f;
+
+		for (u32 i = 0; i < mesh.vertex_count; i++)
 		{
-			pos_normal_vertex vertex = model.vertices[model.indices[i]];
+			pos_normal_vertex vertex = mesh.vertices[i];
 			u8* norm = (u8*) &vertex.normal;
 			i16 x_norm = norm[0] - 128;
 			i16 y_norm = norm[1] - 128;
-			i16 z_norm = 128;
+			i16 z_norm = norm[2] - 128;
 
-			vertices.push_back(vec3(vertex.x - 0.025f, vertex.y + (y_norm / 255.0f) + 0.025f, vertex.z));
-			vertices.push_back(vec3(vertex.x - 0.025f, vertex.y, vertex.z + (z_norm / 256.0f)));
-			vertices.push_back(vec3(vertex.x + 0.025f + (x_norm / 255.0f), vertex.y, vertex.z + (z_norm / 256.0f)));
-			vertices.push_back(vec3(vertex.x + 0.025f + (x_norm / 255.0f), vertex.y + (y_norm / 255.0f), vertex.z));
-			vertices.push_back(vec3(vertex.x - 0.025f, vertex.y + (y_norm / 255.0f), vertex.z ));
-			vertices.push_back(vec3(vertex.x + 0.025f + (x_norm / 255.0f), vertex.y, vertex.z + (z_norm / 256.0f)));
+			float x_min = vertex.x;
+			float y_min = vertex.y;
+			float z_min = vertex.z;
+
+			float x_max = vertex.x + (x_norm / 128.0f);
+			float y_max = vertex.y + (y_norm / 128.0f);
+			float z_max = vertex.z + (z_norm / 128.0f);
+
+			vertices.push_back(vec3(x_min - draw_width, y_min, z_min));
+			vertices.push_back(vec3(x_max, y_max, z_max));
+			vertices.push_back(vec3(x_min + draw_width, y_min, z_min));
 		}
 
 		vec3* vertices_data = (vec3*) malloc(vertices.size() * sizeof(vec3));
@@ -116,11 +123,12 @@ void draw_model(model model, mat4 model_matrix)
 		bgfx_set_vertex_buffer(0, vb_handle, 0, vertices.size());
 		bgfx_set_index_buffer(id_handle, 0, vertices.size());
 
-		bgfx_set_transform(&model_matrix, 1);
+		bgfx_set_transform(&transform_matrix, 1);
 
-		bgfx_set_state(BGFX_STATE_WRITE_R, 0);
+		bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_MSAA, 0);
+
 		// @Note: we just use 0 for the default red shader
-		//bgfx_submit(0, default_shader.handle, 0, false);
+		bgfx_submit(0, default_shader.handle, 0, false);
 
 		bgfx_destroy_vertex_buffer(vb_handle);
 		bgfx_destroy_index_buffer(id_handle);
