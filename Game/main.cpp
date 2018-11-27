@@ -102,8 +102,8 @@ int main()
 
 void load_meshes()
 {
-	cube_mesh = load_obj_mesh("res/newcube.obj");
-	robot_mesh = load_obj_mesh("res/robot.obj");
+	cube_mesh = load_obj_mesh("res/mesh/cube.obj");
+	robot_mesh = load_obj_mesh("res/mesh/robot.obj");
 }
 
 u32 terrain_max_x = 25;

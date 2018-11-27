@@ -8,8 +8,8 @@ shader_program diffuse_shader;
 
 void load_shaders()
 {
-	diffuse_shader = load_shader_program("res/vs_cubes.bin", "res/fs_cubes.bin");
-	default_shader = load_shader_program("res/default_vs.bin", "res/default_fs.bin");
+	diffuse_shader = load_shader_program("res/shader/vs_cubes.bin", "res/shader/fs_cubes.bin");
+	default_shader = load_shader_program("res/shader/default_vs.bin", "res/shader/default_fs.bin");
 }
 
 // Load an individual vertex or fragment shader from a file path
