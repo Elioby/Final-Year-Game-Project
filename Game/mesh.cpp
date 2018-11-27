@@ -26,7 +26,7 @@ mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count)
 {
 	u16* indices = (u16*) malloc(vertex_count * sizeof(u16));
 
-	for(int i = 0; i < vertex_count; i++)
+	for(u32 i = 0; i < vertex_count; i++)
 	{
 		indices[i] = i;
 	}
@@ -53,7 +53,7 @@ mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u3
 	bgfx_make_ref_release(vertices, vertex_byte_count, 0, 0);
 
 	result.index_count = index_count;
-	u32 index_byte_count = vertex_count * sizeof(pos_normal_vertex);
+	u32 index_byte_count = index_count * sizeof(u16);
 
 	const bgfx_memory_t* vertex_index_mem = bgfx_make_ref(indices, index_byte_count);
 	result.idb_handle = bgfx_create_index_buffer(vertex_index_mem, BGFX_BUFFER_NONE);
@@ -130,23 +130,20 @@ mesh load_obj_mesh(char* filename)
 	u32 vertex_count = temp_vertices.size();
 	pos_normal_vertex* vertices = (pos_normal_vertex*) malloc(vertex_count * sizeof(pos_normal_vertex));
 
+	// Index all the normals for each vertex so we don't have to search for the normal for each vertex
+	vec3* vertex_normals = (vec3*) calloc(vertex_count, sizeof(vec3));
+
+	for (u32 face_id = 0; face_id < vertex_ids.size(); face_id++)
+	{
+		int vertex_id = vertex_ids[face_id] - 1;
+		vertex_normals[vertex_id] += temp_normals[normal_ids[face_id] - 1];
+	}
+
 	for (u32 i = 0; i < vertex_count; i++)
 	{
 		vec3 ver = temp_vertices[i];
 
-		vec3 norm = vec3(0.0f);
-		// Find the normal index for this vertex id
-		for(u32 face_id = 0; face_id < vertex_ids.size(); face_id++)
-		{
-			if(vertex_ids[face_id] - 1 == i)
-			{
-				norm += temp_normals[normal_ids[face_id] - 1];
-			}
-		}
-
-		norm = glm::normalize(norm);
-
-		vertices[i] = { ver.x, ver.y, ver.z, pack_vec3_into_u32(norm) };
+		vertices[i] = { ver.x, ver.y, ver.z, pack_vec3_into_u32(normalize(vertex_normals[i])) };
 	}
 
 	u32 index_count = vertex_ids.size();

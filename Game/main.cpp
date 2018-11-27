@@ -157,10 +157,10 @@ void draw(float dt)
 {
 	vec3* intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 
-	if (intersection != NULL) last_known_intersection = vec4(*intersection, 1.0f);
+	if (intersection != NULL) last_known_intersection = *intersection;
 
 	graphics_draw_mesh(cube_mesh, create_model_matrix(vec3(clamp(floor(last_known_intersection.x), 0.0f, (float) terrain_max_x - 1),
-		floor(last_known_intersection.y), clamp(floor(last_known_intersection.z), 0.0f, (float) terrain_max_z - 1)), vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
+		floor(last_known_intersection.y), clamp(floor(last_known_intersection.z), 0.0f, (float) terrain_max_z - 1)), vec3(1.0f), vec3(1.0f, 1.0f, 1.0f)));
 
 	graphics_draw_mesh(robot_mesh, create_model_matrix(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f), vec3(1.0f)));
 

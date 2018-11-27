@@ -55,7 +55,7 @@ void graphics_update_camera()
 	vec3 cam_direction = vec3(cos(radians(graphics_camera_pitch)) * cos(radians(graphics_camera_yaw)), sin(radians(graphics_camera_pitch)), cos(radians(graphics_camera_pitch)) * sin(radians(graphics_camera_yaw)));
 	graphics_view_matrix = lookAt(cam_pos, cam_pos + cam_direction, vec3(0.0f, 1.0f, 0.0f));
 	
-	// @Optimize: we don't need to do this every frame, only when the resolution changes
+	// @Speed: we don't need to do this every frame, only when the resolution changes
 	graphics_projection_matrix = perspective(radians(graphics_camera_fov), (float) graphics_projection_width / (float) graphics_projection_height, 0.1f, 10000.0f);
 
 	bgfx_set_view_transform(0, &graphics_view_matrix, &graphics_projection_matrix);
@@ -63,7 +63,6 @@ void graphics_update_camera()
 
 void graphics_init(int window_width, int window_height)
 {
-
 	bgfx_init_t init;
 	bgfx_init_ctor(&init);
 	init.type = BGFX_RENDERER_TYPE_OPENGL;
@@ -79,7 +78,6 @@ void graphics_init(int window_width, int window_height)
 	bgfx_set_view_clear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 
 	// setup view and projection matrix
-	// @Cleanup: not a fan of how this all works
 	graphics_projection_width = window_width;
 	graphics_projection_height = window_height;
 
