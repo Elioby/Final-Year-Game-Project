@@ -155,36 +155,16 @@ vec3 last_known_intersection = vec3(0.0f, 0.0f, 0.0f);
 
 void draw(float dt)
 {
-	vec3 plane_origin = vec3(0.0f, 0.0f, 0.0f);
-
-	float x = (2.0f * input_mouse_x) / (float) WINDOW_WIDTH - 1.0f;
-	float y = -((2.0f * input_mouse_y) / (float) WINDOW_HEIGHT - 1.0f);
-
-	// normalize the position into graphics coords (-1.0 to 1.0, -1.0 to 1.0)
-	vec3 ray_norm = vec3(x, y, 1.0f);
-
-	// move into clip coords and point the vector into the screen (-1 on z)
-	vec4 ray_clip = vec4(ray_norm.x, ray_norm.y, -1.0f, 1.0f);
-
-	// move into eye coords
-	vec4 ray_eye = inverse(graphics_projection_matrix) * ray_clip;
-	ray_eye.z = -1.0f;
-	ray_eye.w = 0.0f;
-
-	// move into world coords by mulitplying by the inverse of the view matrix (and norm because we only need a direction vector)
-	vec4 ray_world = inverse(graphics_view_matrix) * ray_eye;
-	vec3 ray_world_norm = normalize(vec3(ray_world.x, ray_world.y, ray_world.z));
-
-	vec3* intersection = ray_plane_intersection(graphics_camera_pos, ray_world_norm, plane_origin, vec3(0.0f, 1.0f, 0.0f));
+	vec3* intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 	if (intersection != NULL) last_known_intersection = vec4(*intersection, 1.0f);
 
-	graphics_draw_mesh(cube_mesh, create_model_matrix(vec3(clamp(floor(last_known_intersection.x), plane_origin.x, (float) terrain_max_x + plane_origin.x - 1),
-		floor(last_known_intersection.y), clamp(floor(last_known_intersection.z), plane_origin.z, (float) terrain_max_z + plane_origin.z - 1)), vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
+	graphics_draw_mesh(cube_mesh, create_model_matrix(vec3(clamp(floor(last_known_intersection.x), 0.0f, (float) terrain_max_x - 1),
+		floor(last_known_intersection.y), clamp(floor(last_known_intersection.z), 0.0f, (float) terrain_max_z - 1)), vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 
 	graphics_draw_mesh(robot_mesh, create_model_matrix(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f), vec3(1.0f)));
 
-	graphics_draw_mesh(terrain_mesh, create_model_matrix(plane_origin, vec3(1.0f), vec3(1.0f)));
+	graphics_draw_mesh(terrain_mesh, create_model_matrix(vec3(0.0f), vec3(1.0f), vec3(1.0f)));
 
 	graphics_update_camera();
 }

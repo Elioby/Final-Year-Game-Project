@@ -17,6 +17,10 @@ extern float graphics_camera_pitch;
 extern float graphics_camera_yaw;
 extern float graphics_camera_fov;
 
+// The resolution we render at, not nessisarily the window width and height
+extern u32 graphics_projection_width;
+extern u32 graphics_projection_height;
+
 void graphics_init(int w_width, int w_height);
 void graphics_update_camera();
 

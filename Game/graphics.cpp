@@ -17,11 +17,10 @@ mat4 graphics_projection_matrix;
 vec3 graphics_camera_pos = vec3(-10.0f, 15.0f, 12.5f);
 float graphics_camera_pitch = -45.0f;
 float graphics_camera_yaw = 0.0f;
-float graphics_camera_fov = 60.0f;
+float graphics_camera_fov = 65.0f;
 
-/* ------- Locals --------- */
-float window_width;
-float window_height;
+u32 graphics_projection_width;
+u32 graphics_projection_height;
 
 void bgfx_fatal_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, bgfx_fatal_t _code, const char* _str)
 {
@@ -55,12 +54,14 @@ void graphics_update_camera()
 	vec3 cam_pos = graphics_camera_pos * 4.0f;
 	vec3 cam_direction = vec3(cos(radians(graphics_camera_pitch)) * cos(radians(graphics_camera_yaw)), sin(radians(graphics_camera_pitch)), cos(radians(graphics_camera_pitch)) * sin(radians(graphics_camera_yaw)));
 	graphics_view_matrix = lookAt(cam_pos, cam_pos + cam_direction, vec3(0.0f, 1.0f, 0.0f));
-	graphics_projection_matrix = perspective(radians(graphics_camera_fov), window_width / window_height, 0.1f, 10000.0f);
+	
+	// @Optimize: we don't need to do this every frame, only when the resolution changes
+	graphics_projection_matrix = perspective(radians(graphics_camera_fov), (float) graphics_projection_width / (float) graphics_projection_height, 0.1f, 10000.0f);
 
 	bgfx_set_view_transform(0, &graphics_view_matrix, &graphics_projection_matrix);
 }
 
-void graphics_init(int w_width, int w_height)
+void graphics_init(int window_width, int window_height)
 {
 
 	bgfx_init_t init;
@@ -69,7 +70,7 @@ void graphics_init(int w_width, int w_height)
 
 	bgfx_init(&init);
 
-	bgfx_reset(w_width, w_height, BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X16, init.resolution.format);
+	bgfx_reset(window_width, window_height, BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X16, init.resolution.format);
 
 	bgfx_set_debug(BGFX_DEBUG_TEXT);
 
@@ -79,8 +80,9 @@ void graphics_init(int w_width, int w_height)
 
 	// setup view and projection matrix
 	// @Cleanup: not a fan of how this all works
-	window_width = (float)w_width;
-	window_height = (float)w_height;
+	graphics_projection_width = window_width;
+	graphics_projection_height = window_height;
+
 	graphics_update_camera();
 
 	bgfx_set_view_rect(0, 0, 0, window_width, window_height);
