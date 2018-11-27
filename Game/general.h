@@ -5,6 +5,8 @@
 
 #include <bgfx/c99/bgfx.h>
 
+#define EPSILON 0.001f
+
 using glm::u8;
 using glm::u16;
 using glm::u32;

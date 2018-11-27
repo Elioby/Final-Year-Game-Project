@@ -8,8 +8,20 @@
 #include "mesh.h"
 
 /* ------- Globals --------- */
-bgfx_renderer_type_t renderer_type;
+bgfx_renderer_type_t graphics_renderer_type;
 bool graphics_debug_draw_normals = false;
+
+mat4 graphics_view_matrix;
+mat4 graphics_projection_matrix;
+
+vec3 graphics_camera_pos = vec3(-10.0f, 15.0f, 12.5f);
+float graphics_camera_pitch = -45.0f;
+float graphics_camera_yaw = 0.0f;
+float graphics_camera_fov = 60.0f;
+
+/* ------- Locals --------- */
+float window_width;
+float window_height;
 
 void bgfx_fatal_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, bgfx_fatal_t _code, const char* _str)
 {
@@ -34,32 +46,47 @@ u32 bgfx_cache_read_size_callback(bgfx_callback_interface_t* _this, u64 _id) { r
 bool bgfx_cache_read_callback(bgfx_callback_interface_t* _this, u64 _id, void* _data, u32 _size) { return 0; }
 void bgfx_cache_write_callback(bgfx_callback_interface_t* _this, u64 _id, const void* _data, u32 _size) {}
 
-void graphics_init(int window_width, int window_height, float fov)
+// @Todo: this should really be in the camera file????
+void graphics_update_camera()
 {
+	// clamp infinitely close to -90 and +90
+	graphics_camera_pitch = clamp(graphics_camera_pitch, -90.0f + EPSILON, 90.0f - EPSILON);
+
+	vec3 cam_pos = graphics_camera_pos * 4.0f;
+	vec3 cam_direction = vec3(cos(radians(graphics_camera_pitch)) * cos(radians(graphics_camera_yaw)), sin(radians(graphics_camera_pitch)), cos(radians(graphics_camera_pitch)) * sin(radians(graphics_camera_yaw)));
+	graphics_view_matrix = lookAt(cam_pos, cam_pos + cam_direction, vec3(0.0f, 1.0f, 0.0f));
+	graphics_projection_matrix = perspective(radians(graphics_camera_fov), window_width / window_height, 0.1f, 10000.0f);
+
+	bgfx_set_view_transform(0, &graphics_view_matrix, &graphics_projection_matrix);
+}
+
+void graphics_init(int w_width, int w_height)
+{
+
 	bgfx_init_t init;
 	bgfx_init_ctor(&init);
 	init.type = BGFX_RENDERER_TYPE_OPENGL;
 
 	bgfx_init(&init);
 
-	bgfx_reset(window_width, window_height, BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X16, init.resolution.format);
+	bgfx_reset(w_width, w_height, BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X16, init.resolution.format);
 
-	bgfx_set_debug(BGFX_DEBUG_TEXT | BGFX_DEBUG_WIREFRAME);
+	bgfx_set_debug(BGFX_DEBUG_TEXT);
 
-	renderer_type = bgfx_get_renderer_type();
+	graphics_renderer_type = bgfx_get_renderer_type();
 
 	bgfx_set_view_clear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 
 	// setup view and projection matrix
-	mat4 view_matrix = lookAt(vec3(0.0f, 10.0f, -15.0f), vec3(4.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-	mat4 projection_matrix = perspective(radians(fov), (float) window_width / (float) window_height, 0.1f, 10000.0f);
-
-	bgfx_set_view_transform(0, &view_matrix, &projection_matrix);
+	// @Cleanup: not a fan of how this all works
+	window_width = (float)w_width;
+	window_height = (float)w_height;
+	graphics_update_camera();
 
 	bgfx_set_view_rect(0, 0, 0, window_width, window_height);
 }
 
-void draw_mesh(mesh mesh, mat4 transform_matrix)
+void graphics_draw_mesh(mesh mesh, mat4 transform_matrix)
 {
 	bgfx_set_vertex_buffer(0, mesh.vb_handle, 0, mesh.vertex_count);
 	bgfx_set_index_buffer(mesh.idb_handle, 0, mesh.index_count);

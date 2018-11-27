@@ -21,17 +21,16 @@
 #include <bgfx/c99/platform.h>
 
 #include "graphics.h"
+#include "input.h"
 #include "mesh.h"
 #include "shader.h"
-
-using namespace glm;
+#include "raycast.h"
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
-#define FOV 25.0f
-
 mesh cube_mesh;
+mesh robot_mesh;
 mesh terrain_mesh;
 
 void load_meshes();
@@ -41,12 +40,10 @@ void draw(float dt);
 int main()
 {
 	// Setup GLFW
-	GLFWwindow* window;
-
 	assert(glfwInit());
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Game Window", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Game Window", NULL, NULL);
 
 	assert(window);
 
@@ -65,7 +62,8 @@ int main()
 
 	bgfx_set_platform_data(&platform_data);
 
-	graphics_init(WINDOW_WIDTH, WINDOW_HEIGHT, FOV);
+	graphics_init(WINDOW_WIDTH, WINDOW_HEIGHT);
+	input_init(window);
 
 	float lastTime = 0;
 	float time, dt;
@@ -81,6 +79,7 @@ int main()
 		lastTime = time;
 
 		glfwPollEvents();
+		input_update();
 
 		// This dummy draw call is here to make sure that view 0 is cleared
 		// if no other draw calls are submitted to view 0.
@@ -104,10 +103,11 @@ int main()
 void load_meshes()
 {
 	cube_mesh = load_obj_mesh("res/newcube.obj");
+	robot_mesh = load_obj_mesh("res/robot.obj");
 }
 
-u32 terrain_max_x = 10;
-u32 terrain_max_z = 10;
+u32 terrain_max_x = 25;
+u32 terrain_max_z = 25;
 
 void load_terrain()
 {
@@ -134,17 +134,58 @@ void load_terrain()
 	terrain_mesh = create_mesh(vertices, vertex_count);
 }
 
-float sinceStart = 0;
+mat4 create_model_matrix(vec3 pos, vec3 rot, vec3 scale)
+{
+	mat4 matrix = mat4(1.0f);
+	matrix *= translate(matrix, pos);
+	matrix *= rotate(matrix, 0.0f, rot);
+	matrix *= glm::scale(matrix, scale * 4.0f);
+	return matrix;
+}
+
+// @Todo: cstdlib rand is pretty bad
+i32 next_random_i32(i32 min, i32 max)
+{
+	return (i32) (((float) rand() / (float) RAND_MAX) * max + min);
+}
+
+float time;
+
+vec3 last_known_intersection = vec3(0.0f, 0.0f, 0.0f);
 
 void draw(float dt)
 {
-	sinceStart += dt;
-	mat4 transform_matrix = mat4(1.0f);
-	transform_matrix *= translate(transform_matrix, vec3(0.0f, -0.7f, 0.0f));
-	transform_matrix *= rotate(transform_matrix, 0.0f, vec3(0.0f, 1.0f, 0.0f));
-	transform_matrix *= scale(transform_matrix, vec3(1.0f));
-	draw_mesh(cube_mesh, transform_matrix);
+	vec3 plane_origin = vec3(0.0f, 0.0f, 0.0f);
 
-	draw_mesh(terrain_mesh, transform_matrix);
+	float x = (2.0f * input_mouse_x) / (float) WINDOW_WIDTH - 1.0f;
+	float y = -((2.0f * input_mouse_y) / (float) WINDOW_HEIGHT - 1.0f);
+
+	// normalize the position into graphics coords (-1.0 to 1.0, -1.0 to 1.0)
+	vec3 ray_norm = vec3(x, y, 1.0f);
+
+	// move into clip coords and point the vector into the screen (-1 on z)
+	vec4 ray_clip = vec4(ray_norm.x, ray_norm.y, -1.0f, 1.0f);
+
+	// move into eye coords
+	vec4 ray_eye = inverse(graphics_projection_matrix) * ray_clip;
+	ray_eye.z = -1.0f;
+	ray_eye.w = 0.0f;
+
+	// move into world coords by mulitplying by the inverse of the view matrix (and norm because we only need a direction vector)
+	vec4 ray_world = inverse(graphics_view_matrix) * ray_eye;
+	vec3 ray_world_norm = normalize(vec3(ray_world.x, ray_world.y, ray_world.z));
+
+	vec3* intersection = ray_plane_intersection(graphics_camera_pos, ray_world_norm, plane_origin, vec3(0.0f, 1.0f, 0.0f));
+
+	if (intersection != NULL) last_known_intersection = vec4(*intersection, 1.0f);
+
+	graphics_draw_mesh(cube_mesh, create_model_matrix(vec3(clamp(floor(last_known_intersection.x), plane_origin.x, (float) terrain_max_x + plane_origin.x - 1),
+		floor(last_known_intersection.y), clamp(floor(last_known_intersection.z), plane_origin.z, (float) terrain_max_z + plane_origin.z - 1)), vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
+
+	graphics_draw_mesh(robot_mesh, create_model_matrix(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f), vec3(1.0f)));
+
+	graphics_draw_mesh(terrain_mesh, create_model_matrix(plane_origin, vec3(1.0f), vec3(1.0f)));
+
+	graphics_update_camera();
 }
 

@@ -48,7 +48,7 @@ bgfx_shader_handle_t load_shader(char* filename)
 // @Todo: add support for other renderers with different shaders for each type? it's not hard, just different folders for each shader type, compile with shaderc, donezo
 shader_program load_shader_program(char* vs_filename, char* fs_filename)
 {
-	if (renderer_type != BGFX_RENDERER_TYPE_OPENGL)
+	if (graphics_renderer_type != BGFX_RENDERER_TYPE_OPENGL)
 	{
 		printf("ogl is currently the only supported renderer :(\n");
 		// @Safety: we should always return SOMETHING, not something blank! (default shader program?)
