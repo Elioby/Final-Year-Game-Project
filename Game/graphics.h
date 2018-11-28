@@ -13,9 +13,15 @@ extern mat4 graphics_projection_matrix;
 
 // @Todo: this needs to be better!
 extern vec3 graphics_camera_pos;
+extern vec3 graphics_camera_dir;
+
 extern float graphics_camera_pitch;
 extern float graphics_camera_yaw;
 extern float graphics_camera_fov;
+extern float graphics_camera_zoom;
+
+extern float graphics_camera_move_speed;
+extern float graphics_camera_rotate_speed;
 
 // The resolution we render at, not nessisarily the window width and height
 extern u32 graphics_projection_width;

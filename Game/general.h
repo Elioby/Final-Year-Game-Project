@@ -25,3 +25,4 @@ using glm::mat4;
 using glm::radians;
 using glm::perspective;
 using glm::clamp;
+using glm::cross;

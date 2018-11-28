@@ -15,9 +15,15 @@ mat4 graphics_view_matrix;
 mat4 graphics_projection_matrix;
 
 vec3 graphics_camera_pos = vec3(-10.0f, 15.0f, 12.5f);
+vec3 graphics_camera_dir = vec3(0.0f);
+
 float graphics_camera_pitch = -45.0f;
 float graphics_camera_yaw = 0.0f;
 float graphics_camera_fov = 65.0f;
+float graphics_camera_zoom = 0.0f;
+
+float graphics_camera_move_speed = 10.0f;
+float graphics_camera_rotate_speed = 50.0f;
 
 u32 graphics_projection_width;
 u32 graphics_projection_height;
@@ -52,8 +58,8 @@ void graphics_update_camera()
 	graphics_camera_pitch = clamp(graphics_camera_pitch, -90.0f + EPSILON, 90.0f - EPSILON);
 
 	vec3 cam_pos = graphics_camera_pos * 4.0f;
-	vec3 cam_direction = vec3(cos(radians(graphics_camera_pitch)) * cos(radians(graphics_camera_yaw)), sin(radians(graphics_camera_pitch)), cos(radians(graphics_camera_pitch)) * sin(radians(graphics_camera_yaw)));
-	graphics_view_matrix = lookAt(cam_pos, cam_pos + cam_direction, vec3(0.0f, 1.0f, 0.0f));
+	graphics_camera_dir = vec3(cos(radians(graphics_camera_pitch)) * cos(radians(graphics_camera_yaw)), sin(radians(graphics_camera_pitch)), cos(radians(graphics_camera_pitch)) * sin(radians(graphics_camera_yaw)));
+	graphics_view_matrix = lookAt(cam_pos, cam_pos + graphics_camera_dir, vec3(0.0f, 1.0f, 0.0f));
 	
 	// @Speed: we don't need to do this every frame, only when the resolution changes
 	graphics_projection_matrix = perspective(radians(graphics_camera_fov), (float) graphics_projection_width / (float) graphics_projection_height, 0.1f, 10000.0f);
