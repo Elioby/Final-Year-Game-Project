@@ -31,6 +31,9 @@ void input_update()
 {
 	glfwGetCursorPos(main_window, &input_mouse_x, &input_mouse_y);
 
+	// turn higher y into higher screen position
+	input_mouse_y = graphics_projection_height - input_mouse_y;
+
 	input_mouse_ray = calculate_mouse_ray();
 }
 
@@ -46,7 +49,7 @@ void input_end_frame()
 vec3 calculate_mouse_ray()
 {
 	float x = (2.0f * input_mouse_x) / (float)graphics_projection_width - 1.0f;
-	float y = -((2.0f * input_mouse_y) / (float)graphics_projection_height - 1.0f);
+	float y = (2.0f * input_mouse_y) / (float)graphics_projection_height - 1.0f;
 
 	// normalize the position into graphics coords (-1.0 to 1.0, -1.0 to 1.0)
 	vec3 ray_norm = vec3(x, y, 1.0f);

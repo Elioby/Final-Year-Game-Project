@@ -26,6 +26,8 @@
 #include "mesh.h"
 #include "shader.h"
 #include "raycast.h"
+#include "gui.h"
+#include "image.h"
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
@@ -33,11 +35,15 @@
 mesh cube_mesh;
 mesh robot_mesh;
 mesh terrain_mesh;
+image shoot_image;
+image test_image;
 
 void load_meshes();
+void load_images();
 void load_terrain();
+void draw();
+void update(float dt);
 void camera_update(float dt);
-void draw(float dt);
 
 GLFWwindow* window;
 
@@ -68,6 +74,7 @@ int main()
 
 	graphics_init(WINDOW_WIDTH, WINDOW_HEIGHT);
 	input_init(window);
+	gui_init();
 
 	float lastTime = 0;
 	float time, dt;
@@ -75,6 +82,7 @@ int main()
 	load_shaders();
 	load_terrain();
 	load_meshes();
+	load_images();
 
 	while(!glfwWindowShouldClose(window))
 	{
@@ -93,9 +101,8 @@ int main()
 
 		bgfx_dbg_text_printf(0, 0, 0x0f, "Last frame time: %.2fms, FPS: %.0f", dt * 1000.0f, 1 / dt);
 
-		camera_update(dt);
-
-		draw(dt);
+		update(dt);
+		draw();
 
 		bgfx_frame(false);
 
@@ -112,6 +119,12 @@ void load_meshes()
 {
 	cube_mesh = load_obj_mesh("res/mesh/cube.obj");
 	robot_mesh = load_obj_mesh("res/mesh/robot.obj");
+}
+
+void load_images()
+{
+	shoot_image = load_image("res/horse.png");
+	test_image = load_image("res/test.png");
 }
 
 u32 terrain_max_x = 25;
@@ -151,12 +164,61 @@ mat4 create_model_matrix(vec3 pos, vec3 rot, vec3 scale)
 	return matrix;
 }
 
+// @Todo: move!!
 float time;
 
 vec3 last_known_intersection = vec3(0.0f, 0.0f, 0.0f);
 vec3 move_to;
 vec3 pos = vec3(0, 0, 0.0f);
 bool moving = false;
+vec3 mouse_block_pos;
+
+void update(float dt)
+{
+	camera_update(dt);
+
+	vec3* intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+
+	if (intersection != NULL) last_known_intersection = *intersection;
+
+	u32 clamped_x = (u32)clamp(floor(last_known_intersection.x), 0.0f, (float)terrain_max_x - 1);
+	u32 clamped_z = (u32)clamp(floor(last_known_intersection.z), 0.0f, (float)terrain_max_z - 1);
+
+	mouse_block_pos = vec3(clamped_x, last_known_intersection.y, clamped_z);
+
+	// move only if we click, if we actually clicked on the plane, and we're not still moving
+	if (input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START && intersection != NULL && !moving)
+	{
+		move_to = mouse_block_pos;
+		moving = true;
+	}
+
+	// @Cleanup: this is not the best!
+	if (moving)
+	{
+		if (pos.x < move_to.x)
+		{
+			pos.x += clamp(10 * dt, 0.0f, move_to.x - pos.x);
+		}
+		else if (pos.x > move_to.x)
+		{
+			pos.x -= clamp(10 * dt, 0.0f, abs(move_to.x - pos.x));
+		}
+		else if (pos.z < move_to.z)
+		{
+			pos.z += clamp(10 * dt, 0.0f, move_to.z - pos.z);
+		}
+		else if (pos.z > move_to.z)
+		{
+			pos.z -= clamp(10 * dt, 0.0f, abs(move_to.z - pos.z));
+		}
+		else
+		{
+			// we reached the goal
+			moving = false;
+		}
+	}
+}
 
 void camera_update(float dt)
 {
@@ -190,54 +252,27 @@ void camera_update(float dt)
 	graphics_update_camera();
 }
 
-void draw(float dt)
+gui_button button = { 0, 0, 100, 100 };
+
+void buttoncb()
 {
-	vec3* intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	printf("Button press!\n");
+}
 
-	if (intersection != NULL) last_known_intersection = *intersection;
-
-	u32 clamped_x = (u32) clamp(floor(last_known_intersection.x), 0.0f, (float) terrain_max_x - 1);
-	u32 clamped_z = (u32) clamp(floor(last_known_intersection.z), 0.0f, (float) terrain_max_z - 1);
-
-	vec3 mouse_block_pos = vec3(clamped_x, last_known_intersection.y, clamped_z);
-
-	// move only if we click, if we actually clicked on the plane, and we're not still moving
-	if(input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START && intersection != NULL && !moving)
-	{
-		move_to = mouse_block_pos;
-		moving = true;
-	}
-
-	// @Cleanup: this is so shitty!
-	if(moving)
-	{
-		if(pos.x < move_to.x)
-		{
-			pos.x += clamp(10 * dt, 0.0f, move_to.x - pos.x);
-		}
-		else if(pos.x > move_to.x)
-		{
-			pos.x -= clamp(10 * dt, 0.0f, abs(move_to.x - pos.x));
-		}
-		else if(pos.z < move_to.z)
-		{
-			pos.z += clamp(10 * dt, 0.0f, move_to.z - pos.z);
-		}
-		else if(pos.z > move_to.z)
-		{
-			pos.z -= clamp(10 * dt, 0.0f, abs(move_to.z - pos.z));
-		}
-		else
-		{
-			// we reached the goal
-			moving = false;
-		}
-	}
-
+void draw()
+{
 	graphics_draw_mesh(cube_mesh, create_model_matrix(mouse_block_pos, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 
 	graphics_draw_mesh(robot_mesh, create_model_matrix(pos, vec3(1.0f), vec3(1.0f)));
 
 	graphics_draw_mesh(terrain_mesh, create_model_matrix(vec3(0.0f), vec3(1.0f), vec3(1.0f)));
+
+	button.img = shoot_image;
+	button.hover_img = test_image;
+	button.has_hover = true;
+
+	button.click_callback = &buttoncb;
+
+	gui_draw_button(button);
 }
 

@@ -5,11 +5,13 @@
 /* ------- Globals --------- */
 shader_program default_shader;
 shader_program diffuse_shader;
+shader_program gui_shader;
 
 void load_shaders()
 {
-	diffuse_shader = load_shader_program("res/shader/vs_cubes.bin", "res/shader/fs_cubes.bin");
 	default_shader = load_shader_program("res/shader/default_vs.bin", "res/shader/default_fs.bin");
+	diffuse_shader = load_shader_program("res/shader/vs_cubes.bin", "res/shader/fs_cubes.bin");
+	gui_shader = load_shader_program("res/shader/gui_vs.bin", "res/shader/gui_fs.bin");
 }
 
 // Load an individual vertex or fragment shader from a file path
