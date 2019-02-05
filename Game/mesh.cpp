@@ -41,6 +41,7 @@ mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u3
 	bgfx_vertex_decl_t decl;
 	bgfx_vertex_decl_begin(&decl, BGFX_RENDERER_TYPE_NOOP);
 	bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+	bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, false, false);
 	bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_NORMAL, 4, BGFX_ATTRIB_TYPE_UINT8, true, true);
 	bgfx_vertex_decl_end(&decl);
 
@@ -111,7 +112,7 @@ mesh load_obj_mesh(char* filename)
 		else if (strcmp(header, "f") == 0)
 		{
 			u32 vertex_index[3], uv_index[3], normal_index[3];
-			fscanf(file, "%d//%d %d//%d %d//%d\n", &vertex_index[0], &normal_index[0], &vertex_index[1], &normal_index[1], &vertex_index[2], &normal_index[2]);
+			fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertex_index[0], &uv_index[0], &normal_index[0], &vertex_index[1], &uv_index[1], &normal_index[1], &vertex_index[2], &uv_index[2], &normal_index[2]);
 			vertex_ids.push_back(vertex_index[0]);
 			vertex_ids.push_back(vertex_index[1]);
 			vertex_ids.push_back(vertex_index[2]);
@@ -132,18 +133,22 @@ mesh load_obj_mesh(char* filename)
 
 	// Index all the normals for each vertex so we don't have to search for the normal for each vertex
 	vec3* vertex_normals = (vec3*) calloc(vertex_count, sizeof(vec3));
+	vec2* vertex_uvs = (vec2*) malloc(vertex_count * sizeof(vec2));
 
 	for (u32 face_id = 0; face_id < vertex_ids.size(); face_id++)
 	{
 		int vertex_id = vertex_ids[face_id] - 1;
+
 		vertex_normals[vertex_id] += temp_normals[normal_ids[face_id] - 1];
+		vertex_uvs[vertex_id] = temp_uvs[uv_ids[face_id] - 1];
 	}
 
 	for (u32 i = 0; i < vertex_count; i++)
 	{
 		vec3 ver = temp_vertices[i];
+		vec2 uv = vertex_uvs[i];
 
-		vertices[i] = { ver.x, ver.y, ver.z, pack_vec3_into_u32(normalize(vertex_normals[i])) };
+		vertices[i] = { ver.x, ver.y, ver.z, uv.x, uv.y, pack_vec3_into_u32(normalize(vertex_normals[i])) };
 	}
 
 	u32 index_count = vertex_ids.size();

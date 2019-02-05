@@ -6,6 +6,7 @@
 struct pos_normal_vertex
 {
 	float x, y, z;
+	float u, v;
 	u32 normal;
 };
 

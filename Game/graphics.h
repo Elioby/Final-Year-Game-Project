@@ -3,6 +3,7 @@
 
 #include "general.h"
 #include "mesh.h"
+#include "image.h"
 
 /* ------- Globals --------- */
 extern bgfx_renderer_type_t graphics_renderer_type;
@@ -27,9 +28,14 @@ extern float graphics_camera_rotate_speed;
 extern u32 graphics_projection_width;
 extern u32 graphics_projection_height;
 
+extern bgfx_uniform_handle_t texture_sampler;
+
+extern mesh plane_mesh;
+
 void graphics_init(int w_width, int w_height);
 void graphics_update_camera();
 
 void graphics_draw_mesh(mesh mesh, mat4 transform_matrix);
+void graphics_draw_image(image image, mat4 transform_matrix);
 
 #endif

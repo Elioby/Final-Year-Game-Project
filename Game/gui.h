@@ -20,6 +20,6 @@ struct gui_button
 
 void gui_init();
 
-void gui_draw_image(image image, vec2 pos, vec2 rot, vec2 scale);
+void gui_draw_image(image image, u32 x, u32 y, u32 width, u32 height);
 void gui_draw_image(image image, mat4 transform_matrix);
 void gui_draw_button(gui_button button);
