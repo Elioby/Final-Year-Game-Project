@@ -2,22 +2,46 @@
 
 #include <glm/glm.hpp>
 
+#include <vector>
 #include <stdio.h>
 
 #include "assets.h"
 #include "input.h"
 #include "graphics.h"
 
-struct gui_mesh_vertex
-{
-	float x, y, z;
-	float texX, texY;
-};
-
+std::vector<button*> buttons;
 
 void gui_init() 
 {
 	bgfx_set_view_rect(1, 0, 0, graphics_projection_width, graphics_projection_height);
+}
+
+// returns true if the gui handled the mouse click
+bool gui_update()
+{
+	bool handled = false;
+
+	for(u32 i = 0; i < buttons.size(); i++)
+	{
+		button button = *buttons[i];
+		if(input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START && input_mouse_x >= button.x && input_mouse_x <= button.x + button.width 
+			&& input_mouse_y >= button.y && input_mouse_y <= button.y + button.height)
+		{
+			if(button.click_callback) button.click_callback();
+			handled = true;
+		}
+	}
+
+	return handled;
+}
+
+button* gui_create_button()
+{
+	// @Todo: use of malloc :(
+	button* butt = (button*) malloc(sizeof(button));
+	buttons.push_back(butt);
+
+	return butt;
 }
 
 void gui_draw_image(image image, u32 x, u32 y, u32 width, u32 height)
@@ -25,7 +49,7 @@ void gui_draw_image(image image, u32 x, u32 y, u32 width, u32 height)
 	vec2 pos = vec2(x / (graphics_projection_width * 2.0f) - 0.25f,
 		y / (graphics_projection_height * 2.0f) - 0.25f);
 
-	vec2 scale = vec2(width / (float)graphics_projection_width, height / (float) graphics_projection_height);
+	vec2 scale = vec2(width / (float) graphics_projection_width, height / (float) graphics_projection_height);
 
 	mat4 transform_matrix = mat4(1.0f);
 	transform_matrix *= translate(transform_matrix, vec3(pos, 0.0f));
@@ -49,22 +73,18 @@ void gui_draw_image(image image, mat4 transform_matrix)
 	bgfx_submit(1, gui_shader.handle, 0, false);
 }
 
-void gui_draw_button(gui_button button)
+void gui_draw_button(button button)
 {
 	image img;
-	if(button.has_hover && input_mouse_x >= button.x && input_mouse_x <= button.x + button.width && input_mouse_y >= button.y && input_mouse_y <= button.y + button.height)
+	if(input_mouse_x >= button.x && input_mouse_x <= button.x + button.width && input_mouse_y >= button.y && input_mouse_y <= button.y + button.height)
 	{
-		img = button.hover_img;
-
-		if(input_mouse_button_left == INPUT_MOUSE_BUTTON_DOWN_START) 
-		{
-			if(button.click_callback != NULL) button.click_callback();
-		}
+		img = button.hover_bg_img;
 	}
 	else
 	{
-		img = button.img;
+		img = button.bg_img;
 	}
 
 	gui_draw_image(img, button.x, button.y, button.width, button.height);
+	gui_draw_image(button.icon_img, button.x + button.width / 8, button.y + button.height / 8, button.width - button.width / 4, button.height - button.height / 4);
 }

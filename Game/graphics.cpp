@@ -79,7 +79,7 @@ void graphics_init(int window_width, int window_height)
 
 	bgfx_init(&init);
 
-	bgfx_reset(window_width, window_height, BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X16, init.resolution.format);
+	bgfx_reset(window_width, window_height, BGFX_RESET_MSAA_X16, init.resolution.format);
 
 	bgfx_set_debug(BGFX_DEBUG_TEXT);
 

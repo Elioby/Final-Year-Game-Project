@@ -2,6 +2,8 @@
 
 #include "map.h"
 
+// @Todo: cleanup!!!!
+
 // meshes
 mesh cube_mesh;
 mesh robot_mesh;
@@ -11,7 +13,17 @@ mesh terrain_mesh;
 image shoot_image;
 image test_image;
 image healthbox_image;
+image healthbar_image;
 image action_bar_bg_image;
+image action_bar_top_bg_image;
+image action_image;
+image action_hover_image;
+image mode_text_shooting_image;
+image mode_text_move_image;
+
+image action_move_image;
+image action_shoot_image;
+image action_throw_image;
 
 // shaders
 shader_program default_shader;
@@ -29,7 +41,17 @@ void assets_init()
 	shoot_image = load_image("res/horse.png");
 	test_image = load_image("res/test.png");
 	healthbox_image = load_image("res/healthbox.png");
+	healthbar_image = load_image("res/healthbar.png");
 	action_bar_bg_image = load_image("res/action_bar_bg.png");
+	action_bar_top_bg_image = load_image("res/action_bar_top_bg.png");
+	action_image = load_image("res/action.png");
+	action_hover_image = load_image("res/action_hover.png");
+	mode_text_move_image = load_image("res/mode_text_move.png");
+	mode_text_shooting_image = load_image("res/mode_text_shooting.png");
+
+	action_move_image = load_image("res/action_move.png");
+	action_shoot_image = load_image("res/action_shoot.png");
+	action_throw_image = load_image("res/action_throw.png");
 
 	// shaders
 	default_shader = load_shader_program("res/shader/default_vs.bin", "res/shader/default_fs.bin");

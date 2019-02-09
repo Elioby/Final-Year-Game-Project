@@ -13,10 +13,12 @@
 
 extern double input_mouse_x, input_mouse_y;
 extern u8 input_mouse_button_left;
+extern u8 input_mouse_button_right;
 extern float input_mouse_wheel_delta_y;
 
 extern vec3 input_mouse_ray;
+extern vec3 input_mouse_block_pos;
 
-void input_init(GLFWwindow* window);
+void input_init();
 void input_update();
 void input_end_frame();

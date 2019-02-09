@@ -5,18 +5,15 @@
 #include <bgfx/c99/bgfx.h>
 
 #include "general.h"
+#include "window.h"
 #include "graphics.h"
 #include "input.h"
-#include "mesh.h"
-#include "shader.h"
-#include "raycast.h"
 #include "gui.h"
-#include "image.h"
-#include "entity.h"
 #include "assets.h"
 #include "map.h"
-#include "window.h"
+#include "entity.h"
 
+void gui_setup();
 void draw();
 void update(float dt);
 void camera_update(float dt);
@@ -25,10 +22,13 @@ int main()
 {
 	window_init();
 	graphics_init(WINDOW_WIDTH, WINDOW_HEIGHT);
-	input_init(window);
+	input_init();
 	gui_init();
 	assets_init();
 	map_init();
+	
+	// @Todo: temporary?
+	gui_setup();
 
 	float lastTime = 0;
 	float time, dt;
@@ -40,7 +40,7 @@ int main()
 		lastTime = time;
 
 		glfwPollEvents();
-		input_update();
+		update(dt);
 
 		// This dummy draw call is here to make sure that view 0 is cleared
 		// if no other draw calls are submitted to view 0.
@@ -50,7 +50,6 @@ int main()
 
 		bgfx_dbg_text_printf(0, 0, 0x0f, "Last frame time: %.2fms, FPS: %.0f", dt * 1000.0f, 1 / dt);
 
-		update(dt);
 		draw();
 
 		bgfx_frame(false);
@@ -64,6 +63,63 @@ int main()
 	return 0;
 }
 
+// @Todo: move
+std::vector<button*> action_bar_buttons;
+
+typedef enum action_mode {
+	ACTION_MODE_SELECT_UNITS,
+	ACTION_MODE_MOVE,
+	ACTION_MODE_SHOOT
+} action_mode_t;
+
+action_mode current_action_mode = ACTION_MODE_SELECT_UNITS;
+
+void action_move_mode()
+{
+	current_action_mode = ACTION_MODE_MOVE;
+}
+
+void action_shoot_mode()
+{
+	current_action_mode = ACTION_MODE_SHOOT;
+}
+
+void gui_setup()
+{
+	button* move_button = gui_create_button();
+	move_button->width = graphics_projection_width / 20;
+	move_button->height = move_button->width;
+	move_button->x = graphics_projection_width / 2 - (move_button->width * 4) / 2;
+	move_button->y = move_button->height / 8;
+	move_button->icon_img = action_move_image;
+	move_button->bg_img = action_image;
+	move_button->hover_bg_img = action_hover_image;
+	move_button->click_callback = action_move_mode;
+	action_bar_buttons.push_back(move_button);
+
+	button* shoot_button = gui_create_button();
+	shoot_button->width = graphics_projection_width / 20;
+	shoot_button->height = shoot_button->width;
+	shoot_button->x = graphics_projection_width / 2 - shoot_button->width / 2;
+	shoot_button->y = shoot_button->height / 8;
+	shoot_button->icon_img = action_shoot_image;
+	shoot_button->bg_img = action_image;
+	shoot_button->hover_bg_img = action_hover_image;
+	shoot_button->click_callback = action_shoot_mode;
+	action_bar_buttons.push_back(shoot_button);
+
+	button* throw_button = gui_create_button();
+	throw_button->width = graphics_projection_width / 20;
+	throw_button->height = throw_button->width;
+	throw_button->x = graphics_projection_width / 2 + (throw_button->width * 2) / 2;
+	throw_button->y = throw_button->height / 8;
+	throw_button->icon_img = action_throw_image;
+	throw_button->bg_img = action_image;
+	throw_button->hover_bg_img = action_hover_image;
+	throw_button->click_callback = action_move_mode;
+	action_bar_buttons.push_back(throw_button);
+}
+
 mat4 create_model_matrix(vec3 pos, vec3 rot, vec3 scale)
 {
 	mat4 matrix = mat4(1.0f);
@@ -73,46 +129,128 @@ mat4 create_model_matrix(vec3 pos, vec3 rot, vec3 scale)
 	return matrix;
 }
 
-// @Todo: move!!
-vec3 last_known_intersection = vec3(0.0f, 0.0f, 0.0f);
-vec3 mouse_block_pos;
+entity* selected_entity = NULL;
 
 void update(float dt)
 {
 	camera_update(dt);
+	input_update();
 
-	vec3* intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	bool click_handled_by_gui = gui_update();
 
-	if (intersection != NULL) last_known_intersection = *intersection;
+	if(!click_handled_by_gui)
+	{
+		if (input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START)
+		{
+			vec3 selected_block = input_mouse_block_pos;
 
-	u32 clamped_x = (u32) clamp(floor(last_known_intersection.x), 0.0f, (float) terrain_max_x - 1);
-	u32 clamped_z = (u32) clamp(floor(last_known_intersection.z), 0.0f, (float) terrain_max_z - 1);
+			entity* clicked_entity = entity_get_at_block(selected_block);
 
-	mouse_block_pos = vec3(clamped_x, last_known_intersection.y, clamped_z);
+			if (current_action_mode == ACTION_MODE_SELECT_UNITS)
+			{
+				selected_entity = clicked_entity;
+			}
+			else if (current_action_mode == ACTION_MODE_MOVE)
+			{
+				// we can only move to free blocks
+				if (!clicked_entity)
+				{
+					selected_entity->pos = selected_block;
+				}
+				else
+				{
+					selected_entity = clicked_entity;
+				}
+
+				current_action_mode = ACTION_MODE_SELECT_UNITS;
+			}
+			else if(current_action_mode == ACTION_MODE_SHOOT)
+			{
+				if(clicked_entity && clicked_entity != selected_entity)
+				{
+					entity_health_change(clicked_entity, -6);
+					current_action_mode = ACTION_MODE_SELECT_UNITS;
+				}
+			}
+			else
+			{
+				printf("Action mode unknown!\n");
+			}
+		}
+		else if (input_mouse_button_right == INPUT_MOUSE_BUTTON_UP_START)
+		{
+			current_action_mode = ACTION_MODE_SELECT_UNITS;
+			selected_entity = NULL;
+		}
+	}
 }
 
 void draw()
 {
 	// draw selected tile
-	graphics_draw_mesh(cube_mesh, create_model_matrix(mouse_block_pos, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
+	graphics_draw_mesh(cube_mesh, create_model_matrix(input_mouse_block_pos, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 
 	// draw entites and healthbars
 	for (u32 i = 0; i < entities.size(); i++)
 	{
-		entity ent = entities[i];
+		entity* ent = entities[i];
 
-		vec3 healthbox_aspect = vec3(1.0f, 1.0f / 3.0f, 1.0f);
-		graphics_draw_image(healthbox_image, create_model_matrix(vec3(ent.pos.x, ent.pos.y + 2.0f, ent.pos.z + 0.5f), vec3(1.0f), healthbox_aspect * 0.5f));
+		if(!ent->dead)
+		{
+			vec3 healthbox_aspect = vec3(1.0f, 1.0f / 3.0f, 1.0f);
 
-		graphics_draw_mesh(ent.mesh, create_model_matrix(ent.pos, vec3(1.0f), vec3(1.0f)));
+			if (ent->health > 0) {
+				graphics_draw_image(healthbar_image, create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.038f, ent->pos.z + 0.5f), vec3(1.0f),
+					vec3((0.5f - 0.1f / 3.0f) * (ent->health / (float)ent->max_health), 0.1285f, 1.0f)));
+			}
+
+			graphics_draw_image(healthbox_image, create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.0f, ent->pos.z + 0.5f), vec3(1.0f), healthbox_aspect * 0.5f));
+
+			graphics_draw_mesh(ent->mesh, create_model_matrix(ent->pos, vec3(1.0f), vec3(1.0f)));
+		}
 	}
 
 	// draw terrain
 	graphics_draw_mesh(terrain_mesh, create_model_matrix(vec3(0.0f), vec3(1.0f), vec3(1.0f)));
 
 	// draw action bar
-	gui_draw_image(action_bar_bg_image, graphics_projection_width / 4, 0, graphics_projection_width / 2, graphics_projection_width / 30);
+	if(selected_entity)
+	{
+		// draw top action bar 
+		if (current_action_mode != ACTION_MODE_SELECT_UNITS)
+		{
+			image img;
 
-	// draw action bar buttons
+			if (current_action_mode == ACTION_MODE_MOVE)
+			{
+				img = mode_text_move_image;
+			}
+			else
+			{
+				img = mode_text_shooting_image;
+			}
+
+			// bar bg
+			u32 bar_width = graphics_projection_width / 4;
+			u32 bar_height = graphics_projection_width / 25;
+			gui_draw_image(action_bar_top_bg_image, graphics_projection_width / 2 - bar_width / 2, graphics_projection_height - bar_height, bar_width, bar_height);
+
+			// bar text
+			float scale = 0.5f;
+			u32 text_width = (u32) (img.width * scale);
+			u32 text_height = (u32) (img.height * scale);
+
+			gui_draw_image(img, graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height - (bar_height - text_height) / 2, 
+				text_width, text_height);
+		}
+
+		// draw bottom action bar
+		gui_draw_image(action_bar_bg_image, graphics_projection_width / 4, 0, graphics_projection_width / 2, graphics_projection_width / 30);
+
+		for(u32 i = 0; i < action_bar_buttons.size(); i++)
+		{
+			gui_draw_button(*action_bar_buttons[i]);
+		}
+	}
 }
 

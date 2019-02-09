@@ -16,6 +16,7 @@ image load_image(char* filename)
 	if(data == 0)
 	{
 		printf("Failed to load image %s: \"%s\".\n", filename, stbi_failure_reason());
+		return {};
 	}
 
 	img.width = width;

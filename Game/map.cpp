@@ -8,10 +8,10 @@ u32 terrain_max_z = 25;
 
 void map_init()
 {
-	add_default_entity(vec3(0.0f, 0.0f, 0.0f));
-	add_default_entity(vec3(10.0f, 0.0f, 0.0f));
-	add_default_entity(vec3(5.0f, 0.0f, 10.0f));
-	add_default_entity(vec3(20.0f, 0.0f, 5.0f));
+	entity_add(vec3(0.0f, 0.0f, 0.0f));
+	entity_add(vec3(10.0f, 0.0f, 0.0f));
+	entity_add(vec3(5.0f, 0.0f, 10.0f));
+	entity_add(vec3(20.0f, 0.0f, 5.0f));
 }
 
 mesh load_terrain_mesh()

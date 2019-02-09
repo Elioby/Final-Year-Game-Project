@@ -10,10 +10,15 @@ struct entity {
 
 	mesh mesh;
 
-	u32 health;
-	u32 max_health;
+	i32 health;
+	i32 max_health;
+
+	bool dead;
 };
 
-extern std::vector<entity> entities;
+extern std::vector<entity*> entities;
 
-void add_default_entity(vec3 pos);
+void entity_add(vec3 pos);
+entity* entity_get_at_block(vec3 block_pos);
+
+void entity_health_change(entity* entity, u32 amount);
