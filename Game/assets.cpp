@@ -2,7 +2,7 @@
 
 #include "map.h"
 
-// @Todo: cleanup!!!!
+// @Todo: cleanup!!!! change to just load all files in folder, and reference by string?
 
 // meshes
 mesh cube_mesh;
@@ -20,6 +20,7 @@ image action_image;
 image action_hover_image;
 image mode_text_shooting_image;
 image mode_text_move_image;
+image mode_text_throw_image;
 
 image action_move_image;
 image action_shoot_image;
@@ -48,6 +49,7 @@ void assets_init()
 	action_hover_image = load_image("res/action_hover.png");
 	mode_text_move_image = load_image("res/mode_text_move.png");
 	mode_text_shooting_image = load_image("res/mode_text_shooting.png");
+	mode_text_throw_image = load_image("res/mode_text_throw.png");
 
 	action_move_image = load_image("res/action_move.png");
 	action_shoot_image = load_image("res/action_shoot.png");

@@ -19,6 +19,7 @@ extern image action_bar_top_bg_image;
 extern image action_image;
 extern image action_hover_image;
 extern image mode_text_move_image;
+extern image mode_text_throw_image;
 extern image mode_text_shooting_image;
 
 extern image action_move_image;

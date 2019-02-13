@@ -69,7 +69,8 @@ std::vector<button*> action_bar_buttons;
 typedef enum action_mode {
 	ACTION_MODE_SELECT_UNITS,
 	ACTION_MODE_MOVE,
-	ACTION_MODE_SHOOT
+	ACTION_MODE_SHOOT,
+	ACTION_MODE_THROW
 } action_mode_t;
 
 action_mode current_action_mode = ACTION_MODE_SELECT_UNITS;
@@ -82,6 +83,11 @@ void action_move_mode()
 void action_shoot_mode()
 {
 	current_action_mode = ACTION_MODE_SHOOT;
+}
+
+void action_throw_mode()
+{
+	current_action_mode = ACTION_MODE_THROW;
 }
 
 void gui_setup()
@@ -116,7 +122,7 @@ void gui_setup()
 	throw_button->icon_img = action_throw_image;
 	throw_button->bg_img = action_image;
 	throw_button->hover_bg_img = action_hover_image;
-	throw_button->click_callback = action_move_mode;
+	throw_button->click_callback = action_throw_mode;
 	action_bar_buttons.push_back(throw_button);
 }
 
@@ -131,10 +137,61 @@ mat4 create_model_matrix(vec3 pos, vec3 rot, vec3 scale)
 
 entity* selected_entity = NULL;
 
+std::vector<vec3> path;
+
+bool map_check_los(vec3 start, vec3 end)
+{
+	// the step of the world raytrace
+	float accuracy = 0.25f;
+	vec3 direction = glm::normalize(end - start);
+	vec3 step = direction * accuracy;
+
+	u32 timeout = 0;
+	u32 max_distance = ceil(sqrt((float)terrain_max_x * terrain_max_x + (float)terrain_max_z * terrain_max_z) / accuracy);
+	vec3 step_progress = start;
+	vec3 last_block_pos = vec3(-1.0f);
+	while(timeout++ < max_distance)
+	{
+		step_progress += step;
+
+		vec3 next_step_block_pos = map_get_block_pos(step_progress);
+
+		// only eval if this is a new block than last
+		if(!map_pos_equal(next_step_block_pos, last_block_pos))
+		{
+			// if this block is cover, we do not have los
+			if(map_get_cover_at_block(next_step_block_pos)) return false;
+
+			path.push_back(next_step_block_pos);
+
+			// if we reached the target, we have los
+			if(map_pos_equal(next_step_block_pos, end)) return true;
+
+			last_block_pos = next_step_block_pos;
+		}
+	}
+
+	return false;
+}
+
 void update(float dt)
 {
 	camera_update(dt);
 	input_update();
+
+	// @Todo: move to "entity_update"
+	// if our unit dies on our turn, unselect them!
+	if(selected_entity != NULL && selected_entity->dead) selected_entity = NULL;
+
+	// @Todo: should we remove from the list when they die?
+	for(u32 i = 0; i < entities.size(); i++)
+	{
+		entity* ent = entities[i];
+
+		if(ent->dead) entities.erase(entities.begin() + i);
+	}
+
+	// end entity update
 
 	bool click_handled_by_gui = gui_update();
 
@@ -166,11 +223,38 @@ void update(float dt)
 			}
 			else if(current_action_mode == ACTION_MODE_SHOOT)
 			{
-				if(clicked_entity && clicked_entity != selected_entity)
+			    if(clicked_entity && clicked_entity != selected_entity)
 				{
-					entity_health_change(clicked_entity, -6);
-					current_action_mode = ACTION_MODE_SELECT_UNITS;
+					path.clear();
+
+					// maybe we only need to check along the opposite axis of the direction
+					if(map_check_los(selected_entity->pos, clicked_entity->pos) || 
+						map_check_los(vec3(selected_entity->pos.x + 1, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
+						map_check_los(vec3(selected_entity->pos.x - 1, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
+						map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z + 1), clicked_entity->pos) ||
+						map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z - 1), clicked_entity->pos))
+					{
+						entity_health_change(clicked_entity, -6);
+						current_action_mode = ACTION_MODE_SELECT_UNITS;
+					}
 				}
+			}
+			else if (current_action_mode == ACTION_MODE_THROW)
+			{
+				for(u32 i = 0; i < entities.size(); i++)
+				{
+					entity* ent = entities[i];
+
+					// euclidean distance
+					float distance_squared = pow(abs(selected_block.x - ent->pos.x), 2) + pow(abs(selected_block.z - ent->pos.z), 2);
+
+					if(distance_squared < 12)
+					{
+						entity_health_change(ent, -6);
+					}
+				}
+
+				current_action_mode = ACTION_MODE_SELECT_UNITS;
 			}
 			else
 			{
@@ -190,6 +274,23 @@ void draw()
 	// draw selected tile
 	graphics_draw_mesh(cube_mesh, create_model_matrix(input_mouse_block_pos, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 
+	// @Remove: temp draw path
+	for(u32 i = 0; i < path.size(); i++)
+	{
+		vec3 p = path[i];
+
+		graphics_draw_mesh(cube_mesh, create_model_matrix(p, vec3(1.0f), vec3(1.0f, 0.05f, 1.0f)));
+	}
+
+	// @Todo: move to map_draw
+	// draw cover
+	for(u32 i = 0; i < cover_list.size(); i++)
+	{
+		cover* cov = cover_list[i];
+		graphics_draw_mesh(cube_mesh, create_model_matrix(cov->pos, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)));
+	}
+
+	// @Todo: move to map_draw
 	// draw entites and healthbars
 	for (u32 i = 0; i < entities.size(); i++)
 	{
@@ -210,6 +311,7 @@ void draw()
 		}
 	}
 
+	// @Todo: move to map_draw
 	// draw terrain
 	graphics_draw_mesh(terrain_mesh, create_model_matrix(vec3(0.0f), vec3(1.0f), vec3(1.0f)));
 
@@ -221,13 +323,17 @@ void draw()
 		{
 			image img;
 
-			if (current_action_mode == ACTION_MODE_MOVE)
-			{
-				img = mode_text_move_image;
-			}
-			else
+			if (current_action_mode == ACTION_MODE_SHOOT)
 			{
 				img = mode_text_shooting_image;
+			}
+			else if(current_action_mode == ACTION_MODE_THROW)
+			{
+				img = mode_text_throw_image;
+			}
+			else
+			{	
+				img = mode_text_move_image;
 			}
 
 			// bar bg

@@ -1,11 +1,12 @@
 #include "entity.h"
 
 #include "assets.h"
+#include "map.h"
 
 // @Todo: change with a quadtree!
 std::vector<entity*> entities;
 
-void entity_add(vec3 pos)
+void entity_add(vec3 pos, bool enemy)
 {
 	// @Todo: use of malloc :(
 	entity* ent = (entity*) malloc(sizeof(entity));
@@ -14,21 +15,22 @@ void entity_add(vec3 pos)
 	ent->max_health = 10;
 	ent->health = ent->max_health;
 	ent->dead = false;
+	ent->enemy = enemy;
 	entities.push_back(ent);
 }
 
 vec3 entity_get_block_pos(entity entity)
 {
-	return vec3(floor(entity.pos.x), floor(entity.pos.y), floor(entity.pos.z));
+	return map_get_block_pos(entity.pos);
 }
 
+// @Todo: move to map??????
 entity* entity_get_at_block(vec3 block_pos)
 {
-	for(int i = 0; i < entities.size(); i++)
+	for(u32 i = 0; i < entities.size(); i++)
 	{
 		entity* entity = entities[i];
-		glm::vec<3, bool> vec = glm::equal(block_pos, entity_get_block_pos(*entity));
-		if(vec.x && vec.z)
+		if(map_pos_equal(entity->pos, block_pos))
 		{
 			return entity;
 		}
