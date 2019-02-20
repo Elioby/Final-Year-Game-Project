@@ -22,7 +22,7 @@ inline u32 pack_vec3_into_u32(vec3 vec)
 }
 
 // A version of create_mesh that builds a mesh with no index optimizations. Use this only for temporary code
-mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count)
+mesh mesh_create(pos_normal_vertex* vertices, u32 vertex_count)
 {
 	u16* indices = (u16*) malloc(vertex_count * sizeof(u16));
 
@@ -31,10 +31,10 @@ mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count)
 		indices[i] = i;
 	}
 
-	return create_mesh(vertices, vertex_count, indices, vertex_count);
+	return mesh_create(vertices, vertex_count, indices, vertex_count);
 }
 
-mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u32 index_count)
+mesh mesh_create(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u32 index_count)
 {
 	mesh result = {};
 
@@ -62,6 +62,14 @@ mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u3
 	bgfx_make_ref_release(vertex_index_mem, index_byte_count, 0, 0);
 
 	return result;
+}
+
+void mesh_destroy(mesh m)
+{
+	bgfx_destroy_vertex_buffer(m.vb_handle);
+	bgfx_destroy_index_buffer(m.idb_handle);
+
+
 }
 
 // @Cleanup
@@ -160,5 +168,5 @@ mesh load_obj_mesh(char* filename)
 		indices[i] = vertex_ids[i] - 1;
 	}
 
-	return create_mesh(vertices, vertex_count, indices, index_count);
+	return mesh_create(vertices, vertex_count, indices, index_count);
 }

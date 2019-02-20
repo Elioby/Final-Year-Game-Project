@@ -79,7 +79,7 @@ void graphics_init(int window_width, int window_height)
 
 	bgfx_init(&init);
 
-	bgfx_reset(window_width, window_height, BGFX_RESET_MSAA_X16, init.resolution.format);
+	bgfx_reset(window_width, window_height, BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X16, init.resolution.format);
 
 	bgfx_set_debug(BGFX_DEBUG_TEXT);
 
@@ -168,7 +168,6 @@ void graphics_draw_mesh(mesh mesh, mat4 transform_matrix)
 
 		bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_MSAA, 0);
 
-		// @Note: we just use 0 for the default red shader
 		bgfx_submit(0, default_shader.handle, 0, false);
 
 		bgfx_destroy_vertex_buffer(vb_handle);

@@ -12,6 +12,7 @@
 #include "assets.h"
 #include "map.h"
 #include "entity.h"
+#include "font.h"
 
 void gui_setup();
 void draw();
@@ -147,7 +148,7 @@ bool map_check_los(vec3 start, vec3 end)
 	vec3 step = direction * accuracy;
 
 	u32 timeout = 0;
-	u32 max_distance = ceil(sqrt((float)terrain_max_x * terrain_max_x + (float)terrain_max_z * terrain_max_z) / accuracy);
+	u32 max_distance = (u32) ceil(sqrt((float) terrain_max_x * terrain_max_x + (float) terrain_max_z * terrain_max_z) / accuracy);
 	vec3 step_progress = start;
 	vec3 last_block_pos = vec3(-1.0f);
 	while(timeout++ < max_distance)
@@ -206,6 +207,7 @@ void update(float dt)
 			if (current_action_mode == ACTION_MODE_SELECT_UNITS)
 			{
 				selected_entity = clicked_entity;
+				path.clear();
 			}
 			else if (current_action_mode == ACTION_MODE_MOVE)
 			{
@@ -241,6 +243,7 @@ void update(float dt)
 			}
 			else if (current_action_mode == ACTION_MODE_THROW)
 			{
+				// @Todo: maybe we should have some abstract sense of "objects" that are on the map so we can remove them all together?
 				for(u32 i = 0; i < entities.size(); i++)
 				{
 					entity* ent = entities[i];
@@ -251,6 +254,23 @@ void update(float dt)
 					if(distance_squared < 12)
 					{
 						entity_health_change(ent, -6);
+					}
+				}
+
+				// @Cleanup: dupe code
+				for(u32 i = 0; i < cover_list.size(); i++)
+				{
+					cover* cov = cover_list[i];
+
+					// euclidean distance
+					float distance_squared = pow(abs(selected_block.x - cov->pos.x), 2) + pow(abs(selected_block.z - cov->pos.z), 2);
+
+					if(distance_squared < 12)
+					{
+						cover_list.erase(cover_list.begin() + i);
+
+						// since we removed one from the list, go back one index
+						i--;
 					}
 				}
 
@@ -265,12 +285,17 @@ void update(float dt)
 		{
 			current_action_mode = ACTION_MODE_SELECT_UNITS;
 			selected_entity = NULL;
+			path.clear();
 		}
 	}
 }
 
+font* test_font = NULL;
+
 void draw()
 {
+	if(test_font == NULL) test_font = load_font("res/Roboto-Black.ttf");
+
 	// draw selected tile
 	graphics_draw_mesh(cube_mesh, create_model_matrix(input_mouse_block_pos, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 
@@ -300,7 +325,8 @@ void draw()
 		{
 			vec3 healthbox_aspect = vec3(1.0f, 1.0f / 3.0f, 1.0f);
 
-			if (ent->health > 0) {
+			if (ent->health > 0) 
+			{
 				graphics_draw_image(healthbar_image, create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.038f, ent->pos.z + 0.5f), vec3(1.0f),
 					vec3((0.5f - 0.1f / 3.0f) * (ent->health / (float)ent->max_health), 0.1285f, 1.0f)));
 			}
@@ -314,6 +340,8 @@ void draw()
 	// @Todo: move to map_draw
 	// draw terrain
 	graphics_draw_mesh(terrain_mesh, create_model_matrix(vec3(0.0f), vec3(1.0f), vec3(1.0f)));
+
+	gui_draw_text("Hello! This is just a test.. I'm just saying, OK? k.", test_font, 0, 0);
 
 	// draw action bar
 	if(selected_entity)

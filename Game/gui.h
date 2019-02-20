@@ -2,6 +2,7 @@
 
 #include "general.h"
 #include "image.h"
+#include "font.h"
 
 struct button
 {
@@ -24,5 +25,6 @@ bool gui_update();
 void gui_draw_image(image image, u32 x, u32 y, u32 width, u32 height);
 void gui_draw_image(image image, mat4 transform_matrix);
 void gui_draw_button(button button);
+void gui_draw_text(char* text, font* font, u32 x, u32 y);
 
 button* gui_create_button();

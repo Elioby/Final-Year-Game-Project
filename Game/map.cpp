@@ -61,7 +61,7 @@ mesh load_terrain_mesh()
 		}
 	}
 
-	return create_mesh(vertices, vertex_count);
+	return mesh_create(vertices, vertex_count);
 }
 
 vec3 map_get_block_pos(vec3 pos)

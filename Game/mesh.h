@@ -23,8 +23,10 @@ struct mesh
 
 inline u32 pack_vec3_into_u32(vec3 vec);
 
-mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count);
-mesh create_mesh(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u32 index_count);
+mesh mesh_create(pos_normal_vertex* vertices, u32 vertex_count);
+mesh mesh_create(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u32 index_count);
+
+void mesh_destroy(mesh m);
 
 mesh load_obj_mesh(char* filename);
 

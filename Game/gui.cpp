@@ -88,3 +88,52 @@ void gui_draw_button(button button)
 	gui_draw_image(img, button.x, button.y, button.width, button.height);
 	gui_draw_image(button.icon_img, button.x + button.width / 8, button.y + button.height / 8, button.width - button.width / 4, button.height - button.height / 4);
 }
+
+u16 inds[] = { 1, 2, 0, 1, 3, 2 };
+
+void gui_draw_text(char* text, font* font, u32 x, u32 y)
+{
+	u32 i = 0;
+
+	float advance = 0.0f;
+	float x1 = 0;
+	float y1 = 0;
+
+	while(true)
+	{
+		char c = text[i++];
+
+		if(c == 0) break;
+
+		const stbtt_bakedchar *b = font->char_data + c - 32;
+		stbtt_aligned_quad q = {};
+		stbtt_GetBakedQuad(font->char_data, font->width, font->height, c - 32, &x1, &y1, &q, 1);// @Volatile: 1=opengl & d3d10+,0=d3d9
+
+		pos_normal_vertex* verts = (pos_normal_vertex*) malloc(sizeof(pos_normal_vertex) * 4);
+		verts[0] = { q.x0 / (float) graphics_projection_width - 1.0f, q.y0 / (float) graphics_projection_height, 0.0f, q.s0, q.t1, 0 };
+		verts[1] = { q.x1 / (float) graphics_projection_width - 1.0f, q.y0 / (float) graphics_projection_height, 0.0f, q.s1, q.t1, 0 };
+		verts[2] = { q.x0 / (float) graphics_projection_width - 1.0f, q.y1 / (float) graphics_projection_height, 0.0f, q.s0, q.t0, 0 };
+		verts[3] = { q.x1 / (float) graphics_projection_width - 1.0f, q.y1 / (float) graphics_projection_height, 0.0f, q.s1, q.t0, 0 };
+
+		mesh m = mesh_create(verts, 4, inds, 6);
+
+		bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_MSAA | BGFX_STATE_BLEND_ALPHA, 0);
+
+		bgfx_set_vertex_buffer(0, m.vb_handle, 0, m.vertex_count);
+		bgfx_set_index_buffer(m.idb_handle, 0, m.index_count);
+
+		bgfx_set_texture(0, texture_sampler, font->img.handle, 0);
+
+		mat4 transform_matrix = mat4(1.0f);
+		transform_matrix *= translate(transform_matrix, vec3((x1 / 32.0f) / (float) graphics_projection_width, 
+			((128.0f + (q.y0 - q.y1) - b->yoff * 2.0f) / 4.0f) / (float) graphics_projection_height, 0.0f));
+		transform_matrix *= rotate(transform_matrix, 0.0f, vec3(1.0f));
+		transform_matrix *= glm::scale(transform_matrix, vec3(1.0f , 1.0f, 1.0f));
+
+		bgfx_set_transform(&transform_matrix, 1);
+
+		bgfx_submit(1, gui_shader.handle, 0, false);
+
+		mesh_destroy(m);
+	}
+}
