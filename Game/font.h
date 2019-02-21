@@ -11,3 +11,4 @@ struct font {
 };
 
 font* load_font(char* filename);
+u32 font_get_text_width(font* font, char* text, float scale);

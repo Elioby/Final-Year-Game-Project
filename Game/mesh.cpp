@@ -68,8 +68,6 @@ void mesh_destroy(mesh m)
 {
 	bgfx_destroy_vertex_buffer(m.vb_handle);
 	bgfx_destroy_index_buffer(m.idb_handle);
-
-
 }
 
 // @Cleanup

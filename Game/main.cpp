@@ -341,7 +341,7 @@ void draw()
 	// draw terrain
 	graphics_draw_mesh(terrain_mesh, create_model_matrix(vec3(0.0f), vec3(1.0f), vec3(1.0f)));
 
-	gui_draw_text("Hello! This is just a test.. I'm just saying, OK? k.", test_font, 0, 0);
+	gui_draw_text("Hello! This is just a test.. I'm just saying, OK? k.", test_font, 500, 500, 0.25f);
 
 	// draw action bar
 	if(selected_entity)
@@ -349,19 +349,19 @@ void draw()
 		// draw top action bar 
 		if (current_action_mode != ACTION_MODE_SELECT_UNITS)
 		{
-			image img;
+			char* text;
 
 			if (current_action_mode == ACTION_MODE_SHOOT)
 			{
-				img = mode_text_shooting_image;
+				text = "Shoot Mode";
 			}
 			else if(current_action_mode == ACTION_MODE_THROW)
 			{
-				img = mode_text_throw_image;
+				text = "Throw Mode";
 			}
 			else
 			{	
-				img = mode_text_move_image;
+				text = "Move Mode";
 			}
 
 			// bar bg
@@ -371,11 +371,10 @@ void draw()
 
 			// bar text
 			float scale = 0.5f;
-			u32 text_width = (u32) (img.width * scale);
-			u32 text_height = (u32) (img.height * scale);
+			u32 text_width = (u32) font_get_text_width(test_font, text, scale);
+			u32 text_height = (u32) 128;
 
-			gui_draw_image(img, graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height - (bar_height - text_height) / 2, 
-				text_width, text_height);
+			gui_draw_text(text, test_font, graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height + bar_height, scale);
 		}
 
 		// draw bottom action bar
