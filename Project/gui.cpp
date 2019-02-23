@@ -126,8 +126,8 @@ void gui_draw_text(char* text, font* font, u32 x, u32 y, float scale)
 		bgfx_set_texture(0, texture_sampler, font->img.handle, 0);
 
 		mat4 transform_matrix = mat4(1.0f);
-		transform_matrix *= translate(transform_matrix, vec3(((x1 / 32.0f) + (x / 2.0f)) / (float) graphics_projection_width, 
-			((((q.y0 - q.y1) * scale / 2.0f) - b->yoff * scale) / 2.0f + y / 2.0f) / (float) graphics_projection_height, 0.0f));
+		transform_matrix *= translate(transform_matrix, vec3(0.0f, 
+			0.0f, 0.0f));
 		transform_matrix *= rotate(transform_matrix, 0.0f, vec3(1.0f));
 		transform_matrix *= glm::scale(transform_matrix, vec3(1.0f , 1.0f, 1.0f));
 

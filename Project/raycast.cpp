@@ -4,7 +4,7 @@
 
 #include "graphics.h"
 
-vec3* ray_plane_intersection(vec3 ray_origin, vec3 ray_direction, vec3 plane_origin, vec3 plane_direction)
+vec3 ray_plane_intersection(vec3 ray_origin, vec3 ray_direction, vec3 plane_origin, vec3 plane_direction)
 {
 	float denominator = glm::dot(plane_direction, ray_direction);
 
@@ -18,9 +18,9 @@ vec3* ray_plane_intersection(vec3 ray_origin, vec3 ray_direction, vec3 plane_ori
 			// get the point at t distance along ray_direction (and offset by the ray origin)
 			vec3 plane_intersection = (ray_direction * t) + ray_origin;
 
-			return &plane_intersection;
+			return plane_intersection;
 		}
 	}
 
-	return NULL;
+	return vec3(-1.0f);
 }

@@ -37,14 +37,15 @@ void input_update()
 
 	input_mouse_ray = calculate_mouse_ray();
 
-	vec3* intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	vec3 intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 
-	if(intersection)
+	if(!map_pos_equal(intersection, vec3(-1.0f)))
 	{
-		u32 clamped_x = (u32) clamp(floor(intersection->x), 0.0f, (float) terrain_max_x - 1);
-		u32 clamped_z = (u32) clamp(floor(intersection->z), 0.0f, (float) terrain_max_z - 1);
+		u32 clamped_x = (u32) clamp(floor(intersection.x), 0.0f, (float) terrain_max_x - 1);
+		u32 clamped_z = (u32) clamp(floor(intersection.z), 0.0f, (float) terrain_max_z - 1);
 
-		input_mouse_block_pos = vec3(clamped_x, intersection->y, clamped_z);
+		// @Volatile: no account for y?
+		input_mouse_block_pos = vec3(clamped_x, 0.0f, clamped_z);
 	}
 }
 
