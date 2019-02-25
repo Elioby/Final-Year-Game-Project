@@ -38,30 +38,35 @@ font* load_font(char* filename)
 	return fnt;
 }
 
-
-u32 font_get_text_width(font* font, dynstr* text, float scale)
+u32 font_get_text_width(font* font, char* text, u16 text_len, float scale)
 {
 	u32 i = 0;
-
-	scale *= 2.0f;
 
 	float x1 = 0;
 	float y1 = 0;
 
 	float total_width = 0.0f;
 
-	while(true)
+	stbtt_bakedchar *baked_start = font->char_data - 32;
+
+	while (true)
 	{
-		char c = text->raw[i++];
+		char c = text[i++];
 
-		if(c == 0) break;
-
-		const stbtt_bakedchar *b = font->char_data + c - 32;
-		stbtt_aligned_quad q = {};
-		stbtt_GetBakedQuad(font->char_data, font->width, font->height, c - 32, &x1, &y1, &q, 1);// @Volatile: 1=opengl & d3d10+,0=d3d9
-
-		total_width += (x1 / (20.0f / scale)) + (q.x1 * scale) - (q.x0 * scale);
+		if (c == 0) break;
+		stbtt_bakedchar* b = baked_start + c;
+		total_width += b->xadvance * scale;
 	}
 
-	return (u32) (total_width / 2.0f);
+	return (u32) total_width;
+}
+
+u32 font_get_text_width(font* font, char* text, float scale)
+{
+	return font_get_text_width(font, text, strlen(text), scale);
+}
+
+u32 font_get_text_width(font* font, dynstr* text, float scale)
+{
+	return font_get_text_width(font, text->raw, text->len, scale);
 }

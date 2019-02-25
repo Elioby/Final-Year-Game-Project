@@ -176,8 +176,28 @@ bool map_check_los(vec3 start, vec3 end)
 	return false;
 }
 
+struct action_bar_msg
+{
+	dynstr* msg;
+	float show_seconds;
+	float seconds_since_start;
+};
+
+action_bar_msg bar_msg = { dynstr_new(20) };
+
+void action_bar_set_msg(char* msg, float show_seconds)
+{
+	// @Todo: flash red when setting
+	dynstr_clear(bar_msg.msg);
+	dynstr_append_str(bar_msg.msg, msg);
+	bar_msg.show_seconds = show_seconds;
+	bar_msg.seconds_since_start = 0.0f;
+}
+
 void update(float dt)
 {
+	bar_msg.seconds_since_start += dt;
+
 	camera_update(dt);
 	input_update();
 
@@ -205,6 +225,7 @@ void update(float dt)
 
 			entity* clicked_entity = entity_get_at_block(selected_block);
 
+			// @Todo: action cleanup? 
 			if (current_action_mode == ACTION_MODE_SELECT_UNITS)
 			{
 				selected_entity = clicked_entity;
@@ -215,7 +236,14 @@ void update(float dt)
 				// we can only move to free blocks
 				if (!clicked_entity)
 				{
-					selected_entity->pos = selected_block;
+					if(map_get_cover_at_block(selected_block) == NULL)
+					{
+						selected_entity->pos = selected_block;
+					}
+					else
+					{
+						action_bar_set_msg("Oh im just testing! yueah this is just a test! this is a long test", 2.0f);
+					}
 				}
 				else
 				{
@@ -228,51 +256,73 @@ void update(float dt)
 			{
 			    if(clicked_entity && clicked_entity != selected_entity)
 				{
-					path.clear();
-
-					// maybe we only need to check along the opposite axis of the direction
-					if(map_check_los(selected_entity->pos, clicked_entity->pos) || 
-						map_check_los(vec3(selected_entity->pos.x + 1, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
-						map_check_los(vec3(selected_entity->pos.x - 1, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
-						map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z + 1), clicked_entity->pos) ||
-						map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z - 1), clicked_entity->pos))
+					if(selected_entity->ap > 30)
 					{
-						entity_health_change(clicked_entity, -6);
-						current_action_mode = ACTION_MODE_SELECT_UNITS;
+						path.clear();
+
+						// maybe we only need to check along the opposite axis of the direction
+						if (map_check_los(selected_entity->pos, clicked_entity->pos) ||
+							map_check_los(vec3(selected_entity->pos.x + 1, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
+							map_check_los(vec3(selected_entity->pos.x - 1, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
+							map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z + 1), clicked_entity->pos) ||
+							map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z - 1), clicked_entity->pos))
+						{
+							entity_health_change(clicked_entity, -6);
+							current_action_mode = ACTION_MODE_SELECT_UNITS;
+							selected_entity->ap -= 30;
+						}
 					}
+					else
+					{
+						action_bar_set_msg("Not enough AP", 2.0f);
+					}
+				}
+				else
+				{
+					action_bar_set_msg("Invalid target", 2.0f);
 				}
 			}
 			else if (current_action_mode == ACTION_MODE_THROW)
 			{
-				// @Todo: maybe we should have some abstract sense of "objects" that are on the map so we can remove them all together?
-				for(u32 i = 0; i < entities.size(); i++)
+				if(selected_entity->ap > 30)
 				{
-					entity* ent = entities[i];
-
-					// euclidean distance
-					float distance_squared = pow(abs(selected_block.x - ent->pos.x), 2) + pow(abs(selected_block.z - ent->pos.z), 2);
-
-					if(distance_squared < 12)
+					// @Todo: maybe we should have some abstract sense of "objects" that are on the map so we can remove them all together?
+					for(u32 i = 0; i < entities.size(); i++)
 					{
-						entity_health_change(ent, -6);
+						entity* ent = entities[i];
+
+						// euclidean distance
+						float distance_squared = pow(abs(selected_block.x - ent->pos.x), 2) + pow(abs(selected_block.z - ent->pos.z), 2);
+
+						if(distance_squared < 12)
+						{
+							entity_health_change(ent, -6);
+						}
 					}
+
+					// @Cleanup: dupe code
+					for(u32 i = 0; i < cover_list.size(); i++)
+					{
+						cover* cov = cover_list[i];
+
+						// euclidean distance
+						float distance_squared = pow(abs(selected_block.x - cov->pos.x), 2) + pow(abs(selected_block.z - cov->pos.z), 2);
+
+						if(distance_squared < 12)
+						{
+							cover_list.erase(cover_list.begin() + i);
+
+							// since we removed one from the list, go back one index
+							i--;
+						}
+					}
+
+					selected_entity->ap -= 30;
 				}
-
-				// @Cleanup: dupe code
-				for(u32 i = 0; i < cover_list.size(); i++)
+				else
 				{
-					cover* cov = cover_list[i];
-
-					// euclidean distance
-					float distance_squared = pow(abs(selected_block.x - cov->pos.x), 2) + pow(abs(selected_block.z - cov->pos.z), 2);
-
-					if(distance_squared < 12)
-					{
-						cover_list.erase(cover_list.begin() + i);
-
-						// since we removed one from the list, go back one index
-						i--;
-					}
+					// @Todo: abstract ap use out?
+					action_bar_set_msg("Not enough AP", 2.0f);
 				}
 
 				current_action_mode = ACTION_MODE_SELECT_UNITS;
@@ -349,32 +399,32 @@ void draw()
 		// draw top action bar 
 		if (current_action_mode != ACTION_MODE_SELECT_UNITS)
 		{
-			dynstr* text;
+			char* text;
 
 			if (current_action_mode == ACTION_MODE_SHOOT)
 			{
-				text = dynstr_new("Shoot Mode");
+				text = "Shoot Mode";
 			}
 			else if(current_action_mode == ACTION_MODE_THROW)
 			{
-				text = dynstr_new("Throw Mode");
+				text = "Throw Mode";
 			}
 			else
 			{	
-				text = dynstr_new("Move Mode");
+				text = "Move Mode";
 			}
 
 			// bar bg
 			u32 bar_width = graphics_projection_width / 4;
-			u32 bar_height = graphics_projection_width / 25;
+			u32 bar_height = graphics_projection_height / 12;
 			gui_draw_image(action_bar_top_bg_image, graphics_projection_width / 2 - bar_width / 2, graphics_projection_height - bar_height, bar_width, bar_height);
 
 			// bar text
 			float scale = 0.5f;
 			u32 text_width = (u32) font_get_text_width(test_font, text, scale);
-			u32 text_height = (u32) 128;
+			u32 text_height = (u32) (128.0f * scale);
 
-			gui_draw_text(text, test_font, graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height + bar_height, scale);
+			gui_draw_text(test_font, text, graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height, scale);
 		}
 
 		// draw bottom action bar
@@ -383,12 +433,20 @@ void draw()
 		dynstr_clear(ap);
 
 		dynstr_append(ap, "AP: %i / %i", selected_entity->ap, selected_entity->max_ap);
-		gui_draw_text(ap, test_font, 0, 0, 0.25f);
+		gui_draw_text(test_font, ap, graphics_projection_width / 4 + 15, 15, 0.25f);
 
 		for(u32 i = 0; i < action_bar_buttons.size(); i++)
 		{
 			gui_draw_button(*action_bar_buttons[i]);
 		}
+	}
+
+	// draw action bar text
+	if(bar_msg.seconds_since_start < bar_msg.show_seconds)
+	{
+		u32 width = font_get_text_width(test_font, bar_msg.msg, 0.25f);
+
+		gui_draw_text(test_font, bar_msg.msg, graphics_projection_width / 2 - width / 2, graphics_projection_height / 7, 0.25f);
 	}
 }
 

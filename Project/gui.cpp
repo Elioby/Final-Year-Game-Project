@@ -92,7 +92,7 @@ void gui_draw_button(button button)
 // for text
 u16 inds[] = { 1, 2, 0, 1, 3, 2 };
 
-void gui_draw_text(dynstr* text, font* font, u32 x, u32 y, float scale)
+void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float scale)
 {
 	u32 i = 0;
 
@@ -101,24 +101,24 @@ void gui_draw_text(dynstr* text, font* font, u32 x, u32 y, float scale)
 	float x1 = 0;
 	float y1 = 0;
 
-	char* all_verts = (char*) malloc(sizeof(pos_normal_vertex) * 4 * (text->len + 1));
+	char* all_verts = (char*)malloc(sizeof(pos_normal_vertex) * 4 * (text_len + 1));
 
-	while(true)
+	while (true)
 	{
-		char c = text->raw[i++];
+		char c = text[i++];
 
-		if(c == 0) break;
+		if (c == 0) break;
 
 		const stbtt_bakedchar *b = font->char_data + c - 32;
 		stbtt_aligned_quad q = {};
 		stbtt_GetBakedQuad(font->char_data, font->width, font->height, c - 32, &x1, &y1, &q, 1);// @Volatile: 1=opengl & d3d10+,0=d3d9
 
-		pos_normal_vertex* verts = (pos_normal_vertex*) (all_verts + i * sizeof(pos_normal_vertex) * 4);
+		pos_normal_vertex* verts = (pos_normal_vertex*)(all_verts + i * sizeof(pos_normal_vertex) * 4);
 
-		verts[0] = { (q.x0 * scale) / (float) graphics_projection_width - 1.0f, (q.y0 * scale) / (float) graphics_projection_height - 1.0f, 0.0f, q.s0, q.t1, 0 };
-		verts[1] = { (q.x1 * scale) / (float) graphics_projection_width - 1.0f, (q.y0 * scale) / (float) graphics_projection_height - 1.0f, 0.0f, q.s1, q.t1, 0 };
-		verts[2] = { (q.x0 * scale) / (float) graphics_projection_width - 1.0f, (q.y1 * scale) / (float) graphics_projection_height - 1.0f, 0.0f, q.s0, q.t0, 0 };
-		verts[3] = { (q.x1 * scale) / (float) graphics_projection_width - 1.0f, (q.y1 * scale) / (float) graphics_projection_height - 1.0f, 0.0f, q.s1, q.t0, 0 };
+		verts[0] = { (q.x0 * scale) / (float) graphics_projection_width - 1.0f, (q.y0 * scale) / (float)graphics_projection_height - 1.0f, 0.0f, q.s0, q.t1, 0 };
+		verts[1] = { (q.x1 * scale) / (float) graphics_projection_width - 1.0f, (q.y0 * scale) / (float)graphics_projection_height - 1.0f, 0.0f, q.s1, q.t1, 0 };
+		verts[2] = { (q.x0 * scale) / (float) graphics_projection_width - 1.0f, (q.y1 * scale) / (float)graphics_projection_height - 1.0f, 0.0f, q.s0, q.t0, 0 };
+		verts[3] = { (q.x1 * scale) / (float) graphics_projection_width - 1.0f, (q.y1 * scale) / (float)graphics_projection_height - 1.0f, 0.0f, q.s1, q.t0, 0 };
 
 		mesh m = mesh_create(verts, 4, inds, 6);
 
@@ -129,8 +129,8 @@ void gui_draw_text(dynstr* text, font* font, u32 x, u32 y, float scale)
 
 		bgfx_set_texture(0, texture_sampler, font->img.handle, 0);
 
-		mat4 transform_matrix = mat4(1.0f); 
-		transform_matrix *= translate(transform_matrix, vec3(((x1 / 32.0f) + (x / 2.0f)) / (float) graphics_projection_width,
+		mat4 transform_matrix = mat4(1.0f);
+		transform_matrix *= translate(transform_matrix, vec3(((x / 2.0f)) / (float) graphics_projection_width,
 			((((q.y0 - q.y1) * scale / 2.0f) - b->yoff * scale) / 2.0f + y / 2.0f) / (float) graphics_projection_height, 0.0f));
 		transform_matrix *= rotate(transform_matrix, 0.0f, vec3(1.0f));
 		transform_matrix *= glm::scale(transform_matrix, vec3(1.0f, 1.0f, 1.0f));
@@ -140,4 +140,14 @@ void gui_draw_text(dynstr* text, font* font, u32 x, u32 y, float scale)
 		bgfx_submit(1, gui_shader.handle, 0, false);
 		mesh_destroy(m);
 	}
+}
+
+void gui_draw_text(font* font, char* text, u32 x, u32 y, float scale)
+{
+	gui_draw_text(font, text, strlen(text), x, y, scale);
+}
+
+void gui_draw_text(font* font, dynstr* text, u32 x, u32 y, float scale)
+{
+	gui_draw_text(font, text->raw, text->len, x, y, scale);
 }
