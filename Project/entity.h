@@ -13,6 +13,9 @@ struct entity {
 	i32 health;
 	i32 max_health;
 
+	i32 ap;
+	i32 max_ap;
+
 	bool enemy;
 	bool dead;
 };

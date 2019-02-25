@@ -125,6 +125,7 @@
     <ClCompile Include="action.cpp" />
     <ClCompile Include="assets.cpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="dynstr.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="file.cpp" />
     <ClCompile Include="font.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="action.h" />
     <ClInclude Include="assets.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="dynstr.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="font.h" />

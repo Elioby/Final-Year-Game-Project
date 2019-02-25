@@ -13,6 +13,7 @@
 #include "map.h"
 #include "entity.h"
 #include "font.h"
+#include "dynstr.h"
 
 void gui_setup();
 void draw();
@@ -291,6 +292,7 @@ void update(float dt)
 }
 
 font* test_font = NULL;
+dynstr* ap = dynstr_new(9);
 
 void draw()
 {
@@ -341,27 +343,25 @@ void draw()
 	// draw terrain
 	graphics_draw_mesh(terrain_mesh, create_model_matrix(vec3(0.0f), vec3(1.0f), vec3(1.0f)));
 
-	gui_draw_text("Hello! This is just a test.. I'm just saying, OK? k.", test_font, 500, 500, 0.25f);
-
 	// draw action bar
 	if(selected_entity)
 	{
 		// draw top action bar 
 		if (current_action_mode != ACTION_MODE_SELECT_UNITS)
 		{
-			char* text;
+			dynstr* text;
 
 			if (current_action_mode == ACTION_MODE_SHOOT)
 			{
-				text = "Shoot Mode";
+				text = dynstr_new("Shoot Mode");
 			}
 			else if(current_action_mode == ACTION_MODE_THROW)
 			{
-				text = "Throw Mode";
+				text = dynstr_new("Throw Mode");
 			}
 			else
 			{	
-				text = "Move Mode";
+				text = dynstr_new("Move Mode");
 			}
 
 			// bar bg
@@ -379,6 +379,11 @@ void draw()
 
 		// draw bottom action bar
 		gui_draw_image(action_bar_bg_image, graphics_projection_width / 4, 0, graphics_projection_width / 2, graphics_projection_width / 30);
+
+		dynstr_clear(ap);
+
+		dynstr_append(ap, "AP: %i / %i", selected_entity->ap, selected_entity->max_ap);
+		gui_draw_text(ap, test_font, 0, 0, 0.25f);
 
 		for(u32 i = 0; i < action_bar_buttons.size(); i++)
 		{

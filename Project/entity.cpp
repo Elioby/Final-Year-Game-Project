@@ -14,6 +14,8 @@ void entity_add(vec3 pos, bool enemy)
 	ent->mesh = robot_mesh;
 	ent->max_health = 10;
 	ent->health = ent->max_health;
+	ent->max_ap = 6;
+	ent->ap = ent->max_ap;
 	ent->dead = false;
 	ent->enemy = enemy;
 	entities.push_back(ent);

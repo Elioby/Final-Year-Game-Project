@@ -39,7 +39,7 @@ font* load_font(char* filename)
 }
 
 
-u32 font_get_text_width(font* font, char* text, float scale)
+u32 font_get_text_width(font* font, dynstr* text, float scale)
 {
 	u32 i = 0;
 
@@ -52,7 +52,7 @@ u32 font_get_text_width(font* font, char* text, float scale)
 
 	while(true)
 	{
-		char c = text[i++];
+		char c = text->raw[i++];
 
 		if(c == 0) break;
 
@@ -63,5 +63,5 @@ u32 font_get_text_width(font* font, char* text, float scale)
 		total_width += (x1 / (20.0f / scale)) + (q.x1 * scale) - (q.x0 * scale);
 	}
 
-	return (u32) total_width / 2.0f;
+	return (u32) (total_width / 2.0f);
 }

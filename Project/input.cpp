@@ -63,8 +63,8 @@ void input_end_frame()
 
 vec3 calculate_mouse_ray()
 {
-	float x = (2.0f * input_mouse_x) / (float)graphics_projection_width - 1.0f;
-	float y = (2.0f * input_mouse_y) / (float)graphics_projection_height - 1.0f;
+	float x = (2.0f * (float) input_mouse_x) / (float) graphics_projection_width - 1.0f;
+	float y = (2.0f * (float) input_mouse_y) / (float) graphics_projection_height - 1.0f;
 
 	// normalize the position into graphics coords (-1.0 to 1.0, -1.0 to 1.0)
 	vec3 ray_norm = vec3(x, y, 1.0f);
@@ -103,5 +103,5 @@ void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int 
 
 void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	input_mouse_wheel_delta_y = yoffset;
+	input_mouse_wheel_delta_y = (float) yoffset;
 }
