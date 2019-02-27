@@ -71,11 +71,7 @@ void update(float dt)
 	camera_update(dt);
 	input_update();
 
-	gui_handled_click();
-
 	gui_update();
-
-	gui_handled_click();
 
 	entity_update();
 	action_update();

@@ -158,6 +158,7 @@ void dynstr_append_int(dynstr* to, int from)
 	snprintf(str, length + 1, "%d", from);
 
 	dynstr_append_str(to, str, length);
+	free(str);
 }
 
 dynstr* dynstr_append(dynstr* to, dynstr* from)
