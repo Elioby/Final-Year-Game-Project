@@ -1,5 +1,7 @@
 #pragma once
 
+#include "general.h"
+
 typedef enum action_mode {
 	ACTION_MODE_SELECT_UNITS,
 	ACTION_MODE_MOVE,
@@ -8,3 +10,5 @@ typedef enum action_mode {
 } action_mode_t;
 
 extern action_mode current_action_mode;
+
+void action_update();

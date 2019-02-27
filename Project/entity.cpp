@@ -10,6 +10,20 @@ std::vector<entity*> entities;
 entity* selected_entity;
 u32 last_entity_id;
 
+void entity_update()
+{
+	// if our unit dies on our turn, unselect them!
+	if (selected_entity != NULL && selected_entity->dead) selected_entity = NULL;
+
+	// @Todo: should we remove from the list when they die?
+	for (u32 i = 0; i < entities.size(); i++)
+	{
+		entity* ent = entities[i];
+
+		if (ent->dead) entities.erase(entities.begin() + i);
+	}
+}
+
 void entity_add(vec3 pos, bool enemy)
 {
 	// @Todo: use of malloc :(

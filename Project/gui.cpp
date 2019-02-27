@@ -11,15 +11,18 @@
 
 std::vector<button*> buttons;
 
+bool handled_click = false;
+bool has_gui_update_happened_this_frame = false;
+
 void gui_init() 
 {
 	bgfx_set_view_rect(1, 0, 0, graphics_projection_width, graphics_projection_height);
 }
 
 // returns true if the gui handled the mouse click
-bool gui_update()
+void gui_update()
 {
-	bool handled = false;
+	handled_click = false;
 
 	for(u32 i = 0; i < buttons.size(); i++)
 	{
@@ -28,11 +31,23 @@ bool gui_update()
 			&& input_mouse_y >= button.y && input_mouse_y <= button.y + button.height)
 		{
 			if(button.click_callback) button.click_callback();
-			handled = true;
+			handled_click = true;
 		}
 	}
 
-	return handled;
+	has_gui_update_happened_this_frame = true;
+}
+
+void gui_end_frame()
+{
+	has_gui_update_happened_this_frame = false;
+}
+
+bool gui_handled_click()
+{
+	assert(has_gui_update_happened_this_frame && "You must call this method after the gui_update method has been called");
+
+	return handled_click;
 }
 
 button* gui_create_button()

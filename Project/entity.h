@@ -26,6 +26,8 @@ extern std::vector<entity*> entities;
 // @Cleanup: honestly idk where else to put this
 extern entity* selected_entity;
 
+void entity_update();
+
 void entity_add(vec3 pos, bool enemy);
 entity* entity_get_at_block(vec3 block_pos);
 

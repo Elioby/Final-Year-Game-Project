@@ -20,8 +20,13 @@ struct button
 	void (*click_callback)();
 };
 
+
 void gui_init();
-bool gui_update();
+void gui_update();
+void gui_end_frame();
+
+// Checks if a click was already handled by the gui (must be called after gui_update)
+bool gui_handled_click();
 
 void gui_draw_image(image image, u32 x, u32 y, u32 width, u32 height);
 void gui_draw_image(image image, mat4 transform_matrix);
