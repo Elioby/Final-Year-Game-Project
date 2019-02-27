@@ -6,6 +6,7 @@
 #include <vector>
 
 struct entity {
+	u32 id;
 	vec3 pos;
 
 	mesh mesh;
@@ -22,7 +23,11 @@ struct entity {
 
 extern std::vector<entity*> entities;
 
+// @Cleanup: honestly idk where else to put this
+extern entity* selected_entity;
+
 void entity_add(vec3 pos, bool enemy);
 entity* entity_get_at_block(vec3 block_pos);
 
-void entity_health_change(entity* entity, u32 amount);
+void entity_health_change(entity* ent, entity* inflict_ent, i32 amount);
+bool entity_is_same_team(entity* ent1, entity* ent2);

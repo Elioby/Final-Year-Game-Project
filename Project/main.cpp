@@ -14,8 +14,9 @@
 #include "entity.h"
 #include "font.h"
 #include "dynstr.h"
+#include "actionbar.h"
+#include "action.h"
 
-void gui_setup();
 void draw();
 void update(float dt);
 void camera_update(float dt);
@@ -28,15 +29,14 @@ int main()
 	gui_init();
 	assets_init();
 	map_init();
-	
-	// @Todo: temporary?
-	gui_setup();
+	actionbar_init();
 
 	float lastTime = 0;
 	float time, dt;
 
 	while(!glfwWindowShouldClose(window))
 	{
+		
 		time = (float) glfwGetTime();
 		dt = time - lastTime;
 		lastTime = time;
@@ -65,141 +65,11 @@ int main()
 	return 0;
 }
 
-// @Todo: move
-std::vector<button*> action_bar_buttons;
-
-typedef enum action_mode {
-	ACTION_MODE_SELECT_UNITS,
-	ACTION_MODE_MOVE,
-	ACTION_MODE_SHOOT,
-	ACTION_MODE_THROW
-} action_mode_t;
-
-action_mode current_action_mode = ACTION_MODE_SELECT_UNITS;
-
-void action_move_mode()
-{
-	current_action_mode = ACTION_MODE_MOVE;
-}
-
-void action_shoot_mode()
-{
-	current_action_mode = ACTION_MODE_SHOOT;
-}
-
-void action_throw_mode()
-{
-	current_action_mode = ACTION_MODE_THROW;
-}
-
-void gui_setup()
-{
-	button* move_button = gui_create_button();
-	move_button->width = graphics_projection_width / 20;
-	move_button->height = move_button->width;
-	move_button->x = graphics_projection_width / 2 - (move_button->width * 4) / 2;
-	move_button->y = move_button->height / 8;
-	move_button->icon_img = action_move_image;
-	move_button->bg_img = action_image;
-	move_button->hover_bg_img = action_hover_image;
-	move_button->click_callback = action_move_mode;
-	action_bar_buttons.push_back(move_button);
-
-	button* shoot_button = gui_create_button();
-	shoot_button->width = graphics_projection_width / 20;
-	shoot_button->height = shoot_button->width;
-	shoot_button->x = graphics_projection_width / 2 - shoot_button->width / 2;
-	shoot_button->y = shoot_button->height / 8;
-	shoot_button->icon_img = action_shoot_image;
-	shoot_button->bg_img = action_image;
-	shoot_button->hover_bg_img = action_hover_image;
-	shoot_button->click_callback = action_shoot_mode;
-	action_bar_buttons.push_back(shoot_button);
-
-	button* throw_button = gui_create_button();
-	throw_button->width = graphics_projection_width / 20;
-	throw_button->height = throw_button->width;
-	throw_button->x = graphics_projection_width / 2 + (throw_button->width * 2) / 2;
-	throw_button->y = throw_button->height / 8;
-	throw_button->icon_img = action_throw_image;
-	throw_button->bg_img = action_image;
-	throw_button->hover_bg_img = action_hover_image;
-	throw_button->click_callback = action_throw_mode;
-	action_bar_buttons.push_back(throw_button);
-}
-
-mat4 create_model_matrix(vec3 pos, vec3 rot, vec3 scale)
-{
-	mat4 matrix = mat4(1.0f);
-	matrix *= translate(matrix, pos);
-	matrix *= rotate(matrix, 0.0f, rot);
-	matrix *= glm::scale(matrix, scale * 4.0f);
-	return matrix;
-}
-
-entity* selected_entity = NULL;
-
-std::vector<vec3> path;
-
-bool map_check_los(vec3 start, vec3 end)
-{
-	// the step of the world raytrace
-	float accuracy = 0.25f;
-	vec3 direction = glm::normalize(end - start);
-	vec3 step = direction * accuracy;
-
-	u32 timeout = 0;
-	u32 max_distance = (u32) ceil(sqrt((float) terrain_max_x * terrain_max_x + (float) terrain_max_z * terrain_max_z) / accuracy);
-	vec3 step_progress = start;
-	vec3 last_block_pos = vec3(-1.0f);
-	while(timeout++ < max_distance)
-	{
-		step_progress += step;
-
-		vec3 next_step_block_pos = map_get_block_pos(step_progress);
-
-		// only eval if this is a new block than last
-		if(!map_pos_equal(next_step_block_pos, last_block_pos))
-		{
-			// if this block is cover, we do not have los
-			if(map_get_cover_at_block(next_step_block_pos)) return false;
-
-			path.push_back(next_step_block_pos);
-
-			// if we reached the target, we have los
-			if(map_pos_equal(next_step_block_pos, end)) return true;
-
-			last_block_pos = next_step_block_pos;
-		}
-	}
-
-	return false;
-}
-
-struct action_bar_msg
-{
-	dynstr* msg;
-	float show_seconds;
-	float seconds_since_start;
-};
-
-action_bar_msg bar_msg = { dynstr_new(20) };
-
-void action_bar_set_msg(char* msg, float show_seconds)
-{
-	// @Todo: flash red when setting
-	dynstr_clear(bar_msg.msg);
-	dynstr_append_str(bar_msg.msg, msg);
-	bar_msg.show_seconds = show_seconds;
-	bar_msg.seconds_since_start = 0.0f;
-}
-
 void update(float dt)
 {
-	bar_msg.seconds_since_start += dt;
-
 	camera_update(dt);
 	input_update();
+	actionbar_update(dt);
 
 	// @Todo: move to "entity_update"
 	// if our unit dies on our turn, unselect them!
@@ -229,7 +99,6 @@ void update(float dt)
 			if (current_action_mode == ACTION_MODE_SELECT_UNITS)
 			{
 				selected_entity = clicked_entity;
-				path.clear();
 			}
 			else if (current_action_mode == ACTION_MODE_MOVE)
 			{
@@ -242,7 +111,7 @@ void update(float dt)
 					}
 					else
 					{
-						action_bar_set_msg("Oh im just testing! yueah this is just a test! this is a long test", 2.0f);
+						actionbar_set_msg("Invalid move position", 2.0f);
 					}
 				}
 				else
@@ -254,12 +123,10 @@ void update(float dt)
 			}
 			else if(current_action_mode == ACTION_MODE_SHOOT)
 			{
-			    if(clicked_entity && clicked_entity != selected_entity)
+			    if(clicked_entity && clicked_entity != selected_entity && !entity_is_same_team(selected_entity, clicked_entity))
 				{
 					if(selected_entity->ap > 30)
 					{
-						path.clear();
-
 						// maybe we only need to check along the opposite axis of the direction
 						if (map_check_los(selected_entity->pos, clicked_entity->pos) ||
 							map_check_los(vec3(selected_entity->pos.x + 1, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
@@ -267,19 +134,19 @@ void update(float dt)
 							map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z + 1), clicked_entity->pos) ||
 							map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z - 1), clicked_entity->pos))
 						{
-							entity_health_change(clicked_entity, -6);
+							entity_health_change(clicked_entity, selected_entity, -6);
 							current_action_mode = ACTION_MODE_SELECT_UNITS;
 							selected_entity->ap -= 30;
 						}
 					}
 					else
 					{
-						action_bar_set_msg("Not enough AP", 2.0f);
+						actionbar_set_msg("Not enough AP", 2.0f);
 					}
 				}
 				else
 				{
-					action_bar_set_msg("Invalid target", 2.0f);
+					actionbar_set_msg("Invalid target", 2.0f);
 				}
 			}
 			else if (current_action_mode == ACTION_MODE_THROW)
@@ -296,7 +163,7 @@ void update(float dt)
 
 						if(distance_squared < 12)
 						{
-							entity_health_change(ent, -6);
+							entity_health_change(ent, selected_entity, -6);
 						}
 					}
 
@@ -322,7 +189,7 @@ void update(float dt)
 				else
 				{
 					// @Todo: abstract ap use out?
-					action_bar_set_msg("Not enough AP", 2.0f);
+					actionbar_set_msg("Not enough AP", 2.0f);
 				}
 
 				current_action_mode = ACTION_MODE_SELECT_UNITS;
@@ -336,27 +203,19 @@ void update(float dt)
 		{
 			current_action_mode = ACTION_MODE_SELECT_UNITS;
 			selected_entity = NULL;
-			path.clear();
 		}
 	}
 }
 
-font* test_font = NULL;
-dynstr* ap = dynstr_new(9);
-
 void draw()
 {
-	if(test_font == NULL) test_font = load_font("res/Roboto-Black.ttf");
-
 	// draw selected tile
-	graphics_draw_mesh(cube_mesh, create_model_matrix(input_mouse_block_pos, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
+	graphics_draw_mesh(cube_mesh, graphics_create_model_matrix(input_mouse_block_pos, 0.0f, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 
-	// @Remove: temp draw path
-	for(u32 i = 0; i < path.size(); i++)
+	// draw selected entity
+	if(selected_entity)
 	{
-		vec3 p = path[i];
-
-		graphics_draw_mesh(cube_mesh, create_model_matrix(p, vec3(1.0f), vec3(1.0f, 0.05f, 1.0f)));
+		//graphics_draw_image(selected_entity_image, graphics_create_model_matrix(vec3(3.0f, 0.01f, 3.0f), radians(0.0f), vec3(1.0f, 0.0f, 0.0f), vec3(0.5f)));
 	}
 
 	// @Todo: move to map_draw
@@ -364,7 +223,7 @@ void draw()
 	for(u32 i = 0; i < cover_list.size(); i++)
 	{
 		cover* cov = cover_list[i];
-		graphics_draw_mesh(cube_mesh, create_model_matrix(cov->pos, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)));
+		graphics_draw_mesh(cube_mesh, graphics_create_model_matrix(cov->pos, 0.0f, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)));
 	}
 
 	// @Todo: move to map_draw
@@ -379,74 +238,23 @@ void draw()
 
 			if (ent->health > 0) 
 			{
-				graphics_draw_image(healthbar_image, create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.038f, ent->pos.z + 0.5f), vec3(1.0f),
+				image img = fhealthbar_image;
+				if(ent->enemy) img = ehealthbar_image;
+				graphics_draw_image(img, graphics_create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.038f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f),
 					vec3((0.5f - 0.1f / 3.0f) * (ent->health / (float)ent->max_health), 0.1285f, 1.0f)));
 			}
 
-			graphics_draw_image(healthbox_image, create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.0f, ent->pos.z + 0.5f), vec3(1.0f), healthbox_aspect * 0.5f));
+			graphics_draw_image(healthbox_image, graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.0f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f), healthbox_aspect * 0.5f));
 
-			graphics_draw_mesh(ent->mesh, create_model_matrix(ent->pos, vec3(1.0f), vec3(1.0f)));
+			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, 0.0f, vec3(1.0f), vec3(1.0f)));
 		}
 	}
 
 	// @Todo: move to map_draw
 	// draw terrain
-	graphics_draw_mesh(terrain_mesh, create_model_matrix(vec3(0.0f), vec3(1.0f), vec3(1.0f)));
+	graphics_draw_mesh(terrain_mesh, graphics_create_model_matrix(vec3(0.0f), 0.0f, vec3(1.0f), vec3(1.0f)));
 
 	// draw action bar
-	if(selected_entity)
-	{
-		// draw top action bar 
-		if (current_action_mode != ACTION_MODE_SELECT_UNITS)
-		{
-			char* text;
-
-			if (current_action_mode == ACTION_MODE_SHOOT)
-			{
-				text = "Shoot Mode";
-			}
-			else if(current_action_mode == ACTION_MODE_THROW)
-			{
-				text = "Throw Mode";
-			}
-			else
-			{	
-				text = "Move Mode";
-			}
-
-			// bar bg
-			u32 bar_width = graphics_projection_width / 4;
-			u32 bar_height = graphics_projection_height / 12;
-			gui_draw_image(action_bar_top_bg_image, graphics_projection_width / 2 - bar_width / 2, graphics_projection_height - bar_height, bar_width, bar_height);
-
-			// bar text
-			float scale = 0.5f;
-			u32 text_width = (u32) font_get_text_width(test_font, text, scale);
-			u32 text_height = (u32) (128.0f * scale);
-
-			gui_draw_text(test_font, text, graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height, scale);
-		}
-
-		// draw bottom action bar
-		gui_draw_image(action_bar_bg_image, graphics_projection_width / 4, 0, graphics_projection_width / 2, graphics_projection_width / 30);
-
-		dynstr_clear(ap);
-
-		dynstr_append(ap, "AP: %i / %i", selected_entity->ap, selected_entity->max_ap);
-		gui_draw_text(test_font, ap, graphics_projection_width / 4 + 15, 15, 0.25f);
-
-		for(u32 i = 0; i < action_bar_buttons.size(); i++)
-		{
-			gui_draw_button(*action_bar_buttons[i]);
-		}
-	}
-
-	// draw action bar text
-	if(bar_msg.seconds_since_start < bar_msg.show_seconds)
-	{
-		u32 width = font_get_text_width(test_font, bar_msg.msg, 0.25f);
-
-		gui_draw_text(test_font, bar_msg.msg, graphics_projection_width / 2 - width / 2, graphics_projection_height / 7, 0.25f);
-	}
+	actionbar_draw();
 }
 

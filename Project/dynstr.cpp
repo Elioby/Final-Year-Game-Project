@@ -51,6 +51,66 @@ dynstr* dynstr_new()
 void dynstr_free(dynstr* str)
 {
 	free(str);
+	free(str->raw);
+}
+
+dynstr* dynstr_append_va(dynstr* to, char* format, va_list args)
+{
+	u32 arg_index = 0;
+
+	bool last_was_percent = false;
+	for (u32 i = 0; true; i++)
+	{
+		char c = format[i];
+		if (c == 0) break;
+
+		if (last_was_percent)
+		{
+			if (c == 's')
+			{
+				dynstr_append_str(to, va_arg(args, char*));
+			}
+			else if (c == 'i')
+			{
+				int integer = va_arg(args, int);
+				dynstr_append_int(to, integer);
+			}
+			else if (c == '%')
+			{
+				// @Optimize: use a single char append method?
+				dynstr_append_str(to, "%", 1);
+			}
+
+			last_was_percent = false;
+			continue;
+		}
+
+		if (c != '%')
+		{
+			char ch[2];
+			ch[0] = c;
+			ch[1] = 0;
+
+			// @Optimize: use a single char append method?
+			dynstr_append_str(to, ch, 1);
+		}
+		else
+		{
+			last_was_percent = true;
+		}
+	}
+}
+
+dynstr* dynstr_append(dynstr* to, char* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	dynstr_append_va(to, format, args);
+
+	va_end(args);
+
+	return to;
 }
 
 // @Optimize: reallocate 2* last size
@@ -58,7 +118,7 @@ void dynstr_free(dynstr* str)
 // The dynstr pointer will still be valid, but the raw pointer might be invalidated
 void dynstr_append_str(dynstr* to, char* from, u16 from_len)
 {
-	assert(from != 0);
+	assert(from != 0 && (u32) from_len + (u32) to->len < UINT16_MAX);
 
 	if (from_len == 0)
 	{
@@ -83,7 +143,10 @@ void dynstr_append_str(dynstr* to, char* from, u16 from_len)
 
 void dynstr_append_str(dynstr* to, char* from)
 {
-	return dynstr_append_str(to, from, strlen(from));
+	size_t from_len = strlen(from);
+	assert(from_len < UINT16_MAX);
+
+	return dynstr_append_str(to, from, (u16) from_len);
 }
 
 void dynstr_append_int(dynstr* to, int from)

@@ -89,43 +89,45 @@ void gui_draw_button(button button)
 	gui_draw_image(button.icon_img, button.x + button.width / 8, button.y + button.height / 8, button.width - button.width / 4, button.height - button.height / 4);
 }
 
-// for text
-u16 inds[] = { 1, 2, 0, 1, 3, 2 };
-
 void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float scale)
 {
-	u32 i = 0;
-
 	scale *= 2.0f;
 
 	float x1 = 0;
 	float y1 = 0;
 
-	char* all_verts = (char*)malloc(sizeof(pos_normal_vertex) * 4 * (text_len + 1));
-
-	while (true)
+	for(u32 i = 0; i < text_len; i++)
 	{
-		char c = text[i++];
-
-		if (c == 0) break;
+		char c = text[i];
 
 		const stbtt_bakedchar *b = font->char_data + c - 32;
 		stbtt_aligned_quad q = {};
 		stbtt_GetBakedQuad(font->char_data, font->width, font->height, c - 32, &x1, &y1, &q, 1);// @Volatile: 1=opengl & d3d10+,0=d3d9
 
-		pos_normal_vertex* verts = (pos_normal_vertex*)(all_verts + i * sizeof(pos_normal_vertex) * 4);
+		// @Todo: abstract out
+		bgfx_vertex_decl_t decl;
+		bgfx_vertex_decl_begin(&decl, BGFX_RENDERER_TYPE_NOOP);
+		bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+		bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+		bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_NORMAL, 4, BGFX_ATTRIB_TYPE_UINT8, true, true);
+		bgfx_vertex_decl_end(&decl);
 
-		verts[0] = { (q.x0 * scale) / (float) graphics_projection_width - 1.0f, (q.y0 * scale) / (float)graphics_projection_height - 1.0f, 0.0f, q.s0, q.t1, 0 };
-		verts[1] = { (q.x1 * scale) / (float) graphics_projection_width - 1.0f, (q.y0 * scale) / (float)graphics_projection_height - 1.0f, 0.0f, q.s1, q.t1, 0 };
-		verts[2] = { (q.x0 * scale) / (float) graphics_projection_width - 1.0f, (q.y1 * scale) / (float)graphics_projection_height - 1.0f, 0.0f, q.s0, q.t0, 0 };
-		verts[3] = { (q.x1 * scale) / (float) graphics_projection_width - 1.0f, (q.y1 * scale) / (float)graphics_projection_height - 1.0f, 0.0f, q.s1, q.t0, 0 };
+		bgfx_transient_vertex_buffer_t tvb;
+		bgfx_alloc_transient_vertex_buffer(&tvb, 4, &decl);
 
-		mesh m = mesh_create(verts, 4, inds, 6);
+		pos_normal_vertex* verts = (pos_normal_vertex*) tvb.data;
+
+		verts[0] = { (q.x0 * scale) / (float) graphics_projection_width - 1.0f, (q.y0 * scale) / (float) graphics_projection_height - 1.0f, 0.0f, q.s0, q.t1, 0 };
+		verts[1] = { (q.x1 * scale) / (float) graphics_projection_width - 1.0f, (q.y0 * scale) / (float) graphics_projection_height - 1.0f, 0.0f, q.s1, q.t1, 0 };
+		verts[2] = { (q.x0 * scale) / (float) graphics_projection_width - 1.0f, (q.y1 * scale) / (float) graphics_projection_height - 1.0f, 0.0f, q.s0, q.t0, 0 };
+		verts[3] = { (q.x1 * scale) / (float) graphics_projection_width - 1.0f, (q.y1 * scale) / (float) graphics_projection_height - 1.0f, 0.0f, q.s1, q.t0, 0 };
 
 		bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_MSAA | BGFX_STATE_BLEND_ALPHA, 0);
 
-		bgfx_set_vertex_buffer(0, m.vb_handle, 0, m.vertex_count);
-		bgfx_set_index_buffer(m.idb_handle, 0, m.index_count);
+		bgfx_set_transient_vertex_buffer(0, &tvb, 0, 4);
+
+		// @Note: we can just use the index from our regular plane mesh
+		bgfx_set_index_buffer(plane_mesh.idb_handle, 0, plane_mesh.index_count);
 
 		bgfx_set_texture(0, texture_sampler, font->img.handle, 0);
 
@@ -138,7 +140,6 @@ void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float sca
 		bgfx_set_transform(&transform_matrix, 1);
 
 		bgfx_submit(1, gui_shader.handle, 0, false);
-		mesh_destroy(m);
 	}
 }
 

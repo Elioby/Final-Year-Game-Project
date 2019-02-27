@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="action.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="assets.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -66,11 +63,14 @@
     <ClCompile Include="dynstr.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="actionbar.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="action.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="action.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="assets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -117,6 +117,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dynstr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="actionbar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="action.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

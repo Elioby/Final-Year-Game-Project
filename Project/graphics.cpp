@@ -32,6 +32,7 @@ bgfx_uniform_handle_t texture_sampler;
 
 mesh plane_mesh;
 
+// @Todo: cleanup!!!
 void bgfx_fatal_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, bgfx_fatal_t _code, const char* _str)
 {
 	printf("FATAL ERROR!!!");
@@ -56,6 +57,7 @@ bool bgfx_cache_read_callback(bgfx_callback_interface_t* _this, u64 _id, void* _
 void bgfx_cache_write_callback(bgfx_callback_interface_t* _this, u64 _id, const void* _data, u32 _size) {}
 
 // @Todo: this should really be in the camera file????
+// @Todo: MOVEEEEEEE
 void graphics_update_camera()
 {
 	// clamp infinitely close to -90 and +90
@@ -187,4 +189,13 @@ void graphics_draw_image(image image, mat4 transform_matrix)
 	bgfx_set_transform(&transform_matrix, 1);
 
 	bgfx_submit(0, gui_shader.handle, 0, false);
+}
+
+mat4 graphics_create_model_matrix(vec3 pos, float rot, vec3 rot_axis, vec3 scale)
+{
+	mat4 matrix = mat4(1.0f);
+	matrix *= translate(matrix, pos);
+	matrix *= rotate(matrix, rot, rot_axis);
+	matrix *= glm::scale(matrix, scale * 4.0f);
+	return matrix;
 }

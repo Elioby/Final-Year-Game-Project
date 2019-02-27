@@ -13,14 +13,17 @@ mesh terrain_mesh;
 image shoot_image;
 image test_image;
 image healthbox_image;
-image healthbar_image;
+image fhealthbar_image;
+image ehealthbar_image;
 image action_bar_bg_image;
+image combat_log_bg_image;
 image action_bar_top_bg_image;
 image action_image;
 image action_hover_image;
 image mode_text_shooting_image;
 image mode_text_move_image;
 image mode_text_throw_image;
+image selected_entity_image;
 
 image action_move_image;
 image action_shoot_image;
@@ -31,25 +34,31 @@ shader_program default_shader;
 shader_program diffuse_shader;
 shader_program gui_shader;
 
+// fonts
+font* inconsolata_font;
+
 void assets_init()
 {
 	// meshes
 	cube_mesh = load_obj_mesh("res/mesh/cube.obj");
 	robot_mesh = load_obj_mesh("res/mesh/robot.obj");
-	terrain_mesh = load_terrain_mesh();
+	terrain_mesh = map_generate_terrain_mesh();
 
 	// images
 	shoot_image = load_image("res/horse.png");
 	test_image = load_image("res/test.png");
 	healthbox_image = load_image("res/healthbox.png");
-	healthbar_image = load_image("res/healthbar.png");
+	fhealthbar_image = load_image("res/friendly_healthbar.png");
+	ehealthbar_image = load_image("res/enemy_healthbar.png");
 	action_bar_bg_image = load_image("res/action_bar_bg.png");
 	action_bar_top_bg_image = load_image("res/action_bar_top_bg.png");
+	combat_log_bg_image = load_image("res/combat_log_bg.png");
 	action_image = load_image("res/action.png");
 	action_hover_image = load_image("res/action_hover.png");
 	mode_text_move_image = load_image("res/mode_text_move.png");
 	mode_text_shooting_image = load_image("res/mode_text_shooting.png");
 	mode_text_throw_image = load_image("res/mode_text_throw.png");
+	selected_entity_image = load_image("res/selected_entity.png");
 
 	action_move_image = load_image("res/action_move.png");
 	action_shoot_image = load_image("res/action_shoot.png");
@@ -59,4 +68,7 @@ void assets_init()
 	default_shader = load_shader_program("res/shader/default_vs.bin", "res/shader/default_fs.bin");
 	diffuse_shader = load_shader_program("res/shader/vs_cubes.bin", "res/shader/fs_cubes.bin");
 	gui_shader = load_shader_program("res/shader/gui_vs.bin", "res/shader/gui_fs.bin");
+
+	// fonts
+	inconsolata_font = load_font("res/Inconsolata-Regular.ttf");
 }

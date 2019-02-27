@@ -123,6 +123,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="action.cpp" />
+    <ClCompile Include="actionbar.cpp" />
     <ClCompile Include="assets.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="dynstr.cpp" />
@@ -142,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="action.h" />
+    <ClInclude Include="actionbar.h" />
     <ClInclude Include="assets.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="dynstr.h" />

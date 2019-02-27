@@ -38,6 +38,7 @@ mesh mesh_create(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u3
 {
 	mesh result = {};
 
+	// @Todo: abstract out
 	bgfx_vertex_decl_t decl;
 	bgfx_vertex_decl_begin(&decl, BGFX_RENDERER_TYPE_NOOP);
 	bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
