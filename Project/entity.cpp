@@ -1,6 +1,6 @@
 #include "entity.h"
 
-#include "assets.h"
+#include "asset_manager.h"
 #include "map.h"
 #include "actionbar.h"
 
@@ -30,7 +30,7 @@ void entity_add(vec3 pos, bool enemy)
 	entity* ent = (entity*) malloc(sizeof(entity));
 	ent->id = last_entity_id++;
 	ent->pos = pos;
-	ent->mesh = robot_mesh;
+	ent->mesh = asset_manager_get_mesh("robot");
 	ent->max_health = 10;
 	ent->health = ent->max_health;
 	ent->max_ap = 100;

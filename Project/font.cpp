@@ -8,10 +8,11 @@
 #include "stb_truetype.h"
 
 #include "graphics.h"
+#include "asset_manager.h"
 
-font* load_font(char* filename)
+font* load_font(char* asset_id, char* filename)
 {
-	file_data* file = load_file(filename);
+	file_data* file = file_load(filename);
 
 	if(!file)
 	{
@@ -22,6 +23,10 @@ font* load_font(char* filename)
 
 	// @Todo: use only one malloc!
 	font* fnt = (font*) malloc(sizeof(font) + sizeof(stbtt_bakedchar) * char_count);
+	fnt->asset_id = asset_id;
+	fnt->asset_type = ASSET_TYPE_FONT;
+
+	asset_manager_register(fnt);
 
 	fnt->width = 1024;
 	fnt->height = 1024;
@@ -63,7 +68,9 @@ u32 font_get_text_width(font* font, char* text, u16 text_len, float scale)
 
 u32 font_get_text_width(font* font, char* text, float scale)
 {
-	return font_get_text_width(font, text, strlen(text), scale);
+	size_t len = strlen(text);
+
+	return font_get_text_width(font, text, len, scale);
 }
 
 u32 font_get_text_width(font* font, dynstr* text, float scale)

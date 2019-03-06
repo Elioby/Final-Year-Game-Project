@@ -9,7 +9,7 @@ struct entity {
 	u32 id;
 	vec3 pos;
 
-	mesh mesh;
+	mesh* mesh;
 
 	i32 health;
 	i32 max_health;

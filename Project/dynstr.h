@@ -12,6 +12,7 @@ struct dynstr
 };
 
 dynstr* dynstr_new(char* str);
+dynstr* dynstr_new(char* str, u16 len);
 dynstr* dynstr_new(u16 buf_len);
 
 void dynstr_free(dynstr* str);
@@ -21,9 +22,12 @@ void dynstr_append_str(dynstr* to, char* from, u16 from_len);
 
 void dynstr_append_int(dynstr* to, int from);
 
-// Takes a variable number of char* to append
+// takes a variable number of char* to append
 dynstr* dynstr_append(dynstr* to, char* format, ...);
 dynstr* dynstr_append_va(dynstr* to, char* format, va_list args);
 
 dynstr* dynstr_append(dynstr* to, dynstr* from);
 dynstr* dynstr_clear(dynstr* dstr);
+
+// move the start of the string forward
+dynstr* dynstr_trim_start(dynstr* dstr, u16 amount);

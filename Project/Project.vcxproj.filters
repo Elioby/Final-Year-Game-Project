@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="assets.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="camera.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -69,11 +66,11 @@
     <ClCompile Include="action.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="asset_manager.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="assets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -123,6 +120,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="action.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="asset_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="asset.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

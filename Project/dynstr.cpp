@@ -30,6 +30,13 @@ dynstr* dynstr_new(char* str, u16 str_len, u16 buf_len)
 	return dstr;
 }
 
+dynstr* dynstr_new(char* str, u16 len)
+{
+	assert(len <= UINT16_MAX && "Dynstr only supports strings of length <= 65535");
+
+	return dynstr_new(str, (u16) len, (u16) len);
+}
+
 dynstr* dynstr_new(char* str)
 {
 	size_t len = strlen(str);
@@ -50,8 +57,8 @@ dynstr* dynstr_new()
 
 void dynstr_free(dynstr* str)
 {
-	free(str);
 	free(str->raw);
+	free(str);
 }
 
 dynstr* dynstr_append_va(dynstr* to, char* format, va_list args)
@@ -175,9 +182,28 @@ dynstr* dynstr_clear(dynstr* dstr)
 	return dstr;
 }
 
-dynstr* dynstr_set_len(dynstr* dstr, u16 buf_len)
+dynstr* dynstr_set_buflen(dynstr* dstr, u16 buf_len)
 {
 
+
+	return dstr;
+}
+
+dynstr* dynstr_set_strlen(dynstr* dstr, u16 str_len)
+{
+	dstr->len = str_len;
+	dstr->raw[str_len] = 0;
+
+	return dstr;
+}
+
+dynstr* dynstr_trim_start(dynstr* dstr, u16 amount)
+{
+	assert(amount < dstr->len && "You cannot trim further than 1 minus the len of the string");
+
+	u16 len = dstr->len - amount;
+	memcpy(dstr->raw, dstr->raw + amount, len);
+	dynstr_set_strlen(dstr, len);
 
 	return dstr;
 }

@@ -9,7 +9,7 @@
 #include "graphics.h"
 #include "input.h"
 #include "gui.h"
-#include "assets.h"
+#include "asset_manager.h"
 #include "map.h"
 #include "entity.h"
 #include "font.h"
@@ -27,7 +27,7 @@ int main()
 	graphics_init(WINDOW_WIDTH, WINDOW_HEIGHT);
 	input_init();
 	gui_init();
-	assets_init();
+	asset_manager_init();
 	map_init();
 	actionbar_init();
 
@@ -81,7 +81,7 @@ void update(float dt)
 void draw()
 {
 	// draw selected tile
-	graphics_draw_mesh(cube_mesh, graphics_create_model_matrix(input_mouse_block_pos, 0.0f, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
+	graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(input_mouse_block_pos, 0.0f, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 
 	// draw selected entity
 	if(selected_entity)
@@ -94,7 +94,7 @@ void draw()
 	for(u32 i = 0; i < cover_list.size(); i++)
 	{
 		cover* cov = cover_list[i];
-		graphics_draw_mesh(cube_mesh, graphics_create_model_matrix(cov->pos, 0.0f, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)));
+		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(cov->pos, 0.0f, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)));
 	}
 
 	// @Todo: move to map_draw
@@ -109,13 +109,15 @@ void draw()
 
 			if (ent->health > 0) 
 			{
-				image img = fhealthbar_image;
-				if(ent->enemy) img = ehealthbar_image;
+				image* img;
+				if(ent->enemy) img = asset_manager_get_image("enemy_healthbar");
+				else img = asset_manager_get_image("friendly_healthbar");
+
 				graphics_draw_image(img, graphics_create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.038f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f),
 					vec3((0.5f - 0.1f / 3.0f) * (ent->health / (float)ent->max_health), 0.1285f, 1.0f)));
 			}
 
-			graphics_draw_image(healthbox_image, graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.0f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f), healthbox_aspect * 0.5f));
+			graphics_draw_image(asset_manager_get_image("healthbox"), graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.0f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f), healthbox_aspect * 0.5f));
 
 			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, 0.0f, vec3(1.0f), vec3(1.0f)));
 		}
@@ -123,7 +125,7 @@ void draw()
 
 	// @Todo: move to map_draw
 	// draw terrain
-	graphics_draw_mesh(terrain_mesh, graphics_create_model_matrix(vec3(0.0f), 0.0f, vec3(1.0f), vec3(1.0f)));
+	graphics_draw_mesh(asset_manager_get_mesh("terrain"), graphics_create_model_matrix(vec3(0.0f), 0.0f, vec3(1.0f), vec3(1.0f)));
 
 	// draw action bar
 	actionbar_draw();

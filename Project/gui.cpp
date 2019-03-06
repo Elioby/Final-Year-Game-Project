@@ -5,7 +5,7 @@
 #include <vector>
 #include <stdio.h>
 
-#include "assets.h"
+#include "asset_manager.h"
 #include "input.h"
 #include "graphics.h"
 
@@ -59,10 +59,9 @@ button* gui_create_button()
 	return butt;
 }
 
-void gui_draw_image(image image, u32 x, u32 y, u32 width, u32 height)
+void gui_draw_image(image* image, u32 x, u32 y, u32 width, u32 height)
 {
-	vec2 pos = vec2(x / (graphics_projection_width * 2.0f) - 0.25f,
-		y / (graphics_projection_height * 2.0f) - 0.25f);
+	vec2 pos = vec2(x / (graphics_projection_width * 2.0f) - 0.25f, y / (graphics_projection_height * 2.0f) - 0.25f);
 
 	vec2 scale = vec2(width / (float) graphics_projection_width, height / (float) graphics_projection_height);
 
@@ -74,23 +73,25 @@ void gui_draw_image(image image, u32 x, u32 y, u32 width, u32 height)
 	gui_draw_image(image, transform_matrix);
 }
 
-void gui_draw_image(image image, mat4 transform_matrix)
+void gui_draw_image(image* image, mat4 transform_matrix)
 {
 	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_MSAA | BGFX_STATE_BLEND_ALPHA, 0);
 
-	bgfx_set_vertex_buffer(0, plane_mesh.vb_handle, 0, plane_mesh.vertex_count);
-	bgfx_set_index_buffer(plane_mesh.idb_handle, 0, plane_mesh.index_count);
+	mesh* plane_mesh = asset_manager_get_mesh("plane");
 
-	bgfx_set_texture(0, texture_sampler, image.handle, 0);
+	bgfx_set_vertex_buffer(0, plane_mesh->vb_handle, 0, plane_mesh->vertex_count);
+	bgfx_set_index_buffer(plane_mesh->idb_handle, 0, plane_mesh->index_count);
+
+	bgfx_set_texture(0, texture_sampler, image->handle, 0);
 
 	bgfx_set_transform(&transform_matrix, 1);
 
-	bgfx_submit(1, gui_shader.handle, 0, false);
+	bgfx_submit(1, asset_manager_get_shader("gui")->handle, 0, false);
 }
 
 void gui_draw_button(button button)
 {
-	image img;
+	image* img;
 	if(input_mouse_x >= button.x && input_mouse_x <= button.x + button.width && input_mouse_y >= button.y && input_mouse_y <= button.y + button.height)
 	{
 		img = button.hover_bg_img;
@@ -110,6 +111,8 @@ void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float sca
 
 	float x1 = 0;
 	float y1 = 0;
+
+	mesh* plane_mesh = asset_manager_get_mesh("plane");
 
 	for(u32 i = 0; i < text_len; i++)
 	{
@@ -142,9 +145,9 @@ void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float sca
 		bgfx_set_transient_vertex_buffer(0, &tvb, 0, 4);
 
 		// @Note: we can just use the index from our regular plane mesh
-		bgfx_set_index_buffer(plane_mesh.idb_handle, 0, plane_mesh.index_count);
+		bgfx_set_index_buffer(plane_mesh->idb_handle, 0, plane_mesh->index_count);
 
-		bgfx_set_texture(0, texture_sampler, font->img.handle, 0);
+		bgfx_set_texture(0, texture_sampler, font->img->handle, 0);
 
 		mat4 transform_matrix = mat4(1.0f);
 		transform_matrix *= translate(transform_matrix, vec3(((x / 2.0f)) / (float) graphics_projection_width,
@@ -154,7 +157,7 @@ void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float sca
 
 		bgfx_set_transform(&transform_matrix, 1);
 
-		bgfx_submit(1, gui_shader.handle, 0, false);
+		bgfx_submit(1, asset_manager_get_shader("gui")->handle, 0, false);
 	}
 }
 

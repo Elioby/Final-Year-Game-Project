@@ -6,6 +6,7 @@
 
 #include "mesh.h"
 #include "entity.h"
+#include "asset_manager.h"
 
 u32 terrain_max_x = 32;
 u32 terrain_max_z = 32;
@@ -31,9 +32,11 @@ void map_init()
 	map_add_cover(vec3(5.0f, 0.0f, 5.0f));
 	map_add_cover(vec3(5.0f, 0.0f, 6.0f));
 	map_add_cover(vec3(5.0f, 0.0f, 7.0f));
+
+	asset_manager_register(map_generate_terrain_mesh());
 }
 
-mesh map_generate_terrain_mesh()
+mesh* map_generate_terrain_mesh()
 {
 	// x * y squares, 2 triangles per square, 3 vertices per triangle
 	u32 vertex_count = terrain_max_x * terrain_max_z * 3 * 2;
@@ -55,7 +58,16 @@ mesh map_generate_terrain_mesh()
 		}
 	}
 
-	return mesh_create(vertices, vertex_count);
+	u16* indices = (u16*) malloc(vertex_count * sizeof(u16));
+
+	assert(vertex_count < UINT16_MAX && "Vertex count must be less than max size of u16");
+
+	for(u16 i = 0; i < vertex_count; i++)
+	{
+		indices[i] = i;
+	}
+
+	return mesh_create("terrain", vertices, vertex_count, indices, vertex_count);
 }
 
 void map_add_cover(vec3 pos)

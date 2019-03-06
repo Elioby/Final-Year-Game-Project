@@ -36,7 +36,7 @@ bgfx_shader_handle_t load_shader(char* filename)
 
 // @Todo: (for this and load mesh) use names instead of paths? i.e. shader vs_cube resolves to res/shaders/dx11/vs_cube.bin and mesh cube resolves to res/meshes/cube.obj
 // @Todo: add support for other renderers with different shaders for each type? it's not hard, just different folders for each shader type, compile with shaderc, donezo
-shader_program load_shader_program(char* vs_filename, char* fs_filename)
+shader_program* load_shader_program(char* asset_id, char* vs_filename, char* fs_filename)
 {
 	if (graphics_renderer_type != BGFX_RENDERER_TYPE_OPENGL)
 	{
@@ -48,10 +48,12 @@ shader_program load_shader_program(char* vs_filename, char* fs_filename)
 	bgfx_shader_handle_t vs_handle = load_shader(vs_filename);
 	bgfx_shader_handle_t fs_handle = load_shader(fs_filename);
 
-	shader_program shader;
-	shader.handle = bgfx_create_program(vs_handle, fs_handle, true);
+	shader_program* shader = (shader_program*) malloc(sizeof(shader_program));
+	shader->asset_id = asset_id;
+	shader->asset_type = ASSET_TYPE_SHADER;
+	shader->handle = bgfx_create_program(vs_handle, fs_handle, true);
 
-	if (shader.handle.idx == UINT16_MAX)
+	if (shader->handle.idx == UINT16_MAX)
 	{
 		printf("Failed to create program from shaders %s and %s\n", vs_filename, fs_filename);
 		// @Safety

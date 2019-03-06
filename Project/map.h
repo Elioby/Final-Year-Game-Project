@@ -18,7 +18,7 @@ extern std::vector<cover*> cover_list;
 
 void map_init();
 
-mesh map_generate_terrain_mesh(); 
+mesh* map_generate_terrain_mesh(); 
 
 vec3 map_get_block_pos(vec3 pos);
 bool map_pos_equal(vec3 pos1, vec3 pos2);

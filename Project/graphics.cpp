@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "assets.h"
+#include "asset_manager.h"
 #include "mesh.h"
 
 /* ------- Globals --------- */
@@ -29,8 +29,6 @@ u32 graphics_projection_width;
 u32 graphics_projection_height; 
 
 bgfx_uniform_handle_t texture_sampler;
-
-mesh plane_mesh;
 
 // @Todo: cleanup!!!
 void bgfx_fatal_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, bgfx_fatal_t _code, const char* _str)
@@ -98,20 +96,18 @@ void graphics_init(int window_width, int window_height)
 	bgfx_set_view_rect(0, 0, 0, window_width, window_height);
 
 	texture_sampler = bgfx_create_uniform("textureSampler", BGFX_UNIFORM_TYPE_SAMPLER, 1);
-
-	plane_mesh = load_obj_mesh("res/mesh/plane.obj");
 }
 
-void graphics_draw_mesh(mesh mesh, mat4 transform_matrix)
+void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix)
 {
-	bgfx_set_vertex_buffer(0, mesh.vb_handle, 0, mesh.vertex_count);
-	bgfx_set_index_buffer(mesh.idb_handle, 0, mesh.index_count);
+	bgfx_set_vertex_buffer(0, mesh->vb_handle, 0, mesh->vertex_count);
+	bgfx_set_index_buffer(mesh->idb_handle, 0, mesh->index_count);
 
 	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW | BGFX_STATE_MSAA, 0);
 
 	bgfx_set_transform(&transform_matrix, 1);
 
-	bgfx_submit(0, diffuse_shader.handle, 0, false);
+	bgfx_submit(0, asset_manager_get_shader("diffuse")->handle, 0, false);
 
 	// This is very slow, but it's only for debugging so!?!
 	if(graphics_debug_draw_normals)
@@ -125,9 +121,9 @@ void graphics_draw_mesh(mesh mesh, mat4 transform_matrix)
 
 		float draw_width = 0.05f;
 
-		for (u32 i = 0; i < mesh.vertex_count; i++)
+		for (u32 i = 0; i < mesh->vertex_count; i++)
 		{
-			pos_normal_vertex vertex = mesh.vertices[i];
+			pos_normal_vertex vertex = mesh->vertices[i];
 			u8* norm = (u8*) &vertex.normal;
 			i16 x_norm = norm[0] - 128;
 			i16 y_norm = norm[1] - 128;
@@ -170,25 +166,26 @@ void graphics_draw_mesh(mesh mesh, mat4 transform_matrix)
 
 		bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_MSAA, 0);
 
-		bgfx_submit(0, default_shader.handle, 0, false);
+		bgfx_submit(0, asset_manager_get_shader("gui")->handle, 0, false);
 
 		bgfx_destroy_vertex_buffer(vb_handle);
 		bgfx_destroy_index_buffer(id_handle);
 	}
 }
 
-void graphics_draw_image(image image, mat4 transform_matrix)
+void graphics_draw_image(image* image, mat4 transform_matrix)
 {
-	bgfx_set_vertex_buffer(0, plane_mesh.vb_handle, 0, plane_mesh.vertex_count);
-	bgfx_set_index_buffer(plane_mesh.idb_handle, 0, plane_mesh.index_count);
+	mesh* plane_mesh = asset_manager_get_mesh("plane");
+	bgfx_set_vertex_buffer(0, plane_mesh->vb_handle, 0, plane_mesh->vertex_count);
+	bgfx_set_index_buffer(plane_mesh->idb_handle, 0, plane_mesh->index_count);
 
-	bgfx_set_texture(0, texture_sampler, image.handle, BGFX_SAMPLER_POINT);
+	bgfx_set_texture(0, texture_sampler, image->handle, BGFX_SAMPLER_POINT);
 
 	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_BLEND_ALPHA, 0);
 
 	bgfx_set_transform(&transform_matrix, 1);
 
-	bgfx_submit(0, gui_shader.handle, 0, false);
+	bgfx_submit(0, asset_manager_get_shader("gui")->handle, 0, false);
 }
 
 mat4 graphics_create_model_matrix(vec3 pos, float rot, vec3 rot_axis, vec3 scale)

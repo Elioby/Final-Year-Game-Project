@@ -30,13 +30,11 @@ extern u32 graphics_projection_height;
 
 extern bgfx_uniform_handle_t texture_sampler;
 
-extern mesh plane_mesh;
-
 void graphics_init(int w_width, int w_height);
 void graphics_update_camera();
 
-void graphics_draw_mesh(mesh mesh, mat4 transform_matrix);
-void graphics_draw_image(image image, mat4 transform_matrix);
+void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix);
+void graphics_draw_image(image* image, mat4 transform_matrix);
 
 mat4 graphics_create_model_matrix(vec3 pos, float rot, vec3 rot_axis, vec3 scale);
 
