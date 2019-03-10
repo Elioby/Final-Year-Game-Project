@@ -106,6 +106,8 @@ dynstr* dynstr_append_va(dynstr* to, char* format, va_list args)
 			last_was_percent = true;
 		}
 	}
+
+	return to;
 }
 
 dynstr* dynstr_append(dynstr* to, char* format, ...)

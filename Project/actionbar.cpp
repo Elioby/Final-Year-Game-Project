@@ -51,7 +51,7 @@ void actionbar_init()
 	shoot_button->height = button_width;
 	shoot_button->x = graphics_projection_width / 2 - shoot_button->width / 2;
 	shoot_button->y = shoot_button->height / 8;
-	shoot_button->icon_img = asset_manager_get_image("action_move");
+	shoot_button->icon_img = asset_manager_get_image("action_shoot");
 	shoot_button->bg_img = bg;
 	shoot_button->hover_bg_img = hover;
 	shoot_button->click_callback = action_shoot_mode;
@@ -143,7 +143,7 @@ void actionbar_draw()
 
 		for (u32 i = 0; i < actionbar_buttons.size(); i++)
 		{
-			gui_draw_button(*actionbar_buttons[i]);
+			gui_draw_button(actionbar_buttons[i]);
 		}
 	}
 
@@ -160,18 +160,26 @@ void actionbar_draw()
 	gui_draw_image(asset_manager_get_image("combat_log_bg"), 10, 20, 400, log_box_height);
 
 	float scale = 0.15f;
-	u32 log_end = combat_log_text->len;
+	u32 log_end = combat_log_text->len - 1;
 	u32 log_y = 0;
 	u32 log_text_y_pad = 30;
 	for (i32 i = combat_log_text->len - 2; i >= 0; i--)
 	{
 		char c = combat_log_text->raw[i];
 
-		if (c == '\n')
+		if (c == '\n' || i == 0)
 		{
-			gui_draw_text(inconsolata_font, combat_log_text->raw + i + 1, log_end - i + 1, 20, 30 + log_y, scale);
+			u32 start = i;
+
+			if(c == '\n')
+			{
+				start += 1;
+				log_end -= 1;
+			}
+
+			gui_draw_text(inconsolata_font, combat_log_text->raw + start, log_end - i, 20, 30 + log_y, scale);
 			log_y += log_text_y_pad;
-			log_end = i + 1;
+			log_end = i - 2;
 
 			if(log_y > log_box_height - log_text_y_pad) break;
 		}

@@ -2,6 +2,18 @@
 
 #include <stdio.h>
 
+bgfx_uniform_handle_t shader_tint_uniform;
+
+void shader_init()
+{
+	shader_tint_uniform = bgfx_create_uniform("u_tintColor", BGFX_UNIFORM_TYPE_VEC4, 1);
+}
+
+void shader_set_tint_uniform(vec4 tint)
+{
+	bgfx_set_uniform(shader_tint_uniform, &tint, 1);
+}
+
 // Load an individual vertex or fragment shader from a file path
 bgfx_shader_handle_t load_shader(char* filename)
 {

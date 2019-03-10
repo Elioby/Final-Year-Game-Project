@@ -100,11 +100,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\Libraries\glfw\include;..\..\Libraries\glm;..\..\Libraries\bgfx\include;..\..\Libraries\bx\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>bgfxDebug.lib;bxDebug.lib;bimg_decodeDebug.lib;bimgDebug.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\Libraries\glfw-3.2.1\lib-vc2015;..\..\Libraries\bgfx\.build\win32_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -147,6 +151,7 @@
     <ClInclude Include="asset.h" />
     <ClInclude Include="asset_manager.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="debug.h" />
     <ClInclude Include="dynstr.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="file.h" />

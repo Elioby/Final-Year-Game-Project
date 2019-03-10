@@ -26,11 +26,11 @@ void gui_update()
 
 	for(u32 i = 0; i < buttons.size(); i++)
 	{
-		button button = *buttons[i];
-		if(input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START && input_mouse_x >= button.x && input_mouse_x <= button.x + button.width 
-			&& input_mouse_y >= button.y && input_mouse_y <= button.y + button.height)
+		button* button = buttons[i];
+		if(input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START && input_mouse_x >= button->x && input_mouse_x <= button->x + button->width 
+			&& input_mouse_y >= button->y && input_mouse_y <= button->y + button->height)
 		{
-			if(button.click_callback) button.click_callback();
+			if(button->click_callback) button->click_callback();
 			handled_click = true;
 		}
 	}
@@ -53,7 +53,7 @@ bool gui_handled_click()
 button* gui_create_button()
 {
 	// @Todo: use of malloc :(
-	button* butt = (button*) malloc(sizeof(button));
+	button* butt = (button*) calloc(sizeof(button), 1);
 	buttons.push_back(butt);
 
 	return butt;
@@ -89,20 +89,26 @@ void gui_draw_image(image* image, mat4 transform_matrix)
 	bgfx_submit(1, asset_manager_get_shader("gui")->handle, 0, false);
 }
 
-void gui_draw_button(button button)
+void gui_draw_button(button* button)
 {
+	assert(button->bg_img && "Image must have a bg image");
+
 	image* img;
-	if(input_mouse_x >= button.x && input_mouse_x <= button.x + button.width && input_mouse_y >= button.y && input_mouse_y <= button.y + button.height)
+	if(button->hover_bg_img && input_mouse_x >= button->x && input_mouse_x <= button->x + button->width && input_mouse_y >= button->y && input_mouse_y <= button->y + button->height)
 	{
-		img = button.hover_bg_img;
+		img = button->hover_bg_img;
 	}
 	else
 	{
-		img = button.bg_img;
+		img = button->bg_img;
 	}
 
-	gui_draw_image(img, button.x, button.y, button.width, button.height);
-	gui_draw_image(button.icon_img, button.x + button.width / 8, button.y + button.height / 8, button.width - button.width / 4, button.height - button.height / 4);
+	gui_draw_image(img, button->x, button->y, button->width, button->height);
+
+	if(button->icon_img)
+	{
+		gui_draw_image(button->icon_img, button->x + button->width / 8, button->y + button->height / 8, button->width - button->width / 4, button->height - button->height / 4);
+	}
 }
 
 void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float scale)

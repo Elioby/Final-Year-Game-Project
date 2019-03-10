@@ -1,5 +1,7 @@
 #include "asset_manager.h"
+
 #include "asset.h"
+#include "map.h"
 
 #include <vector>
 
@@ -32,6 +34,8 @@ void asset_manager_init()
 
 	// fonts
 	asset_manager_register(load_font("inconsolata", "res/font/inconsolata.ttf"));
+
+	asset_manager_register(map_generate_terrain_mesh());
 }
 
 void asset_manager_register(asset* as)

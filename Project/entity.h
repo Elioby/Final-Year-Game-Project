@@ -5,6 +5,12 @@
 
 #include <vector>
 
+typedef enum team
+{
+	TEAM_FRIENDLY,
+	TEAM_ENEMY
+} team_t;
+
 struct entity {
 	u32 id;
 	vec3 pos;
@@ -17,7 +23,7 @@ struct entity {
 	i32 ap;
 	i32 max_ap;
 
-	bool enemy;
+	team team;
 	bool dead;
 };
 
@@ -28,8 +34,7 @@ extern entity* selected_entity;
 
 void entity_update();
 
-void entity_add(vec3 pos, bool enemy);
-entity* entity_get_at_block(vec3 block_pos);
+void entity_add(vec3 pos, team team);
 
 void entity_health_change(entity* ent, entity* inflict_ent, i32 amount);
 bool entity_is_same_team(entity* ent1, entity* ent2);

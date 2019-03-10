@@ -24,7 +24,7 @@ void entity_update()
 	}
 }
 
-void entity_add(vec3 pos, bool enemy)
+void entity_add(vec3 pos, team team)
 {
 	// @Todo: use of malloc :(
 	entity* ent = (entity*) malloc(sizeof(entity));
@@ -34,30 +34,15 @@ void entity_add(vec3 pos, bool enemy)
 	ent->max_health = 10;
 	ent->health = ent->max_health;
 	ent->max_ap = 100;
-	ent->ap = ent->max_ap;
+	ent->ap = 0;
 	ent->dead = false;
-	ent->enemy = enemy;
+	ent->team = team;
 	entities.push_back(ent);
 }
 
 vec3 entity_get_block_pos(entity entity)
 {
 	return map_get_block_pos(entity.pos);
-}
-
-// @Todo: move to map??????
-entity* entity_get_at_block(vec3 block_pos)
-{
-	for(u32 i = 0; i < entities.size(); i++)
-	{
-		entity* entity = entities[i];
-		if(map_pos_equal(entity->pos, block_pos))
-		{
-			return entity;
-		}
-	}
-
-	return 0;
 }
 
 void entity_health_change(entity* ent, entity* inflict_ent, i32 amount)
@@ -80,6 +65,5 @@ void entity_health_change(entity* ent, entity* inflict_ent, i32 amount)
 
 bool entity_is_same_team(entity* ent1, entity* ent2)
 {
-	if(ent1->enemy) return ent2->enemy;
-	else return !ent2->enemy;
+	return ent1->team == ent2->team;
 }
