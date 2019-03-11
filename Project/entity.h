@@ -5,6 +5,7 @@
 
 #include <vector>
 
+// @Todo: move to team?
 typedef enum team
 {
 	TEAM_FRIENDLY,
@@ -37,4 +38,5 @@ void entity_update();
 void entity_add(vec3 pos, team team);
 
 void entity_health_change(entity* ent, entity* inflict_ent, i32 amount);
+void entity_health_change(entity* ent, entity* inflict_ent, i32 amount, bool temp);
 bool entity_is_same_team(entity* ent1, entity* ent2);

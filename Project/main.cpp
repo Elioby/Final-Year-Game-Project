@@ -21,6 +21,7 @@ void draw();
 void update(float dt);
 void camera_update(float dt);
 void turn_init();
+void action_init();
 
 void turn_end();
 // @Todo: temp
@@ -39,6 +40,7 @@ int main()
 	gui_init();
 	asset_manager_init();
 	map_init();
+	action_init();
 	actionbar_init();
 	turn_init();
 	shader_init();
@@ -127,6 +129,189 @@ void turn_init()
 	turn_start(TEAM_FRIENDLY);
 }
 
+float evaluate_board()
+{
+	return 1.0f;
+}
+
+struct action_evaluation
+{
+	// the evaluation function after the action is taken, will be FLT_MIN if invalid
+	float eval;
+	vec3 target;
+
+	// if we can actually use the action or not
+	bool valid;
+};
+
+void action_perform_nothing(entity* ent, vec3 target) { }
+
+action_evaluation action_evaluate_nothing(entity* ent)
+{
+	action_evaluation eval = {0};
+
+	eval.valid = true;
+	eval.eval = evaluate_board();
+
+	return eval;
+}
+
+void action_perform_move(entity* ent, vec3 target)
+{
+	ent->pos = target;
+}
+
+action_evaluation action_evaluate_move(entity* ent)
+{
+	vec3 original_position = ent->pos;
+
+	vec3 target = vec3(1.0f);
+
+	ent->pos = target;
+
+	action_evaluation eval = {0};
+
+	eval.eval = evaluate_board() + 1.0f;
+	eval.valid = true;
+
+	ent->pos = original_position;
+
+	return eval;
+}
+
+#define ACTION_SHOOT_DAMAGE 6
+
+void action_perform_shoot(entity* ent, entity* target_ent, bool temp)
+{
+	entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
+}
+
+void action_perform_shoot(entity* ent, vec3 target)
+{
+	entity* target_ent = map_get_entity_at_block(target);
+
+	action_perform_shoot(ent, target_ent, false);
+}
+
+action_evaluation action_evaluate_shoot(entity* ent)
+{
+	entity* highest_eval_ent = NULL;
+	float highest_eval = FLT_MIN;
+
+	for(u32 i = 0; i < entities.size(); i++)
+	{
+		entity* target_ent = entities[i];
+
+		if(!entity_is_same_team(target_ent, ent))
+		{
+			i32 original_hp = target_ent->health;
+
+			action_perform_shoot(ent, target_ent, true);
+
+			float eval = evaluate_board() + 2.0f;
+			
+			// if the dmg done was > previous hp, just heal back the previous health (otherwise they gain health)
+			i32 heal_amount = ACTION_SHOOT_DAMAGE;
+
+			if(heal_amount > original_hp) heal_amount = original_hp;
+
+			// heal them back up (it will also res them if they're dead, since this is temp mode)
+			entity_health_change(target_ent, ent, heal_amount, true);
+
+			if(eval > highest_eval)
+			{
+				highest_eval_ent = target_ent;
+				highest_eval = eval;
+			}
+		}
+	}
+
+	action_evaluation eval = {0};
+
+	if(highest_eval_ent)
+	{
+		eval.target = ent->pos;
+		eval.valid = true;
+	}
+	else
+	{
+		eval.valid = false;
+		eval.eval = FLT_MIN;
+	}
+
+	return eval;
+}
+
+struct action
+{
+	char* name;
+	void(*perform)(entity* ent, vec3 target);
+	action_evaluation(*evaluate)(entity* ent);
+};
+
+std::vector<action> actions;
+
+action nothing_action;
+
+void action_init()
+{
+	nothing_action = {0};
+	nothing_action.name = "nothing";
+	nothing_action.perform = action_perform_nothing;
+	nothing_action.evaluate = action_evaluate_nothing;
+
+	action move_action = {0};
+	move_action.name = "move";
+	move_action.perform = action_perform_move;
+	move_action.evaluate = action_evaluate_move;
+	actions.push_back(move_action);
+
+	action shoot_action = {0};
+	shoot_action.name = "shoot";
+	shoot_action.perform = action_perform_shoot;
+	shoot_action.evaluate = action_evaluate_shoot;
+	actions.push_back(shoot_action);
+}
+
+void do_ai(entity* ent)
+{
+	printf("AI entity %i\n", ent->id);
+
+	// start with nothing action, anything better than doing nothing we do
+	action best_action = nothing_action;
+	action_evaluation best_eval = best_action.evaluate(ent);
+
+	for(u32 i = 0; i < actions.size(); i++)
+	{
+		action act = actions[i];
+
+		action_evaluation eval = act.evaluate(ent);
+
+		printf("Action %s: %f\n", act.name, eval.eval);
+
+		if(eval.valid && eval.eval > best_eval.eval)
+		{
+			best_action = act;
+			best_eval = eval;
+		}
+	}
+
+	printf("Chosen action: %s\n", best_action.name);
+}
+
+void do_ai(team team)
+{
+	for(u32 i = 0; i < entities.size(); i++)
+	{
+		entity* ent = entities[i];
+
+		if(ent->team == team)
+		{
+			do_ai(ent);
+		}
+	}
+}
+
 void turn_start(team team)
 {
 	turn_team = team;
@@ -140,6 +325,11 @@ void turn_start(team team)
 	}
 
 	actionbar_combatlog_add("%s team's turn started", team_get_name(team));
+
+	if(team == TEAM_ENEMY)
+	{
+		do_ai(team);
+	}
 }
 
 void turn_end()

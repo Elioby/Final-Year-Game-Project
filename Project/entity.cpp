@@ -45,22 +45,40 @@ vec3 entity_get_block_pos(entity entity)
 	return map_get_block_pos(entity.pos);
 }
 
-void entity_health_change(entity* ent, entity* inflict_ent, i32 amount)
+void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount)
 {
-	ent->health += amount;
+	entity_health_change(target_ent, inflict_ent, amount, false);
+}
 
-	if (amount > 0) actionbar_combatlog_add("Entity %i healed by entity %i by %i", inflict_ent->id, ent->id, amount);
-	else actionbar_combatlog_add("Entity %i did %i dmg to entity %i", inflict_ent->id, -amount, ent->id);
+void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount, bool temp)
+{
+	assert((!target_ent->dead || temp) && "The target entity cannot be dead (unless this is a temporary health change for eval)");
 
-	if(ent->health <= 0)
+	target_ent->health += amount;
+
+	if(!temp)
 	{
-		// @Note: entity death
-		ent->dead = true;
-		ent->health = 0;
-
-		actionbar_combatlog_add("Entity %i killed entity %i!", inflict_ent->id, ent->id);
+		if (amount > 0) actionbar_combatlog_add("Entity %i healed by entity %i by %i", inflict_ent->id, target_ent->id, amount);
+		else actionbar_combatlog_add("Entity %i did %i dmg to entity %i", inflict_ent->id, -amount, target_ent->id);
 	}
 
+	if(target_ent->health <= 0)
+	{
+		// entity death
+		target_ent->dead = true;
+		target_ent->health = 0;
+
+		if(!temp)
+		{
+			actionbar_combatlog_add("Entity %i killed entity %i!", inflict_ent->id, target_ent->id);
+		}
+	}
+	else if(target_ent->health > 0)
+	{
+		if(target_ent->health > target_ent->max_health) target_ent->health = target_ent->max_health;
+
+		target_ent->dead = false;
+	}
 }
 
 bool entity_is_same_team(entity* ent1, entity* ent2)
