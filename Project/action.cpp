@@ -8,36 +8,6 @@
 
 action_mode current_action_mode;
 
-// @Todo: move
-cover* map_get_adjacent_cover(vec3 start, vec3 closest_to)
-{
-	float smallest_distance = 0.0f;
-	cover* closest_cover = NULL;
-
-	for(i8 x = -1; x <= 1; x++)
-	{
-		for(i8 y = -1; y <= 1; y++)
-		{
-			vec3 block_pos = start;
-			block_pos.x += x;
-			block_pos.y += y;
-
-			cover* cov = map_get_cover_at_block(block_pos);
-			if(cov)
-			{
-				float distance = map_distance_squared(start, cov->pos);
-				if(!closest_cover || smallest_distance < distance)
-				{
-					closest_cover = cov;
-					smallest_distance = distance;
-				}
-			}
-		}
-	}
-
-	return closest_cover;
-}
-
 void action_update()
 {
 	if (!gui_handled_click())
@@ -80,49 +50,22 @@ void action_update()
 				{
 					if (selected_entity->ap > 30)
 					{
-						// how leinient is the los algorithm, in blocks
-						float lean_distance = 0.5f;
-						// maybe we only need to check along the opposite axis of the direction
-						if (map_check_los(selected_entity->pos, clicked_entity->pos) ||
-							map_check_los(vec3(selected_entity->pos.x + lean_distance, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
-							map_check_los(vec3(selected_entity->pos.x - lean_distance, selected_entity->pos.y, selected_entity->pos.z), clicked_entity->pos) ||
-							map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z + lean_distance), clicked_entity->pos) ||
-							map_check_los(vec3(selected_entity->pos.x, selected_entity->pos.y, selected_entity->pos.z - lean_distance), clicked_entity->pos) ||
-							map_check_los(clicked_entity->pos, clicked_entity->pos) ||
-							map_check_los(vec3(clicked_entity->pos.x + lean_distance, clicked_entity->pos.y, clicked_entity->pos.z), selected_entity->pos) ||
-							map_check_los(vec3(clicked_entity->pos.x - lean_distance, clicked_entity->pos.y, clicked_entity->pos.z), selected_entity->pos) ||
-							map_check_los(vec3(clicked_entity->pos.x, clicked_entity->pos.y, clicked_entity->pos.z + lean_distance), selected_entity->pos) ||
-							map_check_los(vec3(clicked_entity->pos.x, clicked_entity->pos.y, clicked_entity->pos.z - lean_distance), selected_entity->pos))
+						bool has_los = map_has_los(selected_entity, clicked_entity);
+
+						if(has_los)
 						{
-							float los_amount = 1.0f;
-
-							cover* closest_cover = map_get_adjacent_cover(clicked_entity->pos, selected_entity->pos);
-
-							if(closest_cover)
+							float los_amount = map_get_los_angle(selected_entity, clicked_entity);
+							if(los_amount > 0.0f)
 							{
-								vec3 cover_to_covered_vector = glm::normalize(closest_cover->pos - clicked_entity->pos);
-								vec3 cover_to_shooter = glm::normalize(selected_entity->pos - closest_cover->pos);
-
-								float angle = glm::dot(cover_to_covered_vector, cover_to_shooter);
-
-								// if the angle is negative, that means that the cover is behind them (they're not covered!)
-								if(angle >= 0.0f)
-								{
-									los_amount = (1.0f - angle);
-								}
-
-								printf("cover: %f, %f, %f\n", closest_cover->pos.x, closest_cover->pos.y, closest_cover->pos.z);
+								printf("shoot with chance %f\n", los_amount);
+								// @Todo: renable! entity_health_change(clicked_entity, selected_entity, -6);
+								// @Todo: renable! current_action_mode = ACTION_MODE_SELECT_UNITS;
+								// @Todo: renable! selected_entity->ap -= 30;
 							}
-
-							printf("los amount: %f\n", los_amount);
-
-							// @Todo: renable! entity_health_change(clicked_entity, selected_entity, -6);
-							// @Todo: renable! current_action_mode = ACTION_MODE_SELECT_UNITS;
-							// @Todo: renable! selected_entity->ap -= 30;
-						}
-						else
-						{
-							actionbar_set_msg("No LOS", 2.0f);
+							else
+							{
+								actionbar_set_msg("No LOS", 2.0f);
+							}
 						}
 					}
 					else

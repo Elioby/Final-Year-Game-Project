@@ -33,5 +33,9 @@ void map_add_cover(vec3 pos);
 cover* map_get_cover_at_block(vec3 block_pos);
 entity* map_get_entity_at_block(vec3 block_pos);
 
+cover* map_get_adjacent_cover(vec3 start, vec3 closest_to);
+
+bool map_has_los(entity* ent1, entity* ent2);
+
 // Returns a floating point value between 0.0f and 1.0f (0.0f = 100% covered, 0.5f = 50% covered, 1.0f = no blocking cover)
-bool map_check_los(vec3 start, vec3 end);
+float map_get_los_angle(entity* inflict_ent, entity* target_ent);

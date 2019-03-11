@@ -129,9 +129,70 @@ void turn_init()
 	turn_start(TEAM_FRIENDLY);
 }
 
-float evaluate_board()
+float evaluate_cover(team team)
 {
-	return 1.0f;
+	float eval = 0.0f;
+
+	// @Speed: this is n^2
+
+	// @Todo: abstract this out for use in UI code as well as AI code
+	for(u32 i = 0; i < entities.size(); i++)
+	{
+		entity* enemy = entities[i];
+		if(enemy->team != team)
+		{
+			for(u32 j = 0; j < entities.size(); j++)
+			{
+				entity* friendly = entities[j];
+				if(friendly->team == team)
+				{
+					if(map_has_los(enemy, friendly))
+					{
+						// calculate the chance our enemy can hit us and subtract from eval (it's our disadvantage)
+						float enemy_hit_friendly = map_get_los_angle(enemy, friendly);
+						eval -= enemy_hit_friendly;
+
+						// calculate the chance we can hit our enemy and add it to our eval (it's our advantage)
+						float friendly_hit_enemy = map_get_los_angle(friendly, enemy);
+						eval += friendly_hit_enemy;
+					}
+				}
+			}
+		}
+	}
+
+	return eval;
+}
+
+float evaluate_health(team team)
+{
+	float eval = 0.0f;
+	
+	for(u32 i = 0; i < entities.size(); i++)
+	{
+		entity* ent = entities[i];
+
+		float entity_eval = ent->health / ent->max_health;
+
+		// @Consider: how important is having them alive or dead? id say pretty important, on top of how much HP they have (they'll get another action next turn)
+		entity_eval += ent->dead ? -1.0f : 1.0f;
+		
+		// if they're on our team, its good for them to be alive, bad for dead, and good for more hp. the opposite is true if they're an enemy
+		if(ent->team == team) eval += entity_eval;
+		else eval -= entity_eval;
+	}
+
+	return eval;
+}
+
+float evaluate_board(team team)
+{
+	float eval = 0.0f;
+
+	eval += evaluate_cover(team);
+	eval += evaluate_health(team);
+
+	return eval;
 }
 
 struct action_evaluation
@@ -151,7 +212,7 @@ action_evaluation action_evaluate_nothing(entity* ent)
 	action_evaluation eval = {0};
 
 	eval.valid = true;
-	eval.eval = evaluate_board();
+	eval.eval = evaluate_board(ent->team);
 
 	return eval;
 }
@@ -171,7 +232,7 @@ action_evaluation action_evaluate_move(entity* ent)
 
 	action_evaluation eval = {0};
 
-	eval.eval = evaluate_board() + 1.0f;
+	eval.eval = evaluate_board(ent->team);
 	eval.valid = true;
 
 	ent->pos = original_position;
@@ -196,8 +257,9 @@ void action_perform_shoot(entity* ent, vec3 target)
 action_evaluation action_evaluate_shoot(entity* ent)
 {
 	entity* highest_eval_ent = NULL;
-	float highest_eval = FLT_MIN;
+	float highest_eval = -FLT_MAX;
 
+	// find the best entity to shoot
 	for(u32 i = 0; i < entities.size(); i++)
 	{
 		entity* target_ent = entities[i];
@@ -208,7 +270,7 @@ action_evaluation action_evaluate_shoot(entity* ent)
 
 			action_perform_shoot(ent, target_ent, true);
 
-			float eval = evaluate_board() + 2.0f;
+			float eval = evaluate_board(ent->team);
 			
 			// if the dmg done was > previous hp, just heal back the previous health (otherwise they gain health)
 			i32 heal_amount = ACTION_SHOOT_DAMAGE;
@@ -232,6 +294,7 @@ action_evaluation action_evaluate_shoot(entity* ent)
 	{
 		eval.target = ent->pos;
 		eval.valid = true;
+		eval.eval = highest_eval;
 	}
 	else
 	{
@@ -273,8 +336,11 @@ void action_init()
 	actions.push_back(shoot_action);
 }
 
+// @Todo: consider AP
 void do_ai(entity* ent)
 {
+	debug_timer_start("ONE_ENTITY_AI_EVAL");
+
 	printf("AI entity %i\n", ent->id);
 
 	// start with nothing action, anything better than doing nothing we do
@@ -297,10 +363,12 @@ void do_ai(entity* ent)
 	}
 
 	printf("Chosen action: %s\n", best_action.name);
+	debug_timer_end("ONE_ENTITY_AI_EVAL");
 }
 
 void do_ai(team team)
 {
+	debug_timer_start("DO_AI_TURN");
 	for(u32 i = 0; i < entities.size(); i++)
 	{
 		entity* ent = entities[i];
@@ -310,6 +378,7 @@ void do_ai(team team)
 			do_ai(ent);
 		}
 	}
+	debug_timer_end("DO_AI_TURN");
 }
 
 void turn_start(team team)

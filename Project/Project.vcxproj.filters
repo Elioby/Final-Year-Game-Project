@@ -69,6 +69,9 @@
     <ClCompile Include="asset_manager.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="debug.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
