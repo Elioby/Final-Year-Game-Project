@@ -8,43 +8,99 @@
 
 #include "general.h"
 
-std::vector<char*> timer_ids;
-std::vector<u64> timer_starts;
-
-u64 get_current_time_ms()
+struct timer
 {
-	time_t s;
-	_timeb tstruct;
+	char* id;
+	u64 current_start;
+	u64 accumulated;
+	u64 count;
+};
 
-	time(&s);
+std::vector<timer*> timers;
 
-	u64 seconds = (u64)s;
+u64 get_current_time_ns()
+{
+	struct timespec ts;
+	timespec_get(&ts, TIME_UTC);
 
-	_ftime(&tstruct);
-	return seconds * 1000 + (u64)tstruct.millitm;
+	u64 seconds = (u64) ts.tv_sec;
+
+	return seconds * 1000000000 + (u64) ts.tv_nsec;
+}
+
+i32 get_timer_index(char* timer_id)
+{
+	i32 timer_array_index = 0;
+
+	for(; timer_array_index < timers.size(); timer_array_index++)
+	{
+		timer* timer = timers[timer_array_index];
+		if(strcmp(timer->id, timer_id) == 0) return timer_array_index;
+	}
+
+	return -1;
 }
 
 void debug_timer_start(char* timer_id)
 {
-	timer_ids.push_back(timer_id);
-	timer_starts.push_back(get_current_time_ms());
+	i32 timer_index = get_timer_index(timer_id);
+
+	timer* tim;
+	
+	if(timer_index < 0)
+	{
+		u32 id_len = strlen(timer_id);
+		tim = (timer*) calloc(sizeof(timer) + id_len + 1, 1);
+		tim->id = (char*) tim + sizeof(timer);
+		memcpy(tim->id, timer_id, id_len);
+		timers.push_back(tim);
+	}
+	else
+	{
+		tim = timers[timer_index];
+	}
+
+	tim->current_start = get_current_time_ns();
+}
+
+void debug_timer_end(timer* tim)
+{
+	assert(tim->current_start && "Timer must be started for you to end it");
+
+	tim->accumulated += get_current_time_ns() - tim->current_start;
+
+	tim->count++;
+	tim->current_start = 0;
 }
 
 void debug_timer_end(char* timer_id)
 {
-	u32 timer_array_index = 0;
+	debug_timer_end(timers[get_timer_index(timer_id)]);
+}
 
-	for(; timer_array_index < timer_ids.size(); timer_array_index++)
+void debug_timer_reset(char* timer_id)
+{
+	i32 tim_index = get_timer_index(timer_id);
+
+	if(tim_index >= 0)
 	{
-		if(strcmp(timer_ids[timer_array_index], timer_id) == 0) break;
-
-		assert(timer_array_index < timer_ids.size() - 1 && "Failed to find specified timer");
+		timer* tim = timers[tim_index];
+		timers.erase(timers.begin() + tim_index);
+		free(tim);
 	}
+}
 
-	u64 timer_start = timer_starts[timer_array_index];
+void debug_timer_finalize(char* timer_id)
+{
+	i32 tim_index = get_timer_index(timer_id);
 
-	timer_ids.erase(timer_ids.begin() + timer_array_index);
-	timer_starts.erase(timer_starts.begin() + timer_array_index);
+	assert(tim_index >= 0 && "Timer not found");
 
-	printf("TIMER %s TOOK %i MS\n", timer_id, (get_current_time_ms() - timer_start));
+	timer* tim = timers[tim_index];
+
+	if(tim->current_start != 0) debug_timer_end(tim);
+
+	printf("TIMER %s TOOK %f MS TO RUN %i TIMES\n", timer_id, (tim->accumulated) / 1000000.0, tim->count);
+
+	debug_timer_reset(timer_id);
 }

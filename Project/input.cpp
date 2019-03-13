@@ -41,8 +41,8 @@ void input_update()
 
 	if(!map_pos_equal(intersection, vec3(-1.0f)))
 	{
-		u32 clamped_x = (u32) clamp(floor(intersection.x), 0.0f, (float) terrain_max_x - 1);
-		u32 clamped_z = (u32) clamp(floor(intersection.z), 0.0f, (float) terrain_max_z - 1);
+		u32 clamped_x = (u32) clamp(floor(intersection.x), 0.0f, (float) map_max_x - 1);
+		u32 clamped_z = (u32) clamp(floor(intersection.z), 0.0f, (float) map_max_z - 1);
 
 		// @Volatile: no account for y?
 		input_mouse_block_pos = vec3(clamped_x, 0.0f, clamped_z);

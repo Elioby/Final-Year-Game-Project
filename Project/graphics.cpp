@@ -22,7 +22,7 @@ float graphics_camera_yaw = 0.0f;
 float graphics_camera_fov = 65.0f;
 float graphics_camera_zoom = 0.0f;
 
-float graphics_camera_move_speed = 10.0f;
+float graphics_camera_move_speed = 20.0f;
 float graphics_camera_rotate_speed = 50.0f;
 
 u32 graphics_projection_width;

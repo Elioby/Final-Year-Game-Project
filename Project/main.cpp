@@ -131,6 +131,7 @@ void turn_init()
 
 float evaluate_cover(team team)
 {
+	debug_timer_start("EVAL_BOARD_COVER");
 	float eval = 0.0f;
 
 	// @Speed: this is n^2
@@ -146,7 +147,9 @@ float evaluate_cover(team team)
 				entity* friendly = entities[j];
 				if(friendly->team == team)
 				{
-					if(map_has_los(enemy, friendly))
+					bool has = map_has_los(enemy, friendly);
+
+					if(has)
 					{
 						// calculate the chance our enemy can hit us and subtract from eval (it's our disadvantage)
 						float enemy_hit_friendly = map_get_los_angle(enemy, friendly);
@@ -160,6 +163,7 @@ float evaluate_cover(team team)
 			}
 		}
 	}
+	debug_timer_end("EVAL_BOARD_COVER");
 
 	return eval;
 }
@@ -187,11 +191,14 @@ float evaluate_health(team team)
 
 float evaluate_board(team team)
 {
+	debug_timer_start("EVAL_BOARD");
+
 	float eval = 0.0f;
 
 	eval += evaluate_cover(team);
 	eval += evaluate_health(team);
 
+	debug_timer_end("EVAL_BOARD");
 	return eval;
 }
 
@@ -226,14 +233,44 @@ action_evaluation action_evaluate_move(entity* ent)
 {
 	vec3 original_position = ent->pos;
 
-	vec3 target = vec3(1.0f);
+	vec3 best_target = vec3();
+	float best_move_eval = -FLT_MAX;
 
-	ent->pos = target;
+	for(u32 x = 0; x < map_max_x; x++)
+	{
+		for(u32 z = 0; z < map_max_z; z++)
+		{
+			vec3 move_target = vec3(x, 0, z);
+
+			if(map_is_cover_at_block(move_target)) continue;
+			
+			if(map_get_entity_at_block(move_target) != NULL) continue;
+
+			ent->pos = move_target;
+
+			float move_eval = evaluate_board(ent->team);
+
+			if(move_eval > best_move_eval)
+			{
+				best_target = move_target;
+				best_move_eval = move_eval;
+			}
+		}
+	}
 
 	action_evaluation eval = {0};
 
-	eval.eval = evaluate_board(ent->team);
-	eval.valid = true;
+	if(best_move_eval > 0)
+	{
+		eval.target = best_target;
+		eval.eval = best_move_eval;
+		eval.valid = true;
+	}
+	else
+	{
+		eval.eval = -FLT_MAX;
+		eval.valid = false;
+	}
 
 	ent->pos = original_position;
 
@@ -266,10 +303,13 @@ action_evaluation action_evaluate_shoot(entity* ent)
 
 		if(!entity_is_same_team(target_ent, ent))
 		{
+			if(!map_has_los(ent, target_ent)) continue;
+
 			i32 original_hp = target_ent->health;
 
 			action_perform_shoot(ent, target_ent, true);
 
+			// @Todo: talk to frank about this. We have a chance to hit the shot, how should this effect the evaluation?
 			float eval = evaluate_board(ent->team);
 			
 			// if the dmg done was > previous hp, just heal back the previous health (otherwise they gain health)
@@ -292,14 +332,14 @@ action_evaluation action_evaluate_shoot(entity* ent)
 
 	if(highest_eval_ent)
 	{
-		eval.target = ent->pos;
+		eval.target = highest_eval_ent->pos;
 		eval.valid = true;
 		eval.eval = highest_eval;
 	}
 	else
 	{
 		eval.valid = false;
-		eval.eval = FLT_MIN;
+		eval.eval = -FLT_MAX;
 	}
 
 	return eval;
@@ -339,9 +379,10 @@ void action_init()
 // @Todo: consider AP
 void do_ai(entity* ent)
 {
-	debug_timer_start("ONE_ENTITY_AI_EVAL");
-
 	printf("AI entity %i\n", ent->id);
+	
+	debug_timer_start("DO_AI_ENTITY");
+	debug_timer_reset("HAS_LOS_CHECK");
 
 	// start with nothing action, anything better than doing nothing we do
 	action best_action = nothing_action;
@@ -363,12 +404,15 @@ void do_ai(entity* ent)
 	}
 
 	printf("Chosen action: %s\n", best_action.name);
-	debug_timer_end("ONE_ENTITY_AI_EVAL");
+
+	best_action.perform(ent, best_eval.target);
+
+	debug_timer_finalize("HAS_LOS_CHECK");
+	debug_timer_finalize("DO_AI_ENTITY");
 }
 
 void do_ai(team team)
 {
-	debug_timer_start("DO_AI_TURN");
 	for(u32 i = 0; i < entities.size(); i++)
 	{
 		entity* ent = entities[i];
@@ -378,7 +422,6 @@ void do_ai(team team)
 			do_ai(ent);
 		}
 	}
-	debug_timer_end("DO_AI_TURN");
 }
 
 void turn_start(team team)
@@ -446,12 +489,6 @@ void draw()
 	b->y = graphics_projection_height - b->height - 30;
 	gui_draw_button(b);
 
-	// @Debug: debug los
-	for(u32 i = 0; i < map_debug_los.size(); i++)
-	{
-		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(map_debug_los[i], 0.0f, vec3(1.0f), vec3(1.0f, 0.25f, 1.0f)));
-	}
-
 	// draw selected tile
 	graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(input_mouse_block_pos, 0.0f, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 
@@ -461,43 +498,7 @@ void draw()
 		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(selected_entity->pos, radians(0.0f), vec3(1.0f, 0.0f, 0.0f), vec3(1.0f, 0.05f, 1.0f)));
 	}
 
-	// @Todo: move to map_draw
-	// draw cover
-	for(u32 i = 0; i < cover_list.size(); i++)
-	{
-		cover* cov = cover_list[i];
-		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(cov->pos, 0.0f, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)));
-	}
-
-	// @Todo: move to map_draw
-	// draw entites and healthbars
-	for (u32 i = 0; i < entities.size(); i++)
-	{
-		entity* ent = entities[i];
-
-		if(!ent->dead)
-		{
-			vec3 healthbox_aspect = vec3(1.0f, 1.0f / 3.0f, 1.0f);
-
-			if (ent->health > 0) 
-			{
-				image* img;
-				if(ent->team == TEAM_ENEMY) img = asset_manager_get_image("enemy_healthbar");
-				else img = asset_manager_get_image("friendly_healthbar");
-
-				graphics_draw_image(img, graphics_create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.038f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f),
-					vec3((0.5f - 0.1f / 3.0f) * (ent->health / (float)ent->max_health), 0.1285f, 1.0f)));
-			}
-
-			graphics_draw_image(asset_manager_get_image("healthbox"), graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.0f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f), healthbox_aspect * 0.5f));
-
-			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, 0.0f, vec3(1.0f), vec3(1.0f)));
-		}
-	}
-
-	// @Todo: move to map_draw
-	// draw terrain
-	graphics_draw_mesh(asset_manager_get_mesh("terrain"), graphics_create_model_matrix(vec3(0.0f), 0.0f, vec3(1.0f), vec3(1.0f)));
+	map_draw();
 
 	// draw action bar
 	actionbar_draw();

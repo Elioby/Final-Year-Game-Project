@@ -1,5 +1,8 @@
 CMakeFiles
 Debug
+Release
+Project/Debug
+Project/Release
 Game.dir
 CMakeCache.txt
 cmake_install.cmake

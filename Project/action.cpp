@@ -28,7 +28,7 @@ void action_update()
 				// we can only move to free blocks
 				if (!clicked_entity)
 				{
-					if (map_get_cover_at_block(selected_block) == NULL)
+					if (!map_is_cover_at_block(selected_block))
 					{
 						selected_entity->pos = selected_block;
 					}
@@ -67,6 +67,10 @@ void action_update()
 								actionbar_set_msg("No LOS", 2.0f);
 							}
 						}
+						else
+						{
+							actionbar_set_msg("No LOS", 2.0f);
+						}
 					}
 					else
 					{
@@ -97,21 +101,22 @@ void action_update()
 					}
 
 					// @Cleanup: dupe code
-					for (u32 i = 0; i < cover_list.size(); i++)
-					{
-						cover* cov = cover_list[i];
+					// @Todo: fix nade code!
+					//for (u32 i = 0; i < cover_list.size(); i++)
+					//{
+					//	cover* cov = cover_list[i];
 
-						// euclidean distance
-						float distance_squared = map_distance_squared(selected_block, cov->pos);
+					//	// euclidean distance
+					//	float distance_squared = map_distance_squared(selected_block, cov->pos);
 
-						if (distance_squared < 12)
-						{
-							cover_list.erase(cover_list.begin() + i);
+					//	if (distance_squared < 12)
+					//	{
+					//		cover_list.erase(cover_list.begin() + i);
 
-							// since we removed one from the list, go back one index
-							i--;
-						}
-					}
+					//		// since we removed one from the list, go back one index
+					//		i--;
+					//	}
+					//}
 
 					selected_entity->ap -= 30;
 				}
@@ -133,7 +138,8 @@ void action_update()
 			current_action_mode = ACTION_MODE_SELECT_UNITS;
 			selected_entity = NULL;
 
-			map_debug_los.clear();
+			//map_add_cover(input_mouse_block_pos);
+			printf("%f, %f\n", input_mouse_block_pos.x, input_mouse_block_pos.z);
 		}
 	}
 }
