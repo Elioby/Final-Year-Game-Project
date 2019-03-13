@@ -9,6 +9,15 @@
 // the step of the world raytrace
 #define MAP_RAYTRACE_ACCURACY 0.25f
 
+
+struct count_me
+{
+	vec3 pos1;
+	vec3 pos2;
+	u32 count;
+	bool los;
+};
+
 extern u32 map_max_x;
 extern u32 map_max_z;
 

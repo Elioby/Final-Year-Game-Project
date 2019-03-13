@@ -53,7 +53,7 @@ bool gui_handled_click()
 button* gui_create_button()
 {
 	// @Todo: use of malloc :(
-	button* butt = (button*) calloc(sizeof(button), 1);
+	button* butt = (button*) calloc(1, sizeof(button));
 	buttons.push_back(butt);
 
 	return butt;

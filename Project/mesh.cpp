@@ -132,7 +132,7 @@ mesh* load_obj_mesh(char* asset_id, char* filename)
 	pos_normal_vertex* vertices = (pos_normal_vertex*) malloc(vertex_count * sizeof(pos_normal_vertex));
 
 	// Index all the normals for each vertex so we don't have to search for the normal for each vertex
-	vec3* vertex_normals = (vec3*) calloc(vertex_count, sizeof(vec3));
+	vec3* vertex_normals = (vec3*) calloc(sizeof(vec3), vertex_count);
 	vec2* vertex_uvs = (vec2*) malloc(vertex_count * sizeof(vec2));
 
 	for (u32 face_id = 0; face_id < vertex_ids.size(); face_id++)

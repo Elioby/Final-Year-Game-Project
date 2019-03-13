@@ -16,7 +16,7 @@ bool* cover_at_block;
 
 void map_init()
 {
-	cover_at_block = (bool*) calloc(sizeof(bool), map_max_x * map_max_z);
+	cover_at_block = (bool*) calloc(map_max_x * map_max_z, sizeof(bool));
 
 	u32 friendly_count = 4;
 	for(u32 i = 0; i < friendly_count; i++) 
@@ -381,9 +381,7 @@ bool map_has_los(entity* ent1, entity* ent2)
 	// how leinient is the los algorithm, in blocks
 	float lean_distance = 0.5f;
 
-	debug_timer_start("HAS_LOS_CHECK");
-
-	bool has = map_has_los_internal(ent1->pos, ent2->pos) ||
+	return map_has_los_internal(ent1->pos, ent2->pos) ||
 		map_has_los_internal(vec3(ent1->pos.x + lean_distance, ent1->pos.y, ent1->pos.z), ent2->pos) ||
 		map_has_los_internal(vec3(ent1->pos.x - lean_distance, ent1->pos.y, ent1->pos.z), ent2->pos) ||
 		map_has_los_internal(vec3(ent1->pos.x, ent1->pos.y, ent1->pos.z + lean_distance), ent2->pos) ||
@@ -392,9 +390,6 @@ bool map_has_los(entity* ent1, entity* ent2)
 		map_has_los_internal(vec3(ent2->pos.x - lean_distance, ent2->pos.y, ent2->pos.z), ent1->pos) ||
 		map_has_los_internal(vec3(ent2->pos.x, ent2->pos.y, ent2->pos.z + lean_distance), ent1->pos) ||
 		map_has_los_internal(vec3(ent2->pos.x, ent2->pos.y, ent2->pos.z - lean_distance), ent1->pos);
-
-	debug_timer_end("HAS_LOS_CHECK");
-	return has;
 }
 
 float map_get_los_angle(entity* inflict_ent, entity* target_ent)

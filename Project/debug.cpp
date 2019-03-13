@@ -50,7 +50,7 @@ void debug_timer_start(char* timer_id)
 	if(timer_index < 0)
 	{
 		u32 id_len = strlen(timer_id);
-		tim = (timer*) calloc(sizeof(timer) + id_len + 1, 1);
+		tim = (timer*) calloc(1, sizeof(timer) + id_len + 1);
 		tim->id = (char*) tim + sizeof(timer);
 		memcpy(tim->id, timer_id, id_len);
 		timers.push_back(tim);

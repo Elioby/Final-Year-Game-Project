@@ -72,6 +72,9 @@
     <ClCompile Include="debug.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="hashtable.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -132,6 +135,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hashtable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

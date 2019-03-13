@@ -137,6 +137,7 @@
     <ClCompile Include="font.cpp" />
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="gui.cpp" />
+    <ClCompile Include="hashtable.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="general.h" />
     <ClInclude Include="graphics.h" />
     <ClInclude Include="gui.h" />
+    <ClInclude Include="hashtable.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="map.h" />
