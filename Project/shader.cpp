@@ -10,10 +10,10 @@ bgfx_shader_handle_t load_shader(char* filename)
 
 	if (file == NULL)
 	{
-		printf("Failed to load shader from file %s\n", filename);
+		printf("Failed to open shader file %s\n", filename);
 
 		// @Safety
-		return{};
+		return BGFX_INVALID_HANDLE;
 	}
 
 	// @Cleanup: if we do a lot of file io we could make a wrapper for this stuff?
@@ -29,6 +29,12 @@ bgfx_shader_handle_t load_shader(char* filename)
 
 	// We're done with the data and file now
 	fclose(file);
+
+	if(shader.idx == UINT16_MAX)
+	{
+		printf("Failed to load shader from file %s\n", filename);
+		return BGFX_INVALID_HANDLE;
+	}
 
 	// @Todo: bgfx_set_shader_name(shader, filename, strlen(filename));
 	return shader;
