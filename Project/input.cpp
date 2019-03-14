@@ -6,6 +6,7 @@
 #include "window.h"
 #include "raycast.h"
 #include "map.h"
+#include "camera.h"
 
 /* ------- Globals --------- */
 double input_mouse_x, input_mouse_y = 0.0;
@@ -37,7 +38,7 @@ void input_update()
 
 	input_mouse_ray = calculate_mouse_ray();
 
-	vec3 intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	vec3 intersection = ray_plane_intersection(camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 	if(!map_pos_equal(intersection, vec3(-1.0f)))
 	{

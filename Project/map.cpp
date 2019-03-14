@@ -10,7 +10,9 @@
 u32 map_max_x = 32;
 u32 map_max_z = 64;
 
-// @Todo: make a map object that holds entity and cover list
+// @Todo: change "cover_at_block" to an array of tiles, each referencing either nothing, an entity, or cover 
+//         (this means you get O(n) lookup of whats in a block based on it's position)
+// @Todo: make a map object that holds tile array
 
 bool* cover_at_block;
 
@@ -381,6 +383,7 @@ bool map_has_los(entity* ent1, entity* ent2)
 	// how leinient is the los algorithm, in blocks
 	float lean_distance = 0.5f;
 
+	// @Todo: this is a bit much, maybe we only need to check along the opposite axis of the direction
 	return map_has_los_internal(ent1->pos, ent2->pos) ||
 		map_has_los_internal(vec3(ent1->pos.x + lean_distance, ent1->pos.y, ent1->pos.z), ent2->pos) ||
 		map_has_los_internal(vec3(ent1->pos.x - lean_distance, ent1->pos.y, ent1->pos.z), ent2->pos) ||
@@ -394,7 +397,6 @@ bool map_has_los(entity* ent1, entity* ent2)
 
 float map_get_los_angle(entity* inflict_ent, entity* target_ent)
 {
-	// @Todo: this is a bit much, maybe we only need to check along the opposite axis of the direction
 	float los_amount = 1.0f;
 
 	// @Todo: this is kinda bad but im tired (The way we use -1.0f as "no adjacent cover")

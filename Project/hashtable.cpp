@@ -1,5 +1,7 @@
 #include "hashtable.h"
 
+#include <stdio.h>
+
 i32 hash_u32(u32 x)
 {
 	x = ((x >> 16) ^ x) * 0x45d9f3b;
@@ -32,6 +34,7 @@ int hashtable_hashcode(hashtable* table, int key)
 
 hashtable_item* hashtable_get(hashtable* table, int key)
 {
+	bool first_round = true;
 	int start_hash_index = hashtable_hashcode(table, key);
 	int hash_index = start_hash_index;
 
@@ -40,12 +43,14 @@ hashtable_item* hashtable_get(hashtable* table, int key)
 	// move in array until an empty 
 	while((item = table->items[hash_index]) != NULL)
 	{
+		// if we reach the start again, that means we didnt find the item
+		if(!first_round && hash_index == start_hash_index) break;
+		
+		first_round = false;
+
 		if(item->key == key) return table->items[hash_index];
 
 		++hash_index;
-
-		// if we reach the start again, that means we have no empty slots
-		assert(hash_index != start_hash_index && "No space left in the hashtable to put item");
 
 		// wrap around the table
 		hash_index %= table->size;
@@ -56,6 +61,8 @@ hashtable_item* hashtable_get(hashtable* table, int key)
 
 void hashtable_put(hashtable* table, hashtable_item* item)
 {
+	assert(table->count < table->size && "No space left in the hashtable to put item");
+
 	int start_hash_index = hashtable_hashcode(table, item->key);
 	int hash_index = start_hash_index;
 
@@ -65,9 +72,6 @@ void hashtable_put(hashtable* table, hashtable_item* item)
 	while(*(spot = table->items + hash_index) != NULL)
 	{
 		++hash_index;
-
-		// if we reach the start again, that means we have no empty slots
-		assert(hash_index != start_hash_index && "No space left in the hashtable to put item");
 
 		// wrap back to the start of the table
 		hash_index %= table->size;

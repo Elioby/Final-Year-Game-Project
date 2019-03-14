@@ -25,6 +25,7 @@ void turn_init();
 void action_init();
 
 void turn_end();
+
 // @Todo: temp
 button* b;
 
@@ -76,6 +77,7 @@ int main()
 		bgfx_dbg_text_clear(0, false);
 
 		bgfx_dbg_text_printf(0, 0, 0x0f, "Last frame time: %.2fms, FPS: %.0f", dt * 1000.0f, 1 / dt);
+		bgfx_dbg_text_printf(0, 1, 0x0f, "Mouse block: (%f, %f)", input_mouse_block_pos.x, input_mouse_block_pos.z);
 
 		draw();
 
@@ -132,7 +134,7 @@ void turn_init()
 	turn_start(TEAM_FRIENDLY);
 }
 
-struct test : hashtable_item
+struct hashtable_los_result : hashtable_item
 {
 	bool has_los;
 };
@@ -140,8 +142,6 @@ struct test : hashtable_item
 float evaluate_cover(team team)
 {
 	float eval = 0.0f;
-
-	// @Speed: this is n^2
 
 	// @Todo: abstract this out for use in UI code as well as AI code
 	for(u32 i = 0; i < entities.size(); i++)
@@ -159,12 +159,12 @@ float evaluate_cover(team team)
 					// is the cache enabled?
 					if(table)
 					{
-						i32 hash = hash_u32((u32) enemy->pos.x) ^ hash_u32((u32) enemy->pos.z) ^ hash_u32((u32) friendly->pos.x) ^ hash_u32((u32) friendly->pos.z);
-						test* t = (test*) hashtable_get(table, hash);
+						i32 hash = hash_u32((u32) enemy->pos.x) + hash_u32((u32) enemy->pos.z) + hash_u32((u32) friendly->pos.x) + hash_u32((u32) friendly->pos.z);
+						hashtable_los_result* result = (hashtable_los_result*) hashtable_get(table, hash);
 
-						if(t != NULL)
+						if(result != NULL)
 						{
-							has_los = t->has_los;
+							has_los = result->has_los;
 						}
 						else
 						{
@@ -217,14 +217,11 @@ float evaluate_health(team team)
 
 float evaluate_board(team team)
 {
-	debug_timer_start("EVAL_BOARD");
-
 	float eval = 0.0f;
 
 	eval += evaluate_cover(team);
 	eval += evaluate_health(team);
 
-	debug_timer_end("EVAL_BOARD");
 	return eval;
 }
 
@@ -257,8 +254,6 @@ void action_perform_move(entity* ent, vec3 target)
 
 action_evaluation action_evaluate_move(entity* ent)
 {
-	debug_timer_start("EVAL_MOVE");
-
 	vec3 original_position = ent->pos;
 
 	vec3 best_target = vec3();
@@ -301,8 +296,6 @@ action_evaluation action_evaluate_move(entity* ent)
 	}
 
 	ent->pos = original_position;
-
-	debug_timer_end("EVAL_MOVE");
 
 	return eval;
 }
@@ -414,7 +407,6 @@ void do_ai(entity* ent)
 	printf("AI entity %i (%f, %f)\n", ent->id, ent->pos.x, ent->pos.z);
 	
 	debug_timer_start("DO_AI_ENTITY");
-	debug_timer_reset("EVAL_MOVE");
 
 	// start with nothing action, anything better than doing nothing we do
 	action best_action = nothing_action;
@@ -435,8 +427,7 @@ void do_ai(entity* ent)
 
 	table = hashtable_create(enemies * friendlies * 2);
 
-	// @Todo: cleanup names!
-	test* tests = (test*) malloc(sizeof(test) * enemies * friendlies);
+	hashtable_los_result* results = (hashtable_los_result*) malloc(sizeof(hashtable_los_result) * enemies * friendlies);
 
 	u32 index = 0;
 	for(u32 i = 0; i < entities.size(); i++)
@@ -449,10 +440,10 @@ void do_ai(entity* ent)
 				entity* friendly = entities[j];
 				if(friendly->team == team)
 				{
-					test* t = tests + index++;
-					t->has_los = map_has_los(enemy, friendly);
-					t->key = hash_u32((u32) enemy->pos.x) ^ hash_u32((u32) enemy->pos.z) ^ hash_u32((u32) friendly->pos.x) ^ hash_u32((u32) friendly->pos.z);
-					hashtable_put(table, t);
+					hashtable_los_result* result = results + index++;
+					result->has_los = map_has_los(enemy, friendly);
+					result->key = hash_u32((u32) enemy->pos.x) + hash_u32((u32) enemy->pos.z) + hash_u32((u32) friendly->pos.x) + hash_u32((u32) friendly->pos.z);
+					hashtable_put(table, result);
 				}
 			}
 		}
@@ -481,7 +472,6 @@ void do_ai(entity* ent)
 	best_action.perform(ent, best_eval.target);
 
 	debug_timer_finalize("DO_AI_ENTITY");
-	debug_timer_finalize("EVAL_MOVE");
 }
 
 void do_ai(team team)

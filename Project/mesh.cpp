@@ -28,7 +28,6 @@ mesh* mesh_create(char* asset_id, pos_normal_vertex* vertices, u32 vertex_count,
 	result->asset_id = asset_id;
 	result->asset_type = ASSET_TYPE_MESH;
 
-	// @Todo: abstract out
 	bgfx_vertex_decl_t decl;
 	bgfx_vertex_decl_begin(&decl, BGFX_RENDERER_TYPE_NOOP);
 	bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);

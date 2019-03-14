@@ -28,6 +28,11 @@ file_data* file_load(char* path)
 	return data;
 }
 
+void file_destroy(file_data* file)
+{
+	free(file->data);
+}
+
 char* file_get_extension(char* path)
 {
 	u32 last_dot_loc = -1;

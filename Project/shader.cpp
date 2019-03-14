@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "file.h"
+
 bgfx_uniform_handle_t shader_tint_uniform;
 
 void shader_init()
@@ -17,36 +19,18 @@ void shader_set_tint_uniform(vec4 tint)
 // Load an individual vertex or fragment shader from a file path
 bgfx_shader_handle_t load_shader(char* filename)
 {
-	FILE* file;
-	fopen_s(&file, filename, "rb");
+	file_data* file = file_load(filename);
 
-	if (file == NULL)
-	{
-		printf("Failed to load shader from file %s\n", filename);
+	assert(file != NULL && "Failed to load shader file");
 
-		// @Safety
-		return{};
-	}
+	bgfx_shader_handle_t shader = bgfx_create_shader(bgfx_make_ref(file->data, file->length));
 
-	// @Cleanup: if we do a lot of file io we could make a wrapper for this stuff?
-	fseek(file, 0, SEEK_END);
-	long file_size = ftell(file);
-	fseek(file, 0, SEEK_SET);
+	file_destroy(file);
 
-	void* shader_data = malloc(file_size + 1);
-	fread(shader_data, file_size, 1, file);
-	((char*)shader_data)[file_size] = '\0';
-
-	bgfx_shader_handle_t shader = bgfx_create_shader(bgfx_make_ref(shader_data, file_size + 1));
-
-	// We're done with the data and file now
-	fclose(file);
-
-	// @Todo: bgfx_set_shader_name(shader, filename, strlen(filename));
+	bgfx_set_shader_name(shader, filename, strlen(filename));
 	return shader;
 }
 
-// @Todo: (for this and load mesh) use names instead of paths? i.e. shader vs_cube resolves to res/shaders/dx11/vs_cube.bin and mesh cube resolves to res/meshes/cube.obj
 // @Todo: add support for other renderers with different shaders for each type? it's not hard, just different folders for each shader type, compile with shaderc, donezo
 shader_program* load_shader_program(char* asset_id, char* vs_filename, char* fs_filename)
 {

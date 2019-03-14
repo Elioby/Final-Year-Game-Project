@@ -91,7 +91,7 @@ void action_update()
 					{
 						entity* ent = entities[i];
 
-						// euclidean distance
+						// euclidean distance squared
 						float distance_squared = map_distance_squared(selected_block, ent->pos);
 
 						if (distance_squared < 12)
@@ -137,9 +137,6 @@ void action_update()
 		{
 			current_action_mode = ACTION_MODE_SELECT_UNITS;
 			selected_entity = NULL;
-
-			//map_add_cover(input_mouse_block_pos);
-			printf("%f, %f\n", input_mouse_block_pos.x, input_mouse_block_pos.z);
 		}
 	}
 }

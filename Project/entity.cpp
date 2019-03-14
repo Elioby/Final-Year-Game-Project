@@ -15,7 +15,6 @@ void entity_update()
 	// if our unit dies on our turn, unselect them!
 	if (selected_entity != NULL && selected_entity->dead) selected_entity = NULL;
 
-	// @Todo: should we remove from the list when they die?
 	for (u32 i = 0; i < entities.size(); i++)
 	{
 		entity* ent = entities[i];

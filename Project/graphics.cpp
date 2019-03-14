@@ -14,17 +14,6 @@ bool graphics_debug_draw_normals = false;
 mat4 graphics_view_matrix;
 mat4 graphics_projection_matrix;
 
-vec3 graphics_camera_pos = vec3(-10.0f, 15.0f, 12.5f);
-vec3 graphics_camera_dir = vec3(0.0f);
-
-float graphics_camera_pitch = -45.0f;
-float graphics_camera_yaw = 0.0f;
-float graphics_camera_fov = 65.0f;
-float graphics_camera_zoom = 0.0f;
-
-float graphics_camera_move_speed = 20.0f;
-float graphics_camera_rotate_speed = 50.0f;
-
 u32 graphics_projection_width;
 u32 graphics_projection_height; 
 
@@ -54,23 +43,6 @@ u32 bgfx_cache_read_size_callback(bgfx_callback_interface_t* _this, u64 _id) { r
 bool bgfx_cache_read_callback(bgfx_callback_interface_t* _this, u64 _id, void* _data, u32 _size) { return 0; }
 void bgfx_cache_write_callback(bgfx_callback_interface_t* _this, u64 _id, const void* _data, u32 _size) {}
 
-// @Todo: this should really be in the camera file????
-// @Todo: MOVEEEEEEE
-void graphics_update_camera()
-{
-	// clamp infinitely close to -90 and +90
-	graphics_camera_pitch = clamp(graphics_camera_pitch, -90.0f + EPSILON, 90.0f - EPSILON);
-
-	vec3 cam_pos = graphics_camera_pos * 4.0f;
-	graphics_camera_dir = vec3(cos(radians(graphics_camera_pitch)) * cos(radians(graphics_camera_yaw)), sin(radians(graphics_camera_pitch)), cos(radians(graphics_camera_pitch)) * sin(radians(graphics_camera_yaw)));
-	graphics_view_matrix = lookAt(cam_pos, cam_pos + graphics_camera_dir, vec3(0.0f, 1.0f, 0.0f));
-	
-	// @Speed: we don't need to do this every frame, only when the resolution changes
-	graphics_projection_matrix = perspective(radians(graphics_camera_fov), (float) graphics_projection_width / (float) graphics_projection_height, 0.1f, 10000.0f);
-
-	bgfx_set_view_transform(0, &graphics_view_matrix, &graphics_projection_matrix);
-}
-
 void graphics_init(int window_width, int window_height)
 {
 	bgfx_init_t init;
@@ -79,7 +51,11 @@ void graphics_init(int window_width, int window_height)
 
 	bgfx_init(&init);
 
-	bgfx_reset(window_width, window_height, BGFX_RESET_VSYNC | BGFX_RESET_MSAA_X16, init.resolution.format);
+	u32 flags = BGFX_RESET_MSAA_X16;
+
+	if(GRAPHICS_USE_VSYNC) flags |= BGFX_RESET_VSYNC;
+
+	bgfx_reset(window_width, window_height, flags, init.resolution.format);
 
 	bgfx_set_debug(BGFX_DEBUG_TEXT);
 
@@ -90,8 +66,6 @@ void graphics_init(int window_width, int window_height)
 	// setup view and projection matrix
 	graphics_projection_width = window_width;
 	graphics_projection_height = window_height;
-
-	graphics_update_camera();
 
 	bgfx_set_view_rect(0, 0, 0, window_width, window_height);
 
