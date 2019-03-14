@@ -76,12 +76,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\glfw-3.2.1\include;..\..\glm;..\..\bgfx\include;..\..\bx\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Libraries\glfw\include;..\..\Libraries\glm;..\..\Libraries\bgfx\include;..\..\Libraries\bx\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\glfw-3.2.1\lib-vc2015;..\..\bgfx\.build\win32_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\Libraries\glfw-3.2.1\lib-vc2015;..\..\Libraries\bgfx\.build\win32_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>bgfxDebug.lib;bxDebug.lib;bimg_decodeDebug.lib;bimgDebug.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -100,11 +100,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\Libraries\glfw\include;..\..\Libraries\glm;..\..\Libraries\bgfx\include;..\..\Libraries\bx\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>bgfxDebug.lib;bxDebug.lib;bimg_decodeDebug.lib;bimgDebug.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\Libraries\glfw-3.2.1\lib-vc2015;..\..\Libraries\bgfx\.build\win32_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -123,13 +127,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="action.cpp" />
-    <ClCompile Include="assets.cpp" />
+    <ClCompile Include="actionbar.cpp" />
+    <ClCompile Include="asset_manager.cpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="debug.cpp" />
+    <ClCompile Include="dynstr.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="file.cpp" />
     <ClCompile Include="font.cpp" />
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="gui.cpp" />
+    <ClCompile Include="hashtable.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
@@ -141,14 +149,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="action.h" />
-    <ClInclude Include="assets.h" />
+    <ClInclude Include="actionbar.h" />
+    <ClInclude Include="asset.h" />
+    <ClInclude Include="asset_manager.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="debug.h" />
+    <ClInclude Include="dynstr.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="font.h" />
     <ClInclude Include="general.h" />
     <ClInclude Include="graphics.h" />
     <ClInclude Include="gui.h" />
+    <ClInclude Include="hashtable.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="map.h" />

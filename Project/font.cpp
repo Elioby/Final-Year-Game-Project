@@ -8,10 +8,11 @@
 #include "stb_truetype.h"
 
 #include "graphics.h"
+#include "asset_manager.h"
 
-font* load_font(char* filename)
+font* load_font(char* asset_id, char* filename)
 {
-	file_data* file = load_file(filename);
+	file_data* file = file_load(filename);
 
 	if(!file)
 	{
@@ -20,16 +21,24 @@ font* load_font(char* filename)
 
 	const u32 char_count = 96;
 
-	// @Todo: use only one malloc!
-	font* fnt = (font*) malloc(sizeof(font) + sizeof(stbtt_bakedchar) * char_count);
+	u32 baked_width = 1024;
+	u32 baked_height = 1024;
 
-	fnt->width = 1024;
-	fnt->height = 1024;
+	// we pack the font structure, the font glyph data and the font texture into one malloc
+	u32 char_data_bytes = sizeof(stbtt_bakedchar) * char_count;
+	font* fnt = (font*) malloc(sizeof(font) + char_data_bytes + baked_width * baked_height);
+	fnt->asset_id = asset_id;
+	fnt->asset_type = ASSET_TYPE_FONT;
 
-	unsigned char* pixels = (unsigned char*) malloc(fnt->width * fnt->height);
+	asset_manager_register(fnt);
+
+	fnt->width = baked_width;
+	fnt->height = baked_height;
+
 	fnt->char_data = (stbtt_bakedchar*) (((char*) fnt) + sizeof(font));
 
 	unsigned char* font_data = (unsigned char*) file->data;
+	unsigned char* pixels = (unsigned char*) (((char*) fnt->char_data) + char_data_bytes);
 
 	stbtt_BakeFontBitmap(font_data, 0, 128.0f, pixels, fnt->width, fnt->height, 32, char_count, fnt->char_data);
 
@@ -38,30 +47,37 @@ font* load_font(char* filename)
 	return fnt;
 }
 
-
-u32 font_get_text_width(font* font, char* text, float scale)
+u32 font_get_text_width(font* font, char* text, u16 text_len, float scale)
 {
 	u32 i = 0;
-
-	scale *= 2.0f;
 
 	float x1 = 0;
 	float y1 = 0;
 
 	float total_width = 0.0f;
 
-	while(true)
+	stbtt_bakedchar *baked_start = font->char_data - 32;
+
+	while (true)
 	{
 		char c = text[i++];
 
-		if(c == 0) break;
-
-		const stbtt_bakedchar *b = font->char_data + c - 32;
-		stbtt_aligned_quad q = {};
-		stbtt_GetBakedQuad(font->char_data, font->width, font->height, c - 32, &x1, &y1, &q, 1);// @Volatile: 1=opengl & d3d10+,0=d3d9
-
-		total_width += (x1 / (20.0f / scale)) + (q.x1 * scale) - (q.x0 * scale);
+		if (c == 0) break;
+		stbtt_bakedchar* b = baked_start + c;
+		total_width += b->xadvance * scale;
 	}
 
-	return (u32) total_width / 2.0f;
+	return (u32) total_width;
+}
+
+u32 font_get_text_width(font* font, char* text, float scale)
+{
+	size_t len = strlen(text);
+
+	return font_get_text_width(font, text, len, scale);
+}
+
+u32 font_get_text_width(font* font, dynstr* text, float scale)
+{
+	return font_get_text_width(font, text->raw, text->len, scale);
 }

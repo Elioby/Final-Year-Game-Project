@@ -9,12 +9,12 @@ GLFWwindow* window;
 void window_init()
 {
 	// Setup GLFW
-	assert(glfwInit());
+	assert(glfwInit() && "GLFW init failed");
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Game Window", NULL, NULL);
 
-	assert(window);
+	assert(window && "Failed to create window");
 
 	glfwMakeContextCurrent(window);
 

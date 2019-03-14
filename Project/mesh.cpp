@@ -21,22 +21,12 @@ inline u32 pack_vec3_into_u32(vec3 vec)
 	return result;
 }
 
-// A version of create_mesh that builds a mesh with no index optimizations. Use this only for temporary code
-mesh mesh_create(pos_normal_vertex* vertices, u32 vertex_count)
+mesh* mesh_create(char* asset_id, pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u32 index_count)
 {
-	u16* indices = (u16*) malloc(vertex_count * sizeof(u16));
+	mesh* result = (mesh*) malloc(sizeof(mesh));
 
-	for(u32 i = 0; i < vertex_count; i++)
-	{
-		indices[i] = i;
-	}
-
-	return mesh_create(vertices, vertex_count, indices, vertex_count);
-}
-
-mesh mesh_create(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u32 index_count)
-{
-	mesh result = {};
+	result->asset_id = asset_id;
+	result->asset_type = ASSET_TYPE_MESH;
 
 	bgfx_vertex_decl_t decl;
 	bgfx_vertex_decl_begin(&decl, BGFX_RENDERER_TYPE_NOOP);
@@ -45,34 +35,37 @@ mesh mesh_create(pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u3
 	bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_NORMAL, 4, BGFX_ATTRIB_TYPE_UINT8, true, true);
 	bgfx_vertex_decl_end(&decl);
 
-	result.vertex_count = vertex_count;
+	result->vertex_count = vertex_count;
 	u32 vertex_byte_count = vertex_count * sizeof(pos_normal_vertex);
 
 	const bgfx_memory_t* vertices_mem = bgfx_make_ref(vertices, vertex_byte_count);
-	result.vb_handle = bgfx_create_vertex_buffer(vertices_mem, &decl, BGFX_BUFFER_NONE);
-	result.vertices = vertices;
+	result->vb_handle = bgfx_create_vertex_buffer(vertices_mem, &decl, BGFX_BUFFER_NONE);
+	result->vertices = vertices;
 	bgfx_make_ref_release(vertices, vertex_byte_count, 0, 0);
 
-	result.index_count = index_count;
+	result->index_count = index_count;
 	u32 index_byte_count = index_count * sizeof(u16);
 
 	const bgfx_memory_t* vertex_index_mem = bgfx_make_ref(indices, index_byte_count);
-	result.idb_handle = bgfx_create_index_buffer(vertex_index_mem, BGFX_BUFFER_NONE);
-	result.indices = indices;
+	result->idb_handle = bgfx_create_index_buffer(vertex_index_mem, BGFX_BUFFER_NONE);
+	result->indices = indices;
 	bgfx_make_ref_release(vertex_index_mem, index_byte_count, 0, 0);
 
 	return result;
 }
 
-void mesh_destroy(mesh m)
+// @Todo: this doesn't unalloc obj mesh buffers :/ (vertex and index buffer)
+void mesh_destroy(mesh* m)
 {
-	bgfx_destroy_vertex_buffer(m.vb_handle);
-	bgfx_destroy_index_buffer(m.idb_handle);
+	free(m);
+
+	bgfx_destroy_vertex_buffer(m->vb_handle);
+	bgfx_destroy_index_buffer(m->idb_handle);
 }
 
 // @Cleanup
 // @Todo: Remove use of std::?
-mesh load_obj_mesh(char* filename)
+mesh* load_obj_mesh(char* asset_id, char* filename)
 {
 	FILE* file;
 	fopen_s(&file, filename, "r");
@@ -138,7 +131,7 @@ mesh load_obj_mesh(char* filename)
 	pos_normal_vertex* vertices = (pos_normal_vertex*) malloc(vertex_count * sizeof(pos_normal_vertex));
 
 	// Index all the normals for each vertex so we don't have to search for the normal for each vertex
-	vec3* vertex_normals = (vec3*) calloc(vertex_count, sizeof(vec3));
+	vec3* vertex_normals = (vec3*) calloc(sizeof(vec3), vertex_count);
 	vec2* vertex_uvs = (vec2*) malloc(vertex_count * sizeof(vec2));
 
 	for (u32 face_id = 0; face_id < vertex_ids.size(); face_id++)
@@ -166,5 +159,5 @@ mesh load_obj_mesh(char* filename)
 		indices[i] = vertex_ids[i] - 1;
 	}
 
-	return mesh_create(vertices, vertex_count, indices, index_count);
+	return mesh_create(asset_id, vertices, vertex_count, indices, index_count);
 }

@@ -6,6 +6,7 @@
 #include "window.h"
 #include "raycast.h"
 #include "map.h"
+#include "camera.h"
 
 /* ------- Globals --------- */
 double input_mouse_x, input_mouse_y = 0.0;
@@ -37,12 +38,12 @@ void input_update()
 
 	input_mouse_ray = calculate_mouse_ray();
 
-	vec3 intersection = ray_plane_intersection(graphics_camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	vec3 intersection = ray_plane_intersection(camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 	if(!map_pos_equal(intersection, vec3(-1.0f)))
 	{
-		u32 clamped_x = (u32) clamp(floor(intersection.x), 0.0f, (float) terrain_max_x - 1);
-		u32 clamped_z = (u32) clamp(floor(intersection.z), 0.0f, (float) terrain_max_z - 1);
+		u32 clamped_x = (u32) clamp(floor(intersection.x), 0.0f, (float) map_max_x - 1);
+		u32 clamped_z = (u32) clamp(floor(intersection.z), 0.0f, (float) map_max_z - 1);
 
 		// @Volatile: no account for y?
 		input_mouse_block_pos = vec3(clamped_x, 0.0f, clamped_z);
@@ -63,8 +64,8 @@ void input_end_frame()
 
 vec3 calculate_mouse_ray()
 {
-	float x = (2.0f * input_mouse_x) / (float)graphics_projection_width - 1.0f;
-	float y = (2.0f * input_mouse_y) / (float)graphics_projection_height - 1.0f;
+	float x = (2.0f * (float) input_mouse_x) / (float) graphics_projection_width - 1.0f;
+	float y = (2.0f * (float) input_mouse_y) / (float) graphics_projection_height - 1.0f;
 
 	// normalize the position into graphics coords (-1.0 to 1.0, -1.0 to 1.0)
 	vec3 ray_norm = vec3(x, y, 1.0f);
@@ -103,5 +104,5 @@ void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int 
 
 void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	input_mouse_wheel_delta_y = yoffset;
+	input_mouse_wheel_delta_y = (float) yoffset;
 }

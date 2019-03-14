@@ -5,21 +5,38 @@
 
 #include <vector>
 
+// @Todo: move to team?
+typedef enum team
+{
+	TEAM_FRIENDLY,
+	TEAM_ENEMY
+} team_t;
+
 struct entity {
+	u32 id;
 	vec3 pos;
 
-	mesh mesh;
+	mesh* mesh;
 
 	i32 health;
 	i32 max_health;
 
-	bool enemy;
+	i32 ap;
+	i32 max_ap;
+
+	team team;
 	bool dead;
 };
 
 extern std::vector<entity*> entities;
 
-void entity_add(vec3 pos, bool enemy);
-entity* entity_get_at_block(vec3 block_pos);
+// @Cleanup: honestly idk where else to put this
+extern entity* selected_entity;
 
-void entity_health_change(entity* entity, u32 amount);
+void entity_update();
+
+void entity_add(vec3 pos, team team);
+
+void entity_health_change(entity* ent, entity* inflict_ent, i32 amount);
+void entity_health_change(entity* ent, entity* inflict_ent, i32 amount, bool temp);
+bool entity_is_same_team(entity* ent1, entity* ent2);

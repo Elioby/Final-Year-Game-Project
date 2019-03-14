@@ -1,9 +1,13 @@
 #pragma once
 
+#include <float.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <bgfx/c99/bgfx.h>
+
+#include "debug.h"
 
 #define EPSILON 0.001f
 
