@@ -1,5 +1,6 @@
 #pragma once
 
+#include "general.h"
 #include "graphics.h"
 #include "asset.h"
 
