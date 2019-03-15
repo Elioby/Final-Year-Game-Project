@@ -3,6 +3,8 @@ Debug
 Release
 Project/Debug
 Project/Release
+Project/temp
+enc_temp_folder
 Game.dir
 CMakeCache.txt
 cmake_install.cmake

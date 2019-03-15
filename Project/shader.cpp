@@ -19,9 +19,10 @@ void shader_set_tint_uniform(vec4 tint)
 // Load an individual vertex or fragment shader from a file path
 bgfx_shader_handle_t load_shader(char* filename)
 {
-	file_data* file = file_load(filename);
+	FILE* file;
+	fopen_s(&file, filename, "rb");
 
-	if (file == NULL)
+	if(file == NULL)
 	{
 		printf("Failed to open shader file %s\n", filename);
 
@@ -29,9 +30,19 @@ bgfx_shader_handle_t load_shader(char* filename)
 		return BGFX_INVALID_HANDLE;
 	}
 
-	bgfx_shader_handle_t shader = bgfx_create_shader(bgfx_make_ref(file->data, file->length));
+	// @Cleanup: if we do a lot of file io we could make a wrapper for this stuff?
+	fseek(file, 0, SEEK_END);
+	long file_size = ftell(file);
+	fseek(file, 0, SEEK_SET);
 
-	file_destroy(file);
+	void* shader_data = malloc(file_size + 1);
+	fread(shader_data, file_size, 1, file);
+	((char*)shader_data)[file_size] = '\0';
+
+	bgfx_shader_handle_t shader = bgfx_create_shader(bgfx_make_ref(shader_data, file_size + 1));
+
+	// We're done with the data and file now
+	fclose(file);
 
 	if(shader.idx == UINT16_MAX)
 	{
