@@ -1,6 +1,7 @@
 #include "map.h"
 
 #include <stdlib.h>
+#include <emmintrin.h>
 
 #include "mesh.h"
 #include "entity.h"
@@ -9,6 +10,7 @@
 
 u32 map_max_x = 32;
 u32 map_max_z = 64;
+u32 max_los_distance = (u32) ceil(sqrt((float) map_max_x * map_max_x + (float) map_max_z * map_max_z) / MAP_RAYTRACE_ACCURACY);
 
 // @Todo: change "cover_at_block" to an array of tiles, each referencing either nothing, an entity, or cover 
 //         (this means you get O(n) lookup of whats in a block based on it's position)
@@ -313,10 +315,14 @@ void map_add_cover(vec3 block_pos)
 	cover_at_block[(u32) block_pos.x + (u32) block_pos.z * map_max_x] = true;
 }
 
+bool map_is_cover_at_block(u32 x, u32 z)
+{
+	return cover_at_block[x + z * map_max_x];
+}
+
 bool map_is_cover_at_block(vec3 block_pos)
 {
-	bool cover = cover_at_block[(u32) block_pos.x + (u32) block_pos.z * map_max_x];
-	return cover;
+	return map_is_cover_at_block((u32) block_pos.x, (u32) block_pos.z);
 }
 
 vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
@@ -347,31 +353,76 @@ vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
 	return closest_cover;
 }
 
+inline __m128 _mm_floor_ps2(const __m128& x) {
+	__m128i v0 = _mm_setzero_si128();
+	__m128i v1 = _mm_cmpeq_epi32(v0, v0);
+	__m128i ji = _mm_srli_epi32(v1, 25);
+	__m128 j = *(__m128*)&_mm_slli_epi32(ji, 23); //create vector 1.0f
+	__m128i i = _mm_cvttps_epi32(x);
+	__m128 fi = _mm_cvtepi32_ps(i);
+	__m128 igx = _mm_cmpgt_ps(fi, x);
+	j = _mm_and_ps(igx, j);
+	return _mm_sub_ps(fi, j);
+}
+
 bool map_has_los_internal(vec3 start, vec3 end)
 {
+	float end_x = end.x;
+	float end_z = end.z;
+
 	vec3 direction = glm::normalize(end - start);
-	vec3 step = direction * MAP_RAYTRACE_ACCURACY;
+	float step_x = direction.x * MAP_RAYTRACE_ACCURACY;
+	float step_z = direction.z * MAP_RAYTRACE_ACCURACY;
 
 	u32 timeout = 0;
-	u32 max_distance = (u32)ceil(sqrt((float) map_max_x * map_max_x + (float) map_max_z * map_max_z) / MAP_RAYTRACE_ACCURACY);
-	vec3 step_progress = start;
-	vec3 last_block_pos = vec3(-1.0f);
-	while(timeout++ < max_distance)
-	{
-		step_progress += step;
+	float step_progress_x = start.x;
+	float step_progress_z = start.z;
+	float last_block_x = -1;
+	float last_block_z = -1;
 
-		vec3 next_step_block_pos = map_get_block_pos(step_progress);
+	float next_step_block[4];
+
+	float cmp_results[4];
+
+	__m128 progress = _mm_set_ps(start.x, start.z, 0.0f, 0.0f);
+	__m128 step = _mm_set_ps(step_x, step_z, 0.0f, 0.0f);
+	__m128 last_block = _mm_set_ps(-1.0f, -1.0f, -1.0f, -1.0f);
+	
+	// @Todo: these are const
+	__m128 floor_add = _mm_set_ps(0.5f, 0.5f, 0.0f, 0.0f);
+	__m128 zero = _mm_set_ps(0.0f, 0.0f, 0.0f, 0.0f);
+
+	while(true)
+	{
+		// @Todo: can we auto store the result in progress?
+		progress = _mm_add_ps(progress, step);
+
+		__m128 next_step = _mm_add_ps(progress, floor_add);
+		next_step = _mm_floor_ps2(next_step);
+
+		__m128 result = _mm_cmpeq_ps(last_block, next_step);
+
+		_mm_store_ps(cmp_results, result);
 
 		// only eval if this is a new block than last
-		if(!map_pos_equal(next_step_block_pos, last_block_pos))
+		if(!(cmp_results[2] && cmp_results[3]))
 		{
+			_mm_store_ps(next_step_block, next_step);
+			float next_step_block_x = next_step_block[3];
+			float next_step_block_z = next_step_block[2];
+
 			// if we reached the target, we have full los
-			if(map_pos_equal(next_step_block_pos, end)) return true;
+			if(next_step_block_x == end_x && next_step_block_z == end_z) return true;
+
+			// if this block is off the map, they have no los
+			if(next_step_block_x < 0 || next_step_block_z < 0) return false;
 
 			// if this block is cover, they have no los
-			if(map_is_cover_at_block(next_step_block_pos)) return false;
+			if(cover_at_block[(u32) next_step_block_x + (u32) next_step_block_z * map_max_x]) return false;
 
-			last_block_pos = next_step_block_pos;
+			//last_block_x = next_step_block_x;
+			//last_block_z = next_step_block_z;
+			last_block = next_step;
 		}
 	}
 

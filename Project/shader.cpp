@@ -1,7 +1,5 @@
 #include "shader.h"
 
-#include <stdio.h>
-
 #include "file.h"
 
 bgfx_uniform_handle_t shader_tint_uniform;
