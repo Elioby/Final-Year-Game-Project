@@ -4,15 +4,6 @@
 
 #include "file.h"
 
-<<<<<<< HEAD
-	if (file == NULL)
-	{
-		printf("Failed to open shader file %s\n", filename);
-
-		// @Safety
-		return BGFX_INVALID_HANDLE;
-	}
-=======
 bgfx_uniform_handle_t shader_tint_uniform;
 
 void shader_init()
@@ -24,14 +15,19 @@ void shader_set_tint_uniform(vec4 tint)
 {
 	bgfx_set_uniform(shader_tint_uniform, &tint, 1);
 }
->>>>>>> 4f5fabe1ad1d5dcb2c5f93920a16f015b5cd52f7
 
 // Load an individual vertex or fragment shader from a file path
 bgfx_shader_handle_t load_shader(char* filename)
 {
 	file_data* file = file_load(filename);
 
-	assert(file != NULL && "Failed to load shader file");
+	if (file == NULL)
+	{
+		printf("Failed to open shader file %s\n", filename);
+
+		// @Safety
+		return BGFX_INVALID_HANDLE;
+	}
 
 	bgfx_shader_handle_t shader = bgfx_create_shader(bgfx_make_ref(file->data, file->length));
 

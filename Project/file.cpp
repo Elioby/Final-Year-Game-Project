@@ -30,7 +30,7 @@ file_data* file_load(char* path)
 
 void file_destroy(file_data* file)
 {
-	free(file->data);
+	free(file);
 }
 
 char* file_get_extension(char* path)
