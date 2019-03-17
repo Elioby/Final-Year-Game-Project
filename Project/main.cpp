@@ -29,6 +29,10 @@ void turn_end();
 // @Todo: temp
 button* b;
 
+float evaluate_board(team team);
+
+float evaluate_cover(team team);
+
 void button_end_turn_all()
 {
 	turn_end();
@@ -38,6 +42,7 @@ hashtable* table;
 
 int main()
 {
+
 	window_init();
 	graphics_init(WINDOW_WIDTH, WINDOW_HEIGHT);
 	input_init();
@@ -403,8 +408,6 @@ void action_init()
 void do_ai(entity* ent)
 {
 	team team = ent->team;
-
-	printf("AI entity %i (%f, %f)\n", ent->id, ent->pos.x, ent->pos.z);
 	
 	debug_timer_start("DO_AI_ENTITY");
 
@@ -455,8 +458,6 @@ void do_ai(entity* ent)
 
 		action_evaluation eval = act.evaluate(ent);
 
-		printf("Action %s: %f\n", act.name, eval.eval);
-
 		if(eval.valid && eval.eval > best_eval.eval)
 		{
 			best_action = act;
@@ -466,8 +467,6 @@ void do_ai(entity* ent)
 
 	hashtable_destroy(table);
 	table = NULL;
-
-	printf("Chosen action: %s\n", best_action.name);
 
 	best_action.perform(ent, best_eval.target);
 

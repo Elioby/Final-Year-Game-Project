@@ -63,11 +63,11 @@ void debug_timer_start(char* timer_id)
 	tim->current_start = get_current_time_ns();
 }
 
-void debug_timer_end(timer* tim)
+void debug_timer_end(timer* tim, u64 current_time)
 {
 	assert(tim->current_start && "Timer must be started for you to end it");
 
-	tim->accumulated += get_current_time_ns() - tim->current_start;
+	tim->accumulated += current_time - tim->current_start;
 
 	tim->count++;
 	tim->current_start = 0;
@@ -75,7 +75,8 @@ void debug_timer_end(timer* tim)
 
 void debug_timer_end(char* timer_id)
 {
-	debug_timer_end(timers[get_timer_index(timer_id)]);
+	u64 time = get_current_time_ns();
+	debug_timer_end(timers[get_timer_index(timer_id)], time);
 }
 
 void debug_timer_reset(char* timer_id)
@@ -92,13 +93,15 @@ void debug_timer_reset(char* timer_id)
 
 void debug_timer_finalize(char* timer_id)
 {
+	u64 current_time = get_current_time_ns();
+
 	i32 tim_index = get_timer_index(timer_id);
 
 	assert(tim_index >= 0 && "Timer not found");
 
 	timer* tim = timers[tim_index];
 
-	if(tim->current_start != 0) debug_timer_end(tim);
+	if(tim->current_start != 0) debug_timer_end(tim, current_time);
 
 	printf("TIMER %s TOOK %f MS TO RUN %i TIMES\n", timer_id, (tim->accumulated) / 1000000.0, tim->count);
 
