@@ -2,15 +2,9 @@
 
 #include "general.h"
 #include "mesh.h"
+#include "team.h"
 
 #include <vector>
-
-// @Todo: move to team?
-typedef enum team
-{
-	TEAM_FRIENDLY,
-	TEAM_ENEMY
-} team_t;
 
 struct entity {
 	u32 id;
@@ -35,7 +29,7 @@ extern entity* selected_entity;
 
 void entity_update();
 
-void entity_add(vec3 pos, team team);
+void entity_add(vec3 pos, team t);
 
 void entity_health_change(entity* ent, entity* inflict_ent, i32 amount);
 void entity_health_change(entity* ent, entity* inflict_ent, i32 amount, bool temp);

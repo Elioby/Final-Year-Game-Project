@@ -75,6 +75,21 @@
     <ClCompile Include="hashtable.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="minimax.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="board_eval.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turn.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="team.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ai.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -138,6 +153,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hashtable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="minimax.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="board_eval.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="team.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ai.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

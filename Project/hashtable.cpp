@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-i32 hash_u32(u32 x)
+i32 hashtable_hash_u32(u32 x)
 {
 	x = ((x >> 16) ^ x) * 0x45d9f3b;
 	x = ((x >> 16) ^ x) * 0x45d9f3b;

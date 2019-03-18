@@ -5,9 +5,180 @@
 #include "gui.h"
 #include "input.h"
 #include "actionbar.h"
+#include "board_eval.h"
+
+#define ACTION_SHOOT_DAMAGE 6
 
 action_mode current_action_mode;
 
+// nothing functions
+void action_perform_nothing(entity* ent, vec3 target);
+action_evaluation action_evaluate_nothing(entity* ent);
+
+// move functions
+action_evaluation action_evaluate_move(entity* ent);
+void action_perform_move(entity* ent, vec3 target);
+
+// shoot functions
+void action_perform_shoot(entity* ent, vec3 target);
+action_evaluation action_evaluate_shoot(entity* ent);
+
+std::vector<action> actions;
+
+action action_nothing;
+
+void action_init()
+{
+	action_nothing = { 0 };
+	action_nothing.name = "nothing";
+	action_nothing.perform = action_perform_nothing;
+	action_nothing.evaluate = action_evaluate_nothing;
+
+	action move_action = { 0 };
+	move_action.name = "move";
+	move_action.perform = action_perform_move;
+	move_action.evaluate = action_evaluate_move;
+	actions.push_back(move_action);
+
+	action shoot_action = { 0 };
+	shoot_action.name = "shoot";
+	shoot_action.perform = action_perform_shoot;
+	shoot_action.evaluate = action_evaluate_shoot;
+	actions.push_back(shoot_action);
+}
+
+void action_perform_nothing(entity* ent, vec3 target) { }
+
+action_evaluation action_evaluate_nothing(entity* ent)
+{
+	action_evaluation eval = { 0 };
+
+	eval.valid = true;
+	eval.eval = evaluate_board(ent->team);
+
+	return eval;
+}
+
+void action_perform_move(entity* ent, vec3 target)
+{
+	ent->pos = target;
+}
+
+action_evaluation action_evaluate_move(entity* ent)
+{
+	vec3 original_position = ent->pos;
+
+	vec3 best_target = vec3();
+	float best_move_eval = -FLT_MAX;
+
+	for (u32 x = 0; x < map_max_x; x++)
+	{
+		for (u32 z = 0; z < map_max_z; z++)
+		{
+			vec3 move_target = vec3(x, 0, z);
+
+			if (map_is_cover_at_block(move_target)) continue;
+
+			if (map_get_entity_at_block(move_target) != NULL) continue;
+
+			ent->pos = move_target;
+
+			float move_eval = evaluate_board(ent->team);
+
+			if (move_eval > best_move_eval)
+			{
+				best_target = move_target;
+				best_move_eval = move_eval;
+			}
+		}
+	}
+
+	action_evaluation eval = { 0 };
+
+	if (best_move_eval > 0)
+	{
+		eval.target = best_target;
+		eval.eval = best_move_eval;
+		eval.valid = true;
+	}
+	else
+	{
+		eval.eval = -FLT_MAX;
+		eval.valid = false;
+	}
+
+	ent->pos = original_position;
+
+	return eval;
+}
+
+void action_perform_shoot(entity* ent, entity* target_ent, bool temp)
+{
+	entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
+}
+
+void action_perform_shoot(entity* ent, vec3 target)
+{
+	entity* target_ent = map_get_entity_at_block(target);
+
+	action_perform_shoot(ent, target_ent, false);
+}
+
+action_evaluation action_evaluate_shoot(entity* ent)
+{
+	entity* highest_eval_ent = NULL;
+	float highest_eval = -FLT_MAX;
+
+	// find the best entity to shoot
+	for (u32 i = 0; i < entities.size(); i++)
+	{
+		entity* target_ent = entities[i];
+
+		if (!entity_is_same_team(target_ent, ent))
+		{
+			if (!map_has_los(ent, target_ent)) continue;
+
+			i32 original_hp = target_ent->health;
+
+			action_perform_shoot(ent, target_ent, true);
+
+			// @Todo: talk to frank about this. We have a chance to hit the shot, how should this effect the evaluation?
+			float eval = evaluate_board(ent->team);
+
+			// if the dmg done was > previous hp, just heal back the previous health (otherwise they gain health)
+			i32 heal_amount = ACTION_SHOOT_DAMAGE;
+
+			if (heal_amount > original_hp) heal_amount = original_hp;
+
+			// heal them back up (it will also res them if they're dead, since this is temp mode)
+			entity_health_change(target_ent, ent, heal_amount, true);
+
+			if (eval > highest_eval)
+			{
+				highest_eval_ent = target_ent;
+				highest_eval = eval;
+			}
+		}
+	}
+
+	action_evaluation eval = { 0 };
+
+	if (highest_eval_ent)
+	{
+		eval.target = highest_eval_ent->pos;
+		eval.valid = true;
+		eval.eval = highest_eval;
+	}
+	else
+	{
+		eval.valid = false;
+		eval.eval = -FLT_MAX;
+	}
+
+	return eval;
+}
+
+// @Todo: use the above code in the below code
 void action_update()
 {
 	if (!gui_handled_click())

@@ -325,6 +325,7 @@ bool map_is_cover_at_block(u32 x, u32 z)
 
 bool map_is_cover_at_block(vec3 block_pos)
 {
+	if (block_pos.x < 0 || block_pos.z < 0) return false;
 	return map_is_cover_at_block((u32) block_pos.x, (u32) block_pos.z);
 }
 
@@ -358,15 +359,15 @@ vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
 
 bool map_has_los_internal(vec3 start, vec3 end)
 {
-	long end_x = end.x;
-	long end_z = end.z;
+	long end_x = (long) end.x;
+	long end_z = (long) end.z;
 	float step_progress_x = start.x;
 	float step_progress_z = start.z;
 
-	vec3 direction = glm::normalize(start - end);
+	vec3 direction = glm::normalize(end - start);
 
-	float step_x = direction.x * MAP_RAYTRACE_ACCURACY + 0.5f;
-	float step_z = direction.z * MAP_RAYTRACE_ACCURACY + 0.5f;
+	float step_x = direction.x * MAP_RAYTRACE_ACCURACY;
+	float step_z = direction.z * MAP_RAYTRACE_ACCURACY;
 
 	u32 timeout = 0;
 	long last_block_x = -1;
@@ -379,8 +380,8 @@ bool map_has_los_internal(vec3 start, vec3 end)
 		step_progress_x += step_x;
 		step_progress_z += step_z;
 
-		next_block_x = (long) step_progress_x;
-		next_block_z = (long) step_progress_z;
+		next_block_x = (long) (step_progress_x + 0.5f);
+		next_block_z = (long) (step_progress_z + 0.5f);
 
 		// only eval if this is a new block than last
 		if(!(next_block_x == last_block_x && next_block_z == last_block_z))

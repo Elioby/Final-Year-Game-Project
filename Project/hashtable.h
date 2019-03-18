@@ -16,7 +16,7 @@ struct hashtable
 	hashtable_item** items;
 };
 
-i32 hash_u32(u32 x);
+i32 hashtable_hash_u32(u32 x);
 
 hashtable* hashtable_create(u32 size);
 void hashtable_destroy(hashtable* table);
