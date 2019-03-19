@@ -1,7 +1,5 @@
 ﻿#include "minimax.h"
 
-#include <math.h>
-
 #include "action.h"
 
 float minimax_search(action_evaluation node, u32 depth, bool maximizing)
@@ -9,16 +7,17 @@ float minimax_search(action_evaluation node, u32 depth, bool maximizing)
 	// @Todo: check if the game is over at this point? although i doubt we ever get that far
 	if(depth == 0) return node.eval;
 
-	float value = -FLT_MAX;
-
 	if(maximizing)
 	{
-		value = max(value, minimax_search(child, depth - 1, !maximizing));
-		return ;
+		float value = -FLT_MAX;
+		value = glm::max(value, minimax_search(child, depth - 1, false));
+		return value;
 	}
 	else
 	{
-		return min(value, )
+		float value = +FLT_MAX;
+		value = glm::min(value, minimax_search(child, depth - 1, true));
+		return value;
 	}
 }
 

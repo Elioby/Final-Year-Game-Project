@@ -74,7 +74,7 @@ action_undo_data* action_gather_undo_data_move(entity* ent, vec3 target)
 	// @Todo: replace this with a custom stack push?
 	action_undo_data_move* undo_data = (action_undo_data_move*) malloc(sizeof(action_undo_data_move));
 
-	undo_data.old_pos = ent->pos;
+	undo_data->old_pos = ent->pos;
 
 	return undo_data;
 }
@@ -84,10 +84,10 @@ void action_perform_move(entity* ent, vec3 target)
 	ent->pos = target;
 }
 
-void action_undo_move(entity* ent, action_undo_data undo_data)
+void action_undo_move(entity* ent, action_undo_data* undo_data)
 {
-	action_undo_data_move undo_data_move = (action_undo_data_move) undo_data;
-	ent->pos = 
+	action_undo_data_move* undo_data_move = (action_undo_data_move*) undo_data;
+	ent->pos = undo_data_move->old_pos;
 }
 
 action_evaluation action_evaluate_move(entity* ent)
