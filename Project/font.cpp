@@ -74,7 +74,9 @@ u32 font_get_text_width(font* font, char* text, float scale)
 {
 	size_t len = strlen(text);
 
-	return font_get_text_width(font, text, len, scale);
+	assert(len <= UINT16_MAX && "Text len must be shorter than u16 max");
+
+	return font_get_text_width(font, text, (u16) len, scale);
 }
 
 u32 font_get_text_width(font* font, dynstr* text, float scale)

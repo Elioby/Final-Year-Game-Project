@@ -13,7 +13,7 @@ struct timer
 	char* id;
 	u64 current_start;
 	u64 accumulated;
-	u64 count;
+	u32 count;
 };
 
 std::vector<timer*> timers;
@@ -30,7 +30,7 @@ u64 get_current_time_ns()
 
 i32 get_timer_index(char* timer_id)
 {
-	i32 timer_array_index = 0;
+	u32 timer_array_index = 0;
 
 	for(; timer_array_index < timers.size(); timer_array_index++)
 	{
