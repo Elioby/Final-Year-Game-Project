@@ -62,7 +62,7 @@ void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount)
 
 void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount, bool temp)
 {
-	assert((!target_ent->dead || temp) && "The target entity cannot be dead (unless this is a temporary health change for eval)");
+	debug_assert(!target_ent->dead || temp, "The target entity cannot be dead (unless this is a temporary health change for eval)");
 
 	target_ent->health += amount;
 

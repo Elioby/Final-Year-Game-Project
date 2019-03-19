@@ -5,8 +5,10 @@
 #include <sys/timeb.h>
 
 #include <vector>
+#include <signal.h>
 
 #include "general.h"
+#include "window.h"
 
 struct timer
 {
@@ -65,7 +67,7 @@ void debug_timer_start(char* timer_id)
 
 void debug_timer_end(timer* tim, u64 current_time)
 {
-	assert(tim->current_start && "Timer must be started for you to end it");
+	debug_assert(tim->current_start, "Timer must be started for you to end it");
 
 	tim->accumulated += current_time - tim->current_start;
 
@@ -97,7 +99,7 @@ void debug_timer_finalize(char* timer_id)
 
 	i32 tim_index = get_timer_index(timer_id);
 
-	assert(tim_index >= 0 && "Timer not found");
+	debug_assert(tim_index >= 0, "Timer not found");
 
 	timer* tim = timers[tim_index];
 
@@ -106,4 +108,19 @@ void debug_timer_finalize(char* timer_id)
 	printf("TIMER %s TOOK %f MS TO RUN %i TIMES\n", timer_id, (tim->accumulated) / 1000000.0, tim->count);
 
 	debug_timer_reset(timer_id);
+}
+
+void debug_assert(bool assert, char* message)
+{
+	if(!assert)
+	{
+		if(!window_error_message_box(message))
+		{
+			assert("Failed to open message box on failed assert...");
+		}
+		else
+		{
+			assert(false);
+		}
+	}
 }
