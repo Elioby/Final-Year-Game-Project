@@ -18,3 +18,5 @@
 extern GLFWwindow* window;
 
 void window_init();
+
+bool window_error_message_box(char* message);

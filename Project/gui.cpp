@@ -45,7 +45,7 @@ void gui_end_frame()
 
 bool gui_handled_click()
 {
-	assert(has_gui_update_happened_this_frame && "You must call this method after the gui_update method has been called");
+	debug_assert(has_gui_update_happened_this_frame, "You must call this method after the gui_update method has been called");
 
 	return handled_click;
 }
@@ -91,7 +91,7 @@ void gui_draw_image(image* image, mat4 transform_matrix)
 
 void gui_draw_button(button* button)
 {
-	assert(button->bg_img && "Image must have a bg image");
+	debug_assert(button->bg_img, "Image must have a bg image");
 
 	image* img;
 	if(button->hover_bg_img && input_mouse_x >= button->x && input_mouse_x <= button->x + button->width && input_mouse_y >= button->y && input_mouse_y <= button->y + button->height)

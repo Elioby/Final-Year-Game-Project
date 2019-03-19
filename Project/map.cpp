@@ -21,7 +21,7 @@ bool* cover_at_block;
 
 void map_init()
 {
-	assert(map_max_x >= map_max_z && "The map cannot be bigger on the z than the x");
+	debug_assert(map_max_x >= map_max_z, "The map cannot be bigger on the z than the x");
 
 	cover_at_block = (bool*) calloc(map_max_x * map_max_z, sizeof(bool));
 
@@ -303,7 +303,7 @@ mesh* map_generate_terrain_mesh()
 
 	u16* indices = (u16*) malloc(vertex_count * sizeof(u16));
 
-	assert(vertex_count < UINT16_MAX && "Vertex count must be less than max size of u16");
+	debug_assert(vertex_count < UINT16_MAX, "Vertex count must be less than max size of u16");
 
 	for(u16 i = 0; i < vertex_count; i++)
 	{

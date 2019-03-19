@@ -39,9 +39,20 @@ void entity_add(vec3 pos, team team)
 	entities.push_back(ent);
 }
 
-vec3 entity_get_block_pos(entity entity)
+void entity_kill(entity* ent, bool temp)
 {
-	return map_get_block_pos(entity.pos);
+	ent->dead = true;
+	ent->health = 0;
+
+	if(!temp)
+	{
+
+	}
+}
+
+void entity_kill(entity* ent)
+{
+	entity_kill(ent, false);
 }
 
 void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount)
@@ -51,7 +62,7 @@ void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount)
 
 void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount, bool temp)
 {
-	assert((!target_ent->dead || temp) && "The target entity cannot be dead (unless this is a temporary health change for eval)");
+	debug_assert(!target_ent->dead || temp, "The target entity cannot be dead (unless this is a temporary health change for eval)");
 
 	target_ent->health += amount;
 
@@ -63,9 +74,7 @@ void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount, b
 
 	if(target_ent->health <= 0)
 	{
-		// entity death
-		target_ent->dead = true;
-		target_ent->health = 0;
+		entity_kill(target_ent);
 
 		if(!temp)
 		{

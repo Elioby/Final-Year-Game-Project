@@ -11,6 +11,16 @@
 
 action_mode current_action_mode;
 
+struct action_undo_data_move : action_undo_data
+{
+	vec3 old_pos;
+};
+
+struct action_undo_data_shoot : action_undo_data
+{
+	u32 damage_taken;
+};
+
 // nothing functions
 void action_perform_nothing(entity* ent, vec3 target);
 action_evaluation action_evaluate_nothing(entity* ent);
@@ -59,9 +69,25 @@ action_evaluation action_evaluate_nothing(entity* ent)
 	return eval;
 }
 
+action_undo_data* action_gather_undo_data_move(entity* ent, vec3 target)
+{
+	// @Todo: replace this with a custom stack push?
+	action_undo_data_move* undo_data = (action_undo_data_move*) malloc(sizeof(action_undo_data_move));
+
+	undo_data->old_pos = ent->pos;
+
+	return undo_data;
+}
+
 void action_perform_move(entity* ent, vec3 target)
 {
 	ent->pos = target;
+}
+
+void action_undo_move(entity* ent, action_undo_data* undo_data)
+{
+	action_undo_data_move* undo_data_move = (action_undo_data_move*) undo_data;
+	ent->pos = undo_data_move->old_pos;
 }
 
 action_evaluation action_evaluate_move(entity* ent)
@@ -134,7 +160,7 @@ action_evaluation action_evaluate_shoot(entity* ent)
 	{
 		entity* target_ent = entities[i];
 
-		if (!entity_is_same_team(target_ent, ent))
+		if (!target_ent->dead && !entity_is_same_team(target_ent, ent))
 		{
 			if (!map_has_los(ent, target_ent)) continue;
 

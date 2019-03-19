@@ -9,6 +9,8 @@ std::vector<asset*> assets;
 
 void asset_manager_init()
 {
+	// @Todo: asset_manager_load_folder("", true);
+
 	asset_manager_register(load_obj_mesh("plane", "res/mesh/plane.obj"));
 	asset_manager_register(load_obj_mesh("robot", "res/mesh/robot.obj"));
 	asset_manager_register(load_obj_mesh("cube", "res/mesh/cube.obj"));
@@ -29,8 +31,8 @@ void asset_manager_init()
 	asset_manager_register(load_image("res/img/selected_entity.png"));
 
 	// shaders
-	asset_manager_register(load_shader_program("diffuse", "res/shader/diffuse_vs.bin", "res/shader/diffuse_fs.bin"));
-	asset_manager_register(load_shader_program("gui", "res/shader/gui_vs.bin", "res/shader/gui_fs.bin"));
+	asset_manager_register(load_shader_program("diffuse", "res/shader/diffuse.vs", "res/shader/diffuse.fs"));
+	asset_manager_register(load_shader_program("gui", "res/shader/gui.vs", "res/shader/gui.fs"));
 
 	// fonts
 	asset_manager_register(load_font("inconsolata", "res/font/inconsolata.ttf"));
@@ -40,7 +42,7 @@ void asset_manager_init()
 
 void asset_manager_register(asset* as)
 {
-	assert(as && "Tried to register null asset");
+	debug_assert(as, "Tried to register null asset");
 
 	assets.push_back(as);
 }
@@ -67,7 +69,7 @@ void asset_manager_register(image* as)
 
 asset* asset_manager_get_asset(char* id, asset_type type)
 {
-	assert(id && "Must provide an asset id");
+	debug_assert(id, "Must provide an asset id");
 
 	for(u32 i = 0; i < assets.size(); i++)
 	{
@@ -77,7 +79,7 @@ asset* asset_manager_get_asset(char* id, asset_type type)
 			if(as->asset_type != type)
 			{
 				printf("Asset with id %s was not of expected type %i\n", id, type);
-				assert(false && "asset_get type not the same as asset type at id");
+				debug_assert(false, "asset_get type not the same as asset type at id");
 			}
 
 			return as;
@@ -85,7 +87,7 @@ asset* asset_manager_get_asset(char* id, asset_type type)
 	}
 
 	printf("Unable to find asset with id %s\n", id);
-	assert(false && "Unable to find asset");
+	debug_assert(false, "Unable to find asset");
 	return NULL;
 }
 

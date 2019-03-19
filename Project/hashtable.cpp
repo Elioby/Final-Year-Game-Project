@@ -12,7 +12,7 @@ i32 hashtable_hash_u32(u32 x)
 
 hashtable* hashtable_create(u32 size)
 {
-	assert(size > 0 && "hashtable size must be > 0");
+	debug_assert(size > 0, "hashtable size must be > 0");
 
 	hashtable* table = (hashtable*) calloc(1, sizeof(hashtable) + sizeof(hashtable_item*) * size);
 
@@ -61,7 +61,7 @@ hashtable_item* hashtable_get(hashtable* table, int key)
 
 void hashtable_put(hashtable* table, hashtable_item* item)
 {
-	assert(table->count < table->size && "No space left in the hashtable to put item");
+	debug_assert(table->count < table->size, "No space left in the hashtable to put item");
 
 	int start_hash_index = hashtable_hashcode(table, item->key);
 	int hash_index = start_hash_index;

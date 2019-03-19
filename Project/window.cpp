@@ -23,11 +23,25 @@ void window_init()
 	// @Todo: add x11, wayland, mir support for windows?
 	#ifdef _WIN32
 		platform_data.nwh = glfwGetWin32Window(window);
-	#endif
-
-	#ifdef __APPLE__
+	#elif __APPLE__
 		platformData.nwh = glfwGetCocoaWindow(mWindow);
+	#else
+		assert(false && "Unsupported platform");
 	#endif
 
 	bgfx_set_platform_data(&platform_data);
+}
+
+bool window_error_message_box(char* message)
+{
+	// @Todo: add x11, wayland, mir support for windows?
+	#ifdef _WIN32
+		MessageBox(NULL, message, "Fatal Error", MB_SYSTEMMODAL | MB_ICONERROR);
+	#elif __APPLE__
+		StandardAlert(kAlertStopAlert, message, null, null, kAlertStdAlertOKButton);
+	#else
+		return false;
+	#endif
+
+	return true;
 }
