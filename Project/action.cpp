@@ -134,7 +134,7 @@ action_evaluation action_evaluate_shoot(entity* ent)
 	{
 		entity* target_ent = entities[i];
 
-		if (!entity_is_same_team(target_ent, ent))
+		if (!target_ent->dead && !entity_is_same_team(target_ent, ent))
 		{
 			if (!map_has_los(ent, target_ent)) continue;
 

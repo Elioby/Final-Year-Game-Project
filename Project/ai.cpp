@@ -3,6 +3,7 @@
 #include "entity.h"
 #include "action.h"
 #include "board_eval.h"
+#include "turn.h"
 
 // @Todo: consider AP
 void ai_perform_entity(entity* ent)
