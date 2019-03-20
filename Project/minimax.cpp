@@ -1,13 +1,21 @@
 ﻿#include "minimax.h"
 
-#include "action.h"
+#include "board_eval.h"
 
-action_evaluation minimax_search(action_evaluation node, u32 depth, team maximizing_team, team current_team)
+action_evaluation minimax_search(action_evaluation parent, u32 depth, team maximizing_team, team current_team)
 {
 	// @Todo: check if the game is over at this point? although i doubt we ever get that far
-	if(depth == 0) return node;
+	if(depth == 0) return parent;
 
 	bool maximizing = maximizing_team == current_team;
+	team opposite_team = team_get_opposite(current_team);
+
+	action_evaluation chosen_act = { 0 };
+
+	if(maximizing) chosen_act.eval = -FLT_MAX;
+	else chosen_act.eval = +FLT_MAX;
+
+	u32 x = 0;
 
 	for(u32 entity_index = 0; entity_index < entities.size(); entity_index++)
 	{
@@ -25,22 +33,56 @@ action_evaluation minimax_search(action_evaluation node, u32 depth, team maximiz
 
 			while(act.get_next_target(ent, &last_target_index, &target))
 			{
+				action_undo_data* undo_data = act.gather_undo_data(ent, target);
 
+				act.perform(ent, target, true);
+
+				float eval = board_evaluate(maximizing_team);
+
+				if(maximizing)
+				{
+					if(eval >= chosen_act.eval)
+					{
+						chosen_act.eval = eval;
+						// @Todo: we're getting a pointer to something on the stack here..
+						chosen_act.action = act;
+						chosen_act.valid = true;
+						chosen_act.target = target;
+					}
+
+					action_evaluation best_child_eval = minimax_search(chosen_act, depth - 1, maximizing_team, opposite_team);
+
+					if(best_child_eval.eval >= chosen_act.eval)
+					{
+						chosen_act = best_child_eval;
+					}
+				}
+				else
+				{
+					if (eval <= chosen_act.eval)
+					{
+						chosen_act.eval = eval;
+						// @Todo: we're getting a pointer to something on the stack here..
+						chosen_act.action = act;
+						chosen_act.valid = true;
+						chosen_act.target = target;
+					}
+					
+					action_evaluation worst_child_eval = minimax_search(chosen_act, depth - 1, maximizing_team, opposite_team);
+
+					if (worst_child_eval.eval >= chosen_act.eval)
+					{
+						chosen_act = worst_child_eval;
+					}
+				}
+
+				act.undo(ent, undo_data);
+				free(undo_data);
 			}
 		}
 	}
 
-	if(maximizing)
-	{
-		value = glm::max(value, minimax_search(child, depth - 1, false));
-		return value;
-	}
-	else
-	{
-		float value = +FLT_MAX;
-		value = glm::min(value, minimax_search(child, depth - 1, true));
-		return value;
-	}
+	return chosen_act;
 }
 
 //function minimax(node, depth, maximizingPlayer) is
@@ -50,10 +92,10 @@ action_evaluation minimax_search(action_evaluation node, u32 depth, team maximiz
 //	value : = −∞
 //		for each child of node do
 //			value : = max(value, minimax(child, depth − 1, FALSE))
-//			return value
+//		return value
 //	else (*minimizing player *)
 //	value : = +∞
 //		for each child of node do
 //			value : = min(value, minimax(child, depth − 1, TRUE))
-//			return value
+//		return value
 //

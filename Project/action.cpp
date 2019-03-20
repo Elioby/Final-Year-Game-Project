@@ -74,7 +74,7 @@ void action_init()
 bool get_next_target_nothing(entity* ent, u32* last_index, vec3* result)
 {
 	// we only return one valid position for doing nothing
-	if(*last_index != 1) return false;
+	if(*last_index != 0) return false;
 
 	*last_index = 1;
 	*result = ent->pos;

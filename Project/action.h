@@ -26,7 +26,7 @@ typedef enum action_mode
 struct action_evaluation
 {
 	// the action taken
-	action* action;
+	action action;
 
 	// the evaluation function after the action is taken, will be FLT_MIN if invalid
 	float eval;

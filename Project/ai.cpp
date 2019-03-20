@@ -4,6 +4,7 @@
 #include "action.h"
 #include "board_eval.h"
 #include "turn.h"
+#include "minimax.h"
 
 action_evaluation action_evaluate(action act, entity* ent)
 {
@@ -27,7 +28,7 @@ action_evaluation action_evaluate(action act, entity* ent)
 		if(eval >= best.eval)
 		{
 			best.eval = eval;
-			best.action = &act;
+			best.action = act;
 			best.target = target;
 			best.valid = true;
 		}
@@ -42,7 +43,7 @@ void ai_perform_entity(entity* ent)
 	team team = ent->team;
 
 	// start with nothing action, anything better than doing nothing we do
-	action best_action = action_nothing;
+	/*action best_action = action_nothing;
 	action_evaluation best_eval = action_evaluate(best_action, ent);
 
 	board_eval_build_cache(ent->team);
@@ -64,11 +65,15 @@ void ai_perform_entity(entity* ent)
 		}
 	}
 
-	board_eval_destroy_cache();
+	board_eval_destroy_cache();*/
 
-	printf("Entity %i performing action %s\n", ent->id, best_action.name);
+	action_evaluation best_eval = action_evaluate(action_nothing, ent);
 
-	best_action.perform(ent, best_eval.target, false);
+	best_eval = minimax_search(best_eval, 2, team, team);
+
+	printf("Entity %i performing action %s\n", ent->id, best_eval.action.name);
+
+	best_eval.action.perform(ent, best_eval.target, false);
 }
 
 void ai_perform_team(team team)

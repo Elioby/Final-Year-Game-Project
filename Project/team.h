@@ -9,3 +9,4 @@ typedef enum team
 } team_t;
 
 char* team_get_name(team team);
+team team_get_opposite(team team);
