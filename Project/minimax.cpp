@@ -2,7 +2,7 @@
 
 #include "board_eval.h"
 
-action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 depth, team maximizing_team, team current_team)
+action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 depth, team maximizing_team, team current_team, float alpha, float beta)
 {
 	// @Todo: check if the game is over at this point? although i doubt we ever get that far
 	if(depth == 0) return parent;
@@ -16,7 +16,7 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 dept
 	if(maximizing) chosen_act.eval = -FLT_MAX;
 	else chosen_act.eval = +FLT_MAX;
 
-	for (u32 action_index = 0; action_index < actions.size(); action_index++)
+	for(u32 action_index = 0; action_index < actions.size(); action_index++)
 	{
 		action act = actions[action_index];
 
@@ -42,7 +42,7 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 dept
 					chosen_act.target = target;
 				}
 
-				action_evaluation best_child_eval = minimax_search(ent, chosen_act, depth - 1, maximizing_team, opposite_team);
+				action_evaluation best_child_eval = minimax_search(ent, chosen_act, depth - 1, maximizing_team, opposite_team, alpha, beta);
 
 				if(best_child_eval.eval > chosen_act.eval)
 				{
@@ -51,6 +51,10 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 dept
 					chosen_act.valid = true;
 					chosen_act.target = target;
 				}
+
+				if(alpha < chosen_act.eval) alpha = chosen_act.eval;
+
+				if(alpha >= beta) goto out_of_node_search; // beta cut off
 			}
 			else
 			{
@@ -63,18 +67,24 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 dept
 					chosen_act.target = target;
 				}
 					
-				action_evaluation worst_child_eval = minimax_search(ent, chosen_act, depth - 1, maximizing_team, opposite_team);
+				action_evaluation worst_child_eval = minimax_search(ent, chosen_act, depth - 1, maximizing_team, opposite_team, alpha, beta);
 
 				if (worst_child_eval.eval > chosen_act.eval)
 				{
 					chosen_act = worst_child_eval;
 				}
+
+				if(beta > chosen_act.eval) beta = chosen_act.eval;
+
+				if(alpha >= beta) goto out_of_node_search; // alpha cut off
 			}
 
 			act.undo(ent, undo_data);
 			free(undo_data);
 		}
 	}
+
+	out_of_node_search:
 
 	if (!chosen_act.valid) return parent;
 
