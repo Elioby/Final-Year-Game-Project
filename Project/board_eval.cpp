@@ -138,7 +138,7 @@ float evaluate_health(team team)
 	return eval;
 }
 
-float evaluate_board(team team)
+float board_evaluate(team team)
 {
 	float eval = 0.0f;
 

@@ -19,20 +19,28 @@ struct action_undo_data_move : action_undo_data
 struct action_undo_data_shoot : action_undo_data
 {
 	u32 damage_taken;
+	entity* target_ent;
 };
 
 // nothing functions
-void action_perform_nothing(entity* ent, vec3 target);
-action_evaluation action_evaluate_nothing(entity* ent);
+action_undo_data* gather_undo_data_nothing(entity* ent, vec3 target) { return NULL; }
+void perform_nothing(entity* ent, vec3 target, bool temp) {}
+void undo_nothing(entity* ent, action_undo_data* undo_data) {}
+bool get_next_target_nothing(entity* ent, u32* last_index, vec3* result);
 
 // move functions
-action_evaluation action_evaluate_move(entity* ent);
-void action_perform_move(entity* ent, vec3 target);
+action_undo_data* gather_undo_data_move(entity* ent, vec3 target);
+void perform_move(entity* ent, vec3 target, bool temp);
+void undo_move(entity* ent, action_undo_data* undo_data);
+bool get_next_target_move(entity* ent, u32* last_index, vec3* result);
 
 // shoot functions
-void action_perform_shoot(entity* ent, vec3 target);
-action_evaluation action_evaluate_shoot(entity* ent);
+action_undo_data* gather_undo_data_shoot(entity* ent, vec3 target);
+void perform_shoot(entity* ent, vec3 target, bool temp);
+void undo_shoot(entity* ent, action_undo_data* undo_data);
+bool get_next_target_shoot(entity* ent, u32* last_index, vec3* result);
 
+// actions not including "nothing" action
 std::vector<action> actions;
 
 action action_nothing;
@@ -41,35 +49,39 @@ void action_init()
 {
 	action_nothing = { 0 };
 	action_nothing.name = "nothing";
-	action_nothing.perform = action_perform_nothing;
-	action_nothing.evaluate = action_evaluate_nothing;
+	action_nothing.perform = perform_nothing;
+	action_nothing.gather_undo_data = gather_undo_data_nothing;
+	action_nothing.undo = undo_nothing;
+	action_nothing.get_next_target = get_next_target_nothing;
 
 	action move_action = { 0 };
 	move_action.name = "move";
-	move_action.perform = action_perform_move;
-	move_action.evaluate = action_evaluate_move;
+	move_action.perform = perform_move;
+	move_action.gather_undo_data = gather_undo_data_move;
+	move_action.undo = undo_move;
+	move_action.get_next_target = get_next_target_move;
 	actions.push_back(move_action);
 
 	action shoot_action = { 0 };
 	shoot_action.name = "shoot";
-	shoot_action.perform = action_perform_shoot;
-	shoot_action.evaluate = action_evaluate_shoot;
+	shoot_action.perform = perform_shoot;
+	shoot_action.gather_undo_data = gather_undo_data_shoot;
+	shoot_action.undo = undo_shoot;
+	shoot_action.get_next_target = get_next_target_shoot;
 	actions.push_back(shoot_action);
 }
 
-void action_perform_nothing(entity* ent, vec3 target) { }
-
-action_evaluation action_evaluate_nothing(entity* ent)
+bool get_next_target_nothing(entity* ent, u32* last_index, vec3* result)
 {
-	action_evaluation eval = { 0 };
+	// we only return one valid position for doing nothing
+	if(*last_index != 1) return false;
 
-	eval.valid = true;
-	eval.eval = evaluate_board(ent->team);
-
-	return eval;
+	*last_index = 1;
+	*result = ent->pos;
+	return true;
 }
 
-action_undo_data* action_gather_undo_data_move(entity* ent, vec3 target)
+action_undo_data* gather_undo_data_move(entity* ent, vec3 target)
 {
 	// @Todo: replace this with a custom stack push?
 	action_undo_data_move* undo_data = (action_undo_data_move*) malloc(sizeof(action_undo_data_move));
@@ -79,130 +91,188 @@ action_undo_data* action_gather_undo_data_move(entity* ent, vec3 target)
 	return undo_data;
 }
 
-void action_perform_move(entity* ent, vec3 target)
+void perform_move(entity* ent, vec3 target, bool temp)
 {
 	ent->pos = target;
 }
 
-void action_undo_move(entity* ent, action_undo_data* undo_data)
+void undo_move(entity* ent, action_undo_data* undo_data)
 {
 	action_undo_data_move* undo_data_move = (action_undo_data_move*) undo_data;
 	ent->pos = undo_data_move->old_pos;
 }
 
-action_evaluation action_evaluate_move(entity* ent)
+bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
 {
-	vec3 original_position = ent->pos;
-
-	vec3 best_target = vec3();
-	float best_move_eval = -FLT_MAX;
-
-	for (u32 x = 0; x < map_max_x; x++)
+	for (u32 i = *last_index; i < map_max_x * map_max_z; i++)
 	{
-		for (u32 z = 0; z < map_max_z; z++)
-		{
-			vec3 move_target = vec3(x, 0, z);
+		u32 x = i % map_max_x;
+		u32 z = (i - x) / map_max_x;
 
-			if (map_is_cover_at_block(move_target)) continue;
+		vec3 move_target = vec3(x, 0, z);
 
-			if (map_get_entity_at_block(move_target) != NULL) continue;
+		if (map_is_cover_at_block(move_target)) continue;
 
-			ent->pos = move_target;
+		if (map_get_entity_at_block(move_target) != NULL) continue;
 
-			float move_eval = evaluate_board(ent->team);
-
-			if (move_eval > best_move_eval)
-			{
-				best_target = move_target;
-				best_move_eval = move_eval;
-			}
-		}
+		*last_index = i + 1;
+		*result = move_target;
+		return true;
 	}
 
-	action_evaluation eval = { 0 };
-
-	if (best_move_eval > 0)
-	{
-		eval.target = best_target;
-		eval.eval = best_move_eval;
-		eval.valid = true;
-	}
-	else
-	{
-		eval.eval = -FLT_MAX;
-		eval.valid = false;
-	}
-
-	ent->pos = original_position;
-
-	return eval;
+	return false;
 }
 
-void action_perform_shoot(entity* ent, entity* target_ent, bool temp)
+action_undo_data* gather_undo_data_shoot(entity* ent, vec3 target)
 {
-	entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
+	// @Todo: replace this with a custom stack push?
+	action_undo_data_shoot* undo_data = (action_undo_data_shoot*) malloc(sizeof(action_undo_data_shoot));
+
+	entity* target_ent = map_get_entity_at_block(target);
+
+	debug_assert(target_ent, "Tried to gather undo data while shooting a target entity that isn't there");
+
+	undo_data->damage_taken = glm::min(target_ent->health, ACTION_SHOOT_DAMAGE);
+	undo_data->target_ent = target_ent;
+
+	return undo_data;
 }
 
-void action_perform_shoot(entity* ent, vec3 target)
+void perform_shoot(entity* ent, vec3 target, bool temp)
 {
 	entity* target_ent = map_get_entity_at_block(target);
 
-	action_perform_shoot(ent, target_ent, false);
+	entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
 }
 
-action_evaluation action_evaluate_shoot(entity* ent)
+void undo_shoot(entity* ent, action_undo_data* undo_data)
 {
-	entity* highest_eval_ent = NULL;
-	float highest_eval = -FLT_MAX;
+	action_undo_data_shoot* undo_data_shoot = (action_undo_data_shoot*) undo_data;
 
-	// find the best entity to shoot
-	for (u32 i = 0; i < entities.size(); i++)
+	// heal them back up, if they were dead this ressurects them
+	entity_health_change(undo_data_shoot->target_ent, ent, undo_data_shoot->damage_taken, true);
+}
+
+bool get_next_target_shoot(entity* ent, u32* last_index, vec3* result)
+{
+	for (u32 i = *last_index; i < entities.size(); i++)
 	{
 		entity* target_ent = entities[i];
-
+		
 		if (!target_ent->dead && !entity_is_same_team(target_ent, ent))
 		{
 			if (!map_has_los(ent, target_ent)) continue;
-
-			i32 original_hp = target_ent->health;
-
-			action_perform_shoot(ent, target_ent, true);
-
-			// @Todo: talk to frank about this. We have a chance to hit the shot, how should this effect the evaluation?
-			float eval = evaluate_board(ent->team);
-
-			// if the dmg done was > previous hp, just heal back the previous health (otherwise they gain health)
-			i32 heal_amount = ACTION_SHOOT_DAMAGE;
-
-			if (heal_amount > original_hp) heal_amount = original_hp;
-
-			// heal them back up (it will also res them if they're dead, since this is temp mode)
-			entity_health_change(target_ent, ent, heal_amount, true);
-
-			if (eval > highest_eval)
-			{
-				highest_eval_ent = target_ent;
-				highest_eval = eval;
-			}
+		
+			*last_index = i + 1;
+			*result = target_ent->pos;
+			return true;
 		}
 	}
 
-	action_evaluation eval = { 0 };
-
-	if (highest_eval_ent)
-	{
-		eval.target = highest_eval_ent->pos;
-		eval.valid = true;
-		eval.eval = highest_eval;
-	}
-	else
-	{
-		eval.valid = false;
-		eval.eval = -FLT_MAX;
-	}
-
-	return eval;
+	return false;
 }
+
+//action_evaluation action_evaluate_move(entity* ent)
+//{
+//	vec3 original_position = ent->pos;
+//
+//	vec3 best_target = vec3();
+//	float best_move_eval = -FLT_MAX;
+//
+//	for (u32 x = 0; x < map_max_x; x++)
+//	{
+//		for (u32 z = 0; z < map_max_z; z++)
+//		{
+//			vec3 move_target = vec3(x, 0, z);
+//
+//			if (map_is_cover_at_block(move_target)) continue;
+//
+//			if (map_get_entity_at_block(move_target) != NULL) continue;
+//
+//			ent->pos = move_target;
+//
+//			float move_eval = evaluate_board(ent->team);
+//
+//			if (move_eval > best_move_eval)
+//			{
+//				best_target = move_target;
+//				best_move_eval = move_eval;
+//			}
+//		}
+//	}
+//
+//	action_evaluation eval = { 0 };
+//
+//	if (best_move_eval > 0)
+//	{
+//		eval.target = best_target;
+//		eval.eval = best_move_eval;
+//		eval.valid = true;
+//	}
+//	else
+//	{
+//		eval.eval = -FLT_MAX;
+//		eval.valid = false;
+//	}
+//
+//	ent->pos = original_position;
+//
+//	return eval;
+//}
+//
+//action_evaluation action_evaluate_shoot(entity* ent)
+//{
+//	entity* highest_eval_ent = NULL;
+//	float highest_eval = -FLT_MAX;
+//
+//	// find the best entity to shoot
+//	for (u32 i = 0; i < entities.size(); i++)
+//	{
+//		entity* target_ent = entities[i];
+//
+//		if (!target_ent->dead && !entity_is_same_team(target_ent, ent))
+//		{
+//			if (!map_has_los(ent, target_ent)) continue;
+//
+//			i32 original_hp = target_ent->health;
+//
+//			action_perform_shoot(ent, target_ent, true);
+//
+//			// @Todo: talk to frank about this. We have a chance to hit the shot, how should this effect the evaluation?
+//			float eval = evaluate_board(ent->team);
+//
+//			// if the dmg done was > previous hp, just heal back the previous health (otherwise they gain health)
+//			i32 heal_amount = ACTION_SHOOT_DAMAGE;
+//
+//			if (heal_amount > original_hp) heal_amount = original_hp;
+//
+//			// heal them back up (it will also res them if they're dead, since this is temp mode)
+//			entity_health_change(target_ent, ent, heal_amount, true);
+//
+//			if (eval > highest_eval)
+//			{
+//				highest_eval_ent = target_ent;
+//				highest_eval = eval;
+//			}
+//		}
+//	}
+//
+//	action_evaluation eval = { 0 };
+//
+//	if (highest_eval_ent)
+//	{
+//		eval.target = highest_eval_ent->pos;
+//		eval.valid = true;
+//		eval.eval = highest_eval;
+//	}
+//	else
+//	{
+//		eval.valid = false;
+//		eval.eval = -FLT_MAX;
+//	}
+//
+//	return eval;
+//}
 
 // @Todo: use the above code in the below code
 void action_update()

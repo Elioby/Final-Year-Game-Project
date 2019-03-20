@@ -10,3 +10,8 @@ char* team_get_name(team team)
 
 	return "unknown team";
 }
+
+team get_opposite_team(team team)
+{
+	return team == TEAM_FRIENDLY ? TEAM_ENEMY : TEAM_FRIENDLY;
+}

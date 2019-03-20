@@ -30,7 +30,7 @@ image* load_image(char* path)
 	
 	image* img = create_image(asset_id->raw, pixels, width, height, 4, BGFX_TEXTURE_FORMAT_RGBA8);
 
-	//dynstr_free(asset_id);
+	// @MemoryLeak: dynstr_free(asset_id);
 
 	return img;
 }

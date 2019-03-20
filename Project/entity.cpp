@@ -19,7 +19,11 @@ void entity_update()
 	{
 		entity* ent = entities[i];
 
-		if (ent->dead) entities.erase(entities.begin() + i);
+		if (ent->dead) 
+		{
+			entities.erase(entities.begin() + i);
+			free(ent);
+		}
 	}
 }
 
@@ -44,6 +48,7 @@ void entity_kill(entity* ent, bool temp)
 	ent->dead = true;
 	ent->health = 0;
 
+	// @Todo: what if temp?
 	if(!temp)
 	{
 
@@ -62,6 +67,7 @@ void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount)
 
 void entity_health_change(entity* target_ent, entity* inflict_ent, i32 amount, bool temp)
 {
+	debug_assert(target_ent && inflict_ent && !inflict_ent->dead, "A valid target and inflict entity must be provided");
 	debug_assert(!target_ent->dead || temp, "The target entity cannot be dead (unless this is a temporary health change for eval)");
 
 	target_ent->health += amount;
