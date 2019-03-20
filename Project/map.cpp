@@ -357,19 +357,18 @@ vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
 	return closest_cover;
 }
 
-bool map_has_los_internal(vec3 start, vec3 end)
+bool map_has_los_internal(float start_x, float start_z, float end_x, float end_z)
 {
-	long end_x = (long) end.x;
-	long end_z = (long) end.z;
-	float step_progress_x = start.x;
-	float step_progress_z = start.z;
+	vec2 direction = glm::normalize(vec2(end_x - start_x, end_z - start_z));
 
-	vec3 direction = glm::normalize(end - start);
+	start_x += 0.5f;
+	start_z += 0.5f;
+
+	// v * inversesqrt(dot(v, v));
 
 	float step_x = direction.x * MAP_RAYTRACE_ACCURACY;
-	float step_z = direction.z * MAP_RAYTRACE_ACCURACY;
+	float step_z = direction.y * MAP_RAYTRACE_ACCURACY;
 
-	u32 timeout = 0;
 	long last_block_x = -1;
 	long last_block_z = -1;
 	long next_block_x;
@@ -377,11 +376,11 @@ bool map_has_los_internal(vec3 start, vec3 end)
 
 	while(true)
 	{
-		step_progress_x += step_x;
-		step_progress_z += step_z;
+		start_x += step_x;
+		start_z += step_z;
 
-		next_block_x = (long) (step_progress_x + 0.5f);
-		next_block_z = (long) (step_progress_z + 0.5f);
+		next_block_x = (long) start_x;
+		next_block_z = (long) start_z;
 
 		// only eval if this is a new block than last
 		if(!(next_block_x == last_block_x && next_block_z == last_block_z))
@@ -410,15 +409,15 @@ bool map_has_los(entity* ent1, entity* ent2)
 	float lean_distance = 0.5f;
 
 	// @Todo: this is a bit much, maybe we only need to check along the opposite axis of the direction
-	return map_has_los_internal(ent1->pos, ent2->pos) ||
-		map_has_los_internal(vec3(ent1->pos.x + lean_distance, ent1->pos.y, ent1->pos.z), ent2->pos) ||
-		map_has_los_internal(vec3(ent1->pos.x - lean_distance, ent1->pos.y, ent1->pos.z), ent2->pos) ||
-		map_has_los_internal(vec3(ent1->pos.x, ent1->pos.y, ent1->pos.z + lean_distance), ent2->pos) ||
-		map_has_los_internal(vec3(ent1->pos.x, ent1->pos.y, ent1->pos.z - lean_distance), ent2->pos) ||
-		map_has_los_internal(vec3(ent2->pos.x + lean_distance, ent2->pos.y, ent2->pos.z), ent1->pos) ||
-		map_has_los_internal(vec3(ent2->pos.x - lean_distance, ent2->pos.y, ent2->pos.z), ent1->pos) ||
-		map_has_los_internal(vec3(ent2->pos.x, ent2->pos.y, ent2->pos.z + lean_distance), ent1->pos) ||
-		map_has_los_internal(vec3(ent2->pos.x, ent2->pos.y, ent2->pos.z - lean_distance), ent1->pos);
+	return map_has_los_internal(ent1->pos.x, ent1->pos.z, ent2->pos.x, ent2->pos.z) ||
+		map_has_los_internal(ent1->pos.x + lean_distance, ent1->pos.z, ent2->pos.x, ent2->pos.z) ||
+		map_has_los_internal(ent1->pos.x - lean_distance, ent1->pos.z, ent2->pos.x, ent2->pos.z) ||
+		map_has_los_internal(ent1->pos.x, ent1->pos.z + lean_distance, ent2->pos.x, ent2->pos.z) ||
+		map_has_los_internal(ent1->pos.x, ent1->pos.z - lean_distance, ent2->pos.x, ent2->pos.z) ||
+		map_has_los_internal(ent2->pos.x + lean_distance, ent2->pos.z, ent1->pos.x, ent1->pos.z) ||
+		map_has_los_internal(ent2->pos.x - lean_distance, ent2->pos.z, ent1->pos.x, ent1->pos.z) ||
+		map_has_los_internal(ent2->pos.x, ent2->pos.z + lean_distance, ent1->pos.x, ent1->pos.z) ||
+		map_has_los_internal(ent2->pos.x, ent2->pos.z - lean_distance, ent1->pos.x, ent1->pos.z);
 }
 
 float map_get_los_angle(entity* inflict_ent, entity* target_ent)

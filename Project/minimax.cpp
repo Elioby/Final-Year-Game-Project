@@ -2,7 +2,7 @@
 
 #include "board_eval.h"
 
-action_evaluation minimax_search(action_evaluation parent, u32 depth, team maximizing_team, team current_team)
+action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 depth, team maximizing_team, team current_team)
 {
 	// @Todo: check if the game is over at this point? although i doubt we ever get that far
 	if(depth == 0) return parent;
@@ -11,76 +11,72 @@ action_evaluation minimax_search(action_evaluation parent, u32 depth, team maxim
 	team opposite_team = team_get_opposite(current_team);
 
 	action_evaluation chosen_act = { 0 };
+	chosen_act.valid = false;
 
 	if(maximizing) chosen_act.eval = -FLT_MAX;
 	else chosen_act.eval = +FLT_MAX;
 
-	u32 x = 0;
-
-	for(u32 entity_index = 0; entity_index < entities.size(); entity_index++)
+	for (u32 action_index = 0; action_index < actions.size(); action_index++)
 	{
-		// @Speed: keep a list of friendly and enemy entities?
-		entity* ent = entities[entity_index];
+		action act = actions[action_index];
 
-		if(ent->team != current_team) continue;
+		u32 last_target_index = 0;
+		vec3 target;
 
-		for (u32 action_index = 0; action_index < actions.size(); action_index++)
+		while(act.get_next_target(ent, &last_target_index, &target))
 		{
-			action act = actions[action_index];
+			action_undo_data* undo_data = act.gather_undo_data(ent, target);
 
-			u32 last_target_index = 0;
-			vec3 target;
+			act.perform(ent, target, true);
 
-			while(act.get_next_target(ent, &last_target_index, &target))
+			float eval = board_evaluate(maximizing_team);
+
+			if(maximizing)
 			{
-				action_undo_data* undo_data = act.gather_undo_data(ent, target);
-
-				act.perform(ent, target, true);
-
-				float eval = board_evaluate(maximizing_team);
-
-				if(maximizing)
+				if(eval > chosen_act.eval)
 				{
-					if(eval >= chosen_act.eval)
-					{
-						chosen_act.eval = eval;
-						// @Todo: we're getting a pointer to something on the stack here..
-						chosen_act.action = act;
-						chosen_act.valid = true;
-						chosen_act.target = target;
-					}
-
-					action_evaluation best_child_eval = minimax_search(chosen_act, depth - 1, maximizing_team, opposite_team);
-
-					if(best_child_eval.eval >= chosen_act.eval)
-					{
-						chosen_act = best_child_eval;
-					}
-				}
-				else
-				{
-					if (eval <= chosen_act.eval)
-					{
-						chosen_act.eval = eval;
-						// @Todo: we're getting a pointer to something on the stack here..
-						chosen_act.action = act;
-						chosen_act.valid = true;
-						chosen_act.target = target;
-					}
-					
-					action_evaluation worst_child_eval = minimax_search(chosen_act, depth - 1, maximizing_team, opposite_team);
-
-					if (worst_child_eval.eval >= chosen_act.eval)
-					{
-						chosen_act = worst_child_eval;
-					}
+					chosen_act.eval = eval;
+					// @Todo: we're getting a pointer to something on the stack here..
+					chosen_act.action = act;
+					chosen_act.valid = true;
+					chosen_act.target = target;
 				}
 
-				act.undo(ent, undo_data);
-				free(undo_data);
+				action_evaluation best_child_eval = minimax_search(ent, chosen_act, depth - 1, maximizing_team, opposite_team);
+
+				if(best_child_eval.eval > chosen_act.eval)
+				{
+					chosen_act.eval = best_child_eval.eval;
+					chosen_act.action = act;
+					chosen_act.valid = true;
+					chosen_act.target = target;
+				}
 			}
+			else
+			{
+				if (eval < chosen_act.eval)
+				{
+					chosen_act.eval = eval;
+					// @Todo: we're getting a pointer to something on the stack here..
+					chosen_act.action = act;
+					chosen_act.valid = true;
+					chosen_act.target = target;
+				}
+					
+				action_evaluation worst_child_eval = minimax_search(ent, chosen_act, depth - 1, maximizing_team, opposite_team);
+
+				if (worst_child_eval.eval > chosen_act.eval)
+				{
+					chosen_act = worst_child_eval;
+				}
+			}
+
+			act.undo(ent, undo_data);
+			free(undo_data);
 		}
 	}
+
+	if (!chosen_act.valid) return parent;
 
 	return chosen_act;
 }

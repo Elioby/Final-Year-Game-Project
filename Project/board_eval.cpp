@@ -12,8 +12,10 @@ struct hashtable_los_result : hashtable_item
 hashtable* los_cache_table;
 hashtable_los_result* los_cache_data;
 
-void board_eval_build_cache(team team)
+void board_eval_build_cache()
 {
+	team team = TEAM_ENEMY;
+
 	u32 total = entities.size();
 	u32 enemies = 0;
 

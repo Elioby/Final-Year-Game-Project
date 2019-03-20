@@ -43,33 +43,14 @@ void ai_perform_entity(entity* ent)
 	team team = ent->team;
 
 	// start with nothing action, anything better than doing nothing we do
-	/*action best_action = action_nothing;
+	action best_action = action_nothing;
 	action_evaluation best_eval = action_evaluate(best_action, ent);
 
-	board_eval_build_cache(ent->team);
+	board_eval_build_cache();
 
-	printf("Evaluation for action %s is %f\n", best_action.name, best_eval.eval);
+	best_eval = minimax_search(ent, best_eval, 2, team, team);
 
-	for (u32 i = 0; i < actions.size(); i++)
-	{
-		action act = actions[i];
-
-		action_evaluation eval = action_evaluate(act, ent);
-
-		printf("Evaluation for action %s is %f\n", act.name, eval.eval);
-
-		if (eval.valid && eval.eval >= best_eval.eval)
-		{
-			best_action = act;
-			best_eval = eval;
-		}
-	}
-
-	board_eval_destroy_cache();*/
-
-	action_evaluation best_eval = action_evaluate(action_nothing, ent);
-
-	best_eval = minimax_search(best_eval, 2, team, team);
+	board_eval_destroy_cache();
 
 	printf("Entity %i performing action %s\n", ent->id, best_eval.action.name);
 
