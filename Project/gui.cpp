@@ -169,7 +169,11 @@ void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float sca
 
 void gui_draw_text(font* font, char* text, u32 x, u32 y, float scale)
 {
-	gui_draw_text(font, text, strlen(text), x, y, scale);
+	size_t len = strlen(text);
+
+	debug_assert(len <= UINT16_MAX, "String len must be shorter than u16 max");
+
+	gui_draw_text(font, text, (u16) len, x, y, scale);
 }
 
 void gui_draw_text(font* font, dynstr* text, u32 x, u32 y, float scale)

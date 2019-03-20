@@ -125,7 +125,7 @@ float evaluate_health(team team)
 	{
 		entity* ent = entities[i];
 
-		float entity_eval = ent->health / ent->max_health;
+		float entity_eval = (float) ent->health / ent->max_health;
 
 		// @Consider: how important is having them alive or dead? id say pretty important, on top of how much HP they have (they'll get another action next turn)
 		entity_eval += ent->dead ? -1.0f : 1.0f;
