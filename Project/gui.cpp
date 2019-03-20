@@ -171,7 +171,7 @@ void gui_draw_text(font* font, char* text, u32 x, u32 y, float scale)
 {
 	size_t len = strlen(text);
 
-	assert(len <= UINT16_MAX && "String len must be shorter than u16 max");
+	debug_assert(len <= UINT16_MAX, "String len must be shorter than u16 max");
 
 	gui_draw_text(font, text, (u16) len, x, y, scale);
 }
