@@ -1,8 +1,11 @@
 CMakeFiles
 Debug
 Release
+x64
 Project/Debug
 Project/Release
+Project/Profiling
+Project/x64
 Project/temp
 enc_temp_folder
 Game.dir
