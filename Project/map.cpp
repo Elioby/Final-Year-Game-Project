@@ -331,25 +331,25 @@ bool map_is_cover_at_block(vec3 block_pos)
 
 vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
 {
-	float smallest_distance = -1.0f;
+	float smallest_distance = FLT_MAX;
 	vec3 closest_cover = vec3(-1.0f);
+
+	u32 start_x = start.x;
+	u32 start_z = start.z;
 
 	for(i8 x = -1; x <= 1; x++)
 	{
-		for(i8 y = -1; y <= 1; y++)
+		for(i8 z = -1; z <= 1; z++)
 		{
 			vec3 block_pos = start;
 			block_pos.x += x;
-			block_pos.y += y;
+			block_pos.z += z;
 
-			if(map_is_cover_at_block(block_pos))
+			float distance = map_distance_squared(start, closest_to);
+			if(smallest_distance < distance && map_is_cover_at_block(block_pos))
 			{
-				float distance = map_distance_squared(start, block_pos);
-				if(smallest_distance == -1.0f || smallest_distance < distance)
-				{
-					closest_cover = block_pos;
-					smallest_distance = distance;
-				}
+				closest_cover = block_pos;
+				smallest_distance = distance;
 			}
 		}
 	}

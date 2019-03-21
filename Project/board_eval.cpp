@@ -29,7 +29,7 @@ void board_eval_build_cache()
 
 	u32 friendlies = total - enemies;
 
-	los_cache_table = hashtable_create(enemies * friendlies * 2);
+	los_cache_table = hashtable_create(enemies * friendlies * 10);
 
 	los_cache_data = (hashtable_los_result*) malloc(sizeof(hashtable_los_result) * enemies * friendlies);
 

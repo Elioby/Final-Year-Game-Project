@@ -48,7 +48,7 @@ hashtable_item* hashtable_get(hashtable* table, int key)
 		
 		first_round = false;
 
-		if(item->key == key) return table->items[hash_index];
+		if(item->key == key) return item;
 
 		++hash_index;
 
