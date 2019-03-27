@@ -5,6 +5,8 @@
 #include "action.h"
 #include "entity.h"
 
+#define ENABLE_COMBAT_LOG false
+
 struct actionbar_msg_show
 {
 	dynstr* msg;
@@ -18,7 +20,7 @@ std::vector<button*> actionbar_buttons;
 
 actionbar_msg_show actionbar_msg = { dynstr_new(20) };
 
-dynstr* ap_text = dynstr_new(9);
+dynstr* ap_text = dynstr_new(12);
 dynstr* combat_log_text = dynstr_new(200);
 
 void action_move_mode();
@@ -95,8 +97,15 @@ void actionbar_update(float dt)
 	actionbar_msg.seconds_since_start += dt;
 }
 
+std::vector<vec3> poses;
+
 void actionbar_draw()
 {
+	for (u32 i = 0; i < poses.size(); i++)
+	{
+		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(poses[i], 0.0f, vec3(1.0f), vec3(1.0f, 0.25f, 1.0f)));
+	}
+
 	font* inconsolata_font = asset_manager_get_font("inconsolata");
 
 	if(selected_entity)
@@ -138,7 +147,7 @@ void actionbar_draw()
 
 		dynstr_clear(ap_text);
 
-		dynstr_append(ap_text, "AP: %i / %i", selected_entity->ap, selected_entity->max_ap);
+		dynstr_append(ap_text, "E%i AP: %i / %i",selected_entity->id, selected_entity->ap, selected_entity->max_ap);
 		gui_draw_text(inconsolata_font, ap_text, (graphics_projection_width / 2) - (actionbar_width / 2) + 15, 15, 0.25f);
 
 		for (u32 i = 0; i < actionbar_buttons.size(); i++)
@@ -197,6 +206,8 @@ void actionbar_set_msg(char* msg, float show_seconds)
 
 void actionbar_combatlog_add(char* format, ...)
 {
+	if(!ENABLE_COMBAT_LOG) return;
+
 	va_list args;
 	va_start(args, format);
 
@@ -211,6 +222,14 @@ void actionbar_combatlog_add(char* format, ...)
 void action_move_mode()
 {
 	current_action_mode = ACTION_MODE_MOVE;
+
+	u32 last_target_index = 0;
+	vec3 target;
+
+	while(actions[0].get_next_target(selected_entity, &last_target_index, &target))
+	{
+		poses.push_back(target);
+	}
 }
 
 void action_shoot_mode()

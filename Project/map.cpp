@@ -11,7 +11,6 @@
 
 u32 map_max_x = 64;
 u32 map_max_z = 32;
-u32 max_los_distance = (u32) ceil(sqrt((float) map_max_x * map_max_x + (float) map_max_z * map_max_z) / MAP_RAYTRACE_ACCURACY);
 
 // @Todo: change "cover_at_block" to an array of tiles, each referencing either nothing, an entity, or cover 
 //         (this means you get O(n) lookup of whats in a block based on it's position)
@@ -63,6 +62,12 @@ void map_init()
 	map_add_cover(vec3(37.0f, 0.0f, 6.0f));
 	map_add_cover(vec3(36.0f, 0.0f, 6.0f));
 	map_add_cover(vec3(28.0f, 0.0f, 5.0f));
+	map_add_cover(vec3(29.0f, 0.0f, 5.0f));
+	map_add_cover(vec3(30.0f, 0.0f, 5.0f));
+	map_add_cover(vec3(31.0f, 0.0f, 5.0f));
+	map_add_cover(vec3(32.0f, 0.0f, 5.0f));
+	map_add_cover(vec3(33.0f, 0.0f, 5.0f));
+	map_add_cover(vec3(34.0f, 0.0f, 5.0f));
 	map_add_cover(vec3(29.0f, 0.0f, 4.0f));
 	map_add_cover(vec3(30.0f, 0.0f, 4.0f));
 	map_add_cover(vec3(32.0f, 0.0f, 4.0f));
@@ -325,17 +330,14 @@ bool map_is_cover_at_block(u32 x, u32 z)
 
 bool map_is_cover_at_block(vec3 block_pos)
 {
-	if (block_pos.x < 0 || block_pos.z < 0) return false;
+	if (block_pos.x < 0 || block_pos.z < 0  || block_pos.x >= map_max_x || block_pos.z >= map_max_z) return false;
 	return map_is_cover_at_block((u32) block_pos.x, (u32) block_pos.z);
 }
 
 vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
 {
-	float smallest_distance = FLT_MAX;
+	float smallest_distance = +FLT_MAX;
 	vec3 closest_cover = vec3(-1.0f);
-
-	u32 start_x = start.x;
-	u32 start_z = start.z;
 
 	for(i8 x = -1; x <= 1; x++)
 	{
@@ -345,8 +347,11 @@ vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
 			block_pos.x += x;
 			block_pos.z += z;
 
-			float distance = map_distance_squared(start, closest_to);
-			if(smallest_distance < distance && map_is_cover_at_block(block_pos))
+			float x_delta = abs(block_pos.x - closest_to.x);
+			float z_delta = abs(block_pos.z - closest_to.z);
+
+			float distance = (x_delta * x_delta) + (z_delta * z_delta);
+			if(smallest_distance > distance && map_is_cover_at_block(block_pos))
 			{
 				closest_cover = block_pos;
 				smallest_distance = distance;

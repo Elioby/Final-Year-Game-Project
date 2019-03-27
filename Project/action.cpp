@@ -8,6 +8,8 @@
 #include "board_eval.h"
 
 #define ACTION_SHOOT_DAMAGE 6
+#define ACTION_MOVE_RADIUS 8
+#define ACTION_GRENADE_RADIUS 3
 
 action_mode current_action_mode;
 
@@ -104,10 +106,17 @@ void undo_move(entity* ent, action_undo_data* undo_data)
 
 bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
 {
-	for (u32 i = *last_index; i < map_max_x * map_max_z; i++)
+	u32 width = (ACTION_MOVE_RADIUS) * 2 + 1;
+
+	for (i32 i = *last_index; i < width * width; i++)
 	{
-		u32 x = i % map_max_x;
-		u32 z = (i - x) / map_max_x;
+		i32 x = i % width;
+		i32 z = (i - x) / width;
+
+		x = ent->pos.x - x + ACTION_MOVE_RADIUS;
+		z = ent->pos.z - z + ACTION_MOVE_RADIUS;
+
+		if (x < 0 || z < 0 || x >= map_max_x || z >= map_max_z) continue;
 
 		vec3 move_target = vec3(x, 0, z);
 
@@ -117,6 +126,7 @@ bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
 
 		*last_index = i + 1;
 		*result = move_target;
+
 		return true;
 	}
 
@@ -298,6 +308,7 @@ void action_update()
 					if (!map_is_cover_at_block(selected_block))
 					{
 						selected_entity->pos = selected_block;
+						printf("%f", board_evaluate(selected_entity->team));
 					}
 					else
 					{
@@ -325,9 +336,19 @@ void action_update()
 							if(los_amount > 0.0f)
 							{
 								printf("shoot with chance %f\n", los_amount);
-								// @Todo: renable! entity_health_change(clicked_entity, selected_entity, -6);
-								// @Todo: renable! current_action_mode = ACTION_MODE_SELECT_UNITS;
-								// @Todo: renable! selected_entity->ap -= 30;
+
+								double random = (double) rand() / (double) RAND_MAX;
+
+								if(random <= los_amount)
+								{
+									entity_health_change(clicked_entity, selected_entity, -6);
+									current_action_mode = ACTION_MODE_SELECT_UNITS;
+									selected_entity->ap -= 30;
+								}
+								else
+								{
+									actionbar_set_msg("Missed..", 2.0f);
+								}
 							}
 							else
 							{

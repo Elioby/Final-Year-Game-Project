@@ -21,31 +21,38 @@ void turn_start(team team)
 
 	actionbar_combatlog_add("%s team's turn started", team_get_name(team));
 
-	if (team == TEAM_ENEMY)
+	// @Todo: if (team == TEAM_ENEMY)
 	{
 		ai_perform_team(team);
+		//turn_end();
 	}
 }
 
 void turn_end()
 {
+	u32 enemies_alive = 0;
 	for (u32 i = 0; i < entities.size(); i++)
 	{
 		entity* entity = entities[i];
 
 		if (entity->team == turn_team) entity->ap = 0;
+		else enemies_alive++;
 	}
 
 	turn_number++;
 
 	actionbar_combatlog_add("%s team's turn ended", team_get_name(turn_team));
 
-	team new_team;
+	team new_team = team_get_opposite(turn_team);
 
-	if (turn_team == TEAM_FRIENDLY) new_team = TEAM_ENEMY;
-	else new_team = TEAM_FRIENDLY;
-
-	turn_start(new_team);
+	if(enemies_alive > 0)
+	{
+		turn_start(new_team);
+	}
+	else
+	{
+		printf("Game over! %s team won!\n", team_get_name(turn_team));
+	}
 }
 
 bool turn_is_complete(team team)

@@ -2,6 +2,7 @@
 
 #include "general.h"
 #include "entity.h"
+#include "board_eval.h"
 
 struct action_undo_data { };
 
@@ -29,7 +30,7 @@ struct action_evaluation
 	action action;
 
 	// the evaluation function after the action is taken, will be FLT_MIN if invalid
-	float eval;
+	evaluation eval;
 	vec3 target;
 
 	// if we can actually use the action or not
