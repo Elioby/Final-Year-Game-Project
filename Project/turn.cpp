@@ -21,10 +21,10 @@ void turn_start(team team)
 
 	actionbar_combatlog_add("%s team's turn started", team_get_name(team));
 
-	// @Todo: if (team == TEAM_ENEMY)
+	if (team == TEAM_ENEMY)
 	{
 		ai_perform_team(team);
-		//turn_end();
+		turn_end();
 	}
 }
 

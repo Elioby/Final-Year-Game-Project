@@ -6,6 +6,9 @@
 #include "input.h"
 #include "actionbar.h"
 #include "board_eval.h"
+#include "libmorton\morton.h"
+
+#include <queue>
 
 #define ACTION_SHOOT_DAMAGE 6
 #define ACTION_MOVE_RADIUS 8
@@ -104,32 +107,89 @@ void undo_move(entity* ent, action_undo_data* undo_data)
 	ent->pos = undo_data_move->old_pos;
 }
 
-bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
+//For each point in the grid, store:
+//
+//The minimum distance from the unit to this point.
+//The next step towards the unit in the shortest path.
+//To calculate this, do a breadth - first search :
+//
+//Set your unit's point distance cost to 0 and its "path pointer" doesn't matter / null.
+//Create a queue and put the initial point in it.
+//While the queue is not empty :
+//	Take the next point and propagate it(look at all the neighbors.If going to them through the current point is profitable, set their distance / path and add them to the end of the queue)
+
+struct point
 {
-	u32 width = (ACTION_MOVE_RADIUS) * 2 + 1;
+	u32 x, z;
 
-	for (i32 i = *last_index; i < width * width; i++)
+	float distance_to_start;
+};
+
+// @Todo: i really think this could use some cleanup...
+bool tryz(bool* already_searched, vec3 pos, point last, std::queue<point>* queue, u32* i, u32* last_index, vec3* result)
+{
+	if (pos.x >= 0 && pos.z >= 0 && pos.x < map_max_x && pos.z < map_max_z)
 	{
-		i32 x = i % width;
-		i32 z = (i - x) / width;
+		bool* already_searched_this = already_searched + (u32) pos.x + (u32) pos.z * map_max_x;
 
-		x = ent->pos.x - x + ACTION_MOVE_RADIUS;
-		z = ent->pos.z - z + ACTION_MOVE_RADIUS;
+		if (!(*already_searched_this) && !map_is_cover_at_block(pos) && map_get_entity_at_block(pos) == NULL)
+		{
+			point next = { 0 };
+			next.x = pos.x;
+			next.z = pos.z;
+			next.distance_to_start = last.distance_to_start + 1;
 
-		if (x < 0 || z < 0 || x >= map_max_x || z >= map_max_z) continue;
+			*already_searched_this = true;
 
-		vec3 move_target = vec3(x, 0, z);
+			if (next.distance_to_start < ACTION_MOVE_RADIUS)
+			{
+				queue->push(next);
+			}
 
-		if (map_is_cover_at_block(move_target)) continue;
+			*i = *i + 1;
 
-		if (map_get_entity_at_block(move_target) != NULL) continue;
+			if (*i > *last_index)
+			{
+				*last_index = *i;
+				*result = pos;
 
-		*last_index = i + 1;
-		*result = move_target;
-
-		return true;
+				free(already_searched);
+				return true;
+			}
+		}
 	}
 
+	return false;
+}
+
+// @Todo: this is pretty slow.. return a list instead of calling this everytime you want a new one?
+bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
+{
+	u32 i = 0;
+	std::queue<point> queue;
+	point start = { 0 };
+	start.x = ent->pos.x;
+	start.z = ent->pos.z;
+	start.distance_to_start = 0;
+
+	queue.push(start);
+
+	bool* already_searched = (bool*) calloc(map_max_x * map_max_z, sizeof(bool));
+
+	while (queue.size() > 0)
+	{
+		point p = queue.front();
+
+		// @Todo: i really think this could use some cleanup...
+		if(tryz(already_searched, vec3(p.x + 1, 0.0f, p.z), p, &queue, &i, last_index, result)) return true;
+		if (tryz(already_searched, vec3(p.x - 1, 0.0f, p.z), p, &queue, &i, last_index, result)) return true;
+		if (tryz(already_searched, vec3(p.x, 0.0f, p.z + 1), p, &queue, &i, last_index, result)) return true;
+		if (tryz(already_searched, vec3(p.x, 0.0f, p.z - 1), p, &queue, &i, last_index, result)) return true;
+
+		queue.pop();
+	}
+
+	free(already_searched);
 	return false;
 }
 
@@ -305,19 +365,27 @@ void action_update()
 				// we can only move to free blocks
 				if (!clicked_entity)
 				{
-					if (!map_is_cover_at_block(selected_block))
+					if (selected_entity->ap >= 50)
 					{
-						selected_entity->pos = selected_block;
-						printf("%f", board_evaluate(selected_entity->team));
+						if (!map_is_cover_at_block(selected_block))
+						{
+							selected_entity->pos = selected_block;
+							selected_entity->ap -= 50;
+						}
+						else
+						{
+							actionbar_set_msg("Invalid move position", 2.0f);
+						}
 					}
 					else
 					{
-						actionbar_set_msg("Invalid move position", 2.0f);
+						actionbar_set_msg("Not enough AP", 2.0f);
 					}
 				}
 				else
 				{
 					selected_entity = clicked_entity;
+					poses.clear();
 				}
 
 				current_action_mode = ACTION_MODE_SELECT_UNITS;
@@ -326,7 +394,7 @@ void action_update()
 			{
 				if (clicked_entity && clicked_entity != selected_entity && !entity_is_same_team(selected_entity, clicked_entity))
 				{
-					if (selected_entity->ap > 30)
+					if (selected_entity->ap >= 50)
 					{
 						bool has_los = map_has_los(selected_entity, clicked_entity);
 
@@ -343,12 +411,13 @@ void action_update()
 								{
 									entity_health_change(clicked_entity, selected_entity, -6);
 									current_action_mode = ACTION_MODE_SELECT_UNITS;
-									selected_entity->ap -= 30;
 								}
 								else
 								{
 									actionbar_set_msg("Missed..", 2.0f);
 								}
+
+								selected_entity->ap -= 50;
 							}
 							else
 							{
@@ -372,7 +441,7 @@ void action_update()
 			}
 			else if (current_action_mode == ACTION_MODE_THROW)
 			{
-				if (selected_entity->ap > 30)
+				if (selected_entity->ap >= 50)
 				{
 					// @Todo: maybe we should have some abstract sense of "objects" that are on the map so we can remove them all together?
 					for (u32 i = 0; i < entities.size(); i++)
@@ -406,7 +475,7 @@ void action_update()
 					//	}
 					//}
 
-					selected_entity->ap -= 30;
+					selected_entity->ap -= 50;
 				}
 				else
 				{
@@ -425,6 +494,7 @@ void action_update()
 		{
 			current_action_mode = ACTION_MODE_SELECT_UNITS;
 			selected_entity = NULL;
+			poses.clear();
 		}
 	}
 }

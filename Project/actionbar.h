@@ -5,6 +5,8 @@
 
 #include <vector>
 
+extern std::vector<vec3> poses;
+
 void actionbar_init();
 void actionbar_update(float dt);
 void actionbar_draw();

@@ -172,8 +172,6 @@ void map_init()
 	map_add_cover(vec3(18.0f, 0.0f, 20.0f));
 	map_add_cover(vec3(19.0f, 0.0f, 20.0f));
 	map_add_cover(vec3(20.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(21.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(22.0f, 0.0f, 20.0f));
 	map_add_cover(vec3(23.0f, 0.0f, 20.0f));
 	map_add_cover(vec3(25.0f, 0.0f, 20.0f));
 	map_add_cover(vec3(24.0f, 0.0f, 20.0f));

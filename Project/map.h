@@ -42,6 +42,7 @@ entity* map_get_entity_at_block(vec3 block_pos);
 
 vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to);
 
+bool map_has_los_internal(float start_x, float start_z, float end_x, float end_z);
 bool map_has_los(entity* ent1, entity* ent2);
 
 // Returns a floating point value between 0.0f and 1.0f (0.0f = 100% covered, 0.5f = 50% covered, 1.0f = no blocking cover)

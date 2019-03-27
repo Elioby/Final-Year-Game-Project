@@ -69,7 +69,7 @@ float evaluate_shot_chance(team team)
 {
 	float eval = 0.0f;
 
-	float friendly_hit_enemy_weight = 1.0f;
+	float friendly_hit_enemy_weight = 2.0f;
 	float enemy_hit_friendly_weight = -1.0f;
 
 	// @Todo: abstract this out for use in UI code as well as AI code
@@ -209,7 +209,7 @@ float evaluate_cover(team team)
 	float eval = 0.0f;
 
 	float in_cover_no_enemy_in_direction_weight = 0.01f;
-	float in_cover_enemy_in_direction_weight = 0.5f;
+	float in_cover_enemy_in_direction_weight = 1.0f;
 
 	// check if they are in cover from each angle (and prefer being in cover if there is an enemy in that direction)
 	for (u32 i = 0; i < entities.size(); i++)

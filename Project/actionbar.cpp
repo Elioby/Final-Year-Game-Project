@@ -5,7 +5,7 @@
 #include "action.h"
 #include "entity.h"
 
-#define ENABLE_COMBAT_LOG false
+#define ENABLE_COMBAT_LOG true
 
 struct actionbar_msg_show
 {
@@ -147,7 +147,7 @@ void actionbar_draw()
 
 		dynstr_clear(ap_text);
 
-		dynstr_append(ap_text, "E%i AP: %i / %i",selected_entity->id, selected_entity->ap, selected_entity->max_ap);
+		dynstr_append(ap_text, "AP: %i / %i", selected_entity->ap, selected_entity->max_ap);
 		gui_draw_text(inconsolata_font, ap_text, (graphics_projection_width / 2) - (actionbar_width / 2) + 15, 15, 0.25f);
 
 		for (u32 i = 0; i < actionbar_buttons.size(); i++)
