@@ -4,6 +4,7 @@
 #include "asset_manager.h"
 #include "action.h"
 #include "entity.h"
+#include "map.h"
 
 #define ENABLE_COMBAT_LOG true
 
@@ -235,6 +236,19 @@ void action_move_mode()
 void action_shoot_mode()
 {
 	current_action_mode = ACTION_MODE_SHOOT;
+
+	for(u32 x = 0; x < map_max_x; x++)
+	{
+		for (u32 z = 0; z < map_max_z; z++)
+		{
+			vec3 pos = vec3(x, 0.0f, z);
+
+			if (map_has_los(selected_entity->pos, pos))
+			{
+				poses.push_back(pos);
+			}
+		}
+	}
 }
 
 void action_throw_mode()

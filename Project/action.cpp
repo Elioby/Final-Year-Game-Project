@@ -166,6 +166,7 @@ bool tryz(bool* already_searched, vec3 pos, point last, std::queue<point>* queue
 bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
 {
 	u32 i = 0;
+	// @Todo: write custom queue implementation
 	std::queue<point> queue;
 	point start = { 0 };
 	start.x = ent->pos.x;

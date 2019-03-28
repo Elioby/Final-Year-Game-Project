@@ -388,15 +388,22 @@ bool map_has_los_internal(float start_x, float start_z, float end_x, float end_z
 		// only eval if this is a new block than last
 		if(!(next_block_x == last_block_x && next_block_z == last_block_z))
 		{
-			// if we reached the target, we have full los
-			if(next_block_x == end_x && next_block_z == end_z) return true;
-
 			// if this block is off the map, they have no los
 			if(next_block_x < 0 || next_block_z < 0) return false;
 
 			// if this block is cover, they have no los
 			int_fast16_t index = libmorton::morton2D_32_encode(next_block_x, next_block_z);
 			if(cover_at_block[index]) return false;
+
+			// if the next block is diagonal to the current, check that we didn't move through a diagonal wall
+			if(last_block_x != -1 && last_block_z != -1 && next_block_x != last_block_x && next_block_z != last_block_z)
+			{
+				if (cover_at_block[libmorton::morton2D_32_encode(next_block_x, last_block_z)] 
+					&& cover_at_block[libmorton::morton2D_32_encode(last_block_x, next_block_z)]) return false;
+			}
+
+			// if we reached the target, we have full los
+			if (next_block_x == end_x && next_block_z == end_z) return true;
 
 			last_block_x = next_block_x;
 			last_block_z = next_block_z;
@@ -406,21 +413,26 @@ bool map_has_los_internal(float start_x, float start_z, float end_x, float end_z
 	return false;
 }
 
-bool map_has_los(entity* ent1, entity* ent2)
+bool map_has_los(vec3 pos1, vec3 pos2)
 {
 	// how leinient is the los algorithm, in blocks
 	float lean_distance = 0.5f;
 
 	// @Todo: this is a bit much, maybe we only need to check along the opposite axis of the direction
-	return map_has_los_internal(ent1->pos.x, ent1->pos.z, ent2->pos.x, ent2->pos.z) ||
-		map_has_los_internal(ent1->pos.x + lean_distance, ent1->pos.z, ent2->pos.x, ent2->pos.z) ||
-		map_has_los_internal(ent1->pos.x - lean_distance, ent1->pos.z, ent2->pos.x, ent2->pos.z) ||
-		map_has_los_internal(ent1->pos.x, ent1->pos.z + lean_distance, ent2->pos.x, ent2->pos.z) ||
-		map_has_los_internal(ent1->pos.x, ent1->pos.z - lean_distance, ent2->pos.x, ent2->pos.z) ||
-		map_has_los_internal(ent2->pos.x + lean_distance, ent2->pos.z, ent1->pos.x, ent1->pos.z) ||
-		map_has_los_internal(ent2->pos.x - lean_distance, ent2->pos.z, ent1->pos.x, ent1->pos.z) ||
-		map_has_los_internal(ent2->pos.x, ent2->pos.z + lean_distance, ent1->pos.x, ent1->pos.z) ||
-		map_has_los_internal(ent2->pos.x, ent2->pos.z - lean_distance, ent1->pos.x, ent1->pos.z);
+	return map_has_los_internal(pos1.x, pos1.z, pos2.x, pos2.z) ||
+		map_has_los_internal(pos1.x + lean_distance, pos1.z, pos2.x, pos2.z) ||
+		map_has_los_internal(pos1.x - lean_distance, pos1.z, pos2.x, pos2.z) ||
+		map_has_los_internal(pos1.x, pos1.z + lean_distance, pos2.x, pos2.z) ||
+		map_has_los_internal(pos1.x, pos1.z - lean_distance, pos2.x, pos2.z) ||
+		map_has_los_internal(pos2.x + lean_distance, pos2.z, pos1.x, pos1.z) ||
+		map_has_los_internal(pos2.x - lean_distance, pos2.z, pos1.x, pos1.z) ||
+		map_has_los_internal(pos2.x, pos2.z + lean_distance, pos1.x, pos1.z) ||
+		map_has_los_internal(pos2.x, pos2.z - lean_distance, pos1.x, pos1.z);
+}
+
+bool map_has_los(entity* ent1, entity* ent2)
+{
+	return map_has_los(ent1->pos, ent2->pos);
 }
 
 float map_get_los_angle(entity* inflict_ent, entity* target_ent)
