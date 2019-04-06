@@ -11,8 +11,8 @@ dynstr* dynstr_new(char* str, u16 str_len, u16 buf_len)
 	debug_assert(str_len >= 0 && buf_len >= 0, "You can't have a negatively sized string or buffer");
 
 	// @Factor: use our custom allocator?
-	dynstr* mem = (dynstr*) malloc(sizeof(dynstr));
-	char* raw = (char*) malloc(buf_len + 1);
+	dynstr* mem = (dynstr*) debug_malloc(sizeof(dynstr));
+	char* raw = (char*) debug_malloc(buf_len + 1);
 
 	dynstr* dstr = (dynstr*) mem;
 	dstr->raw = raw;
@@ -163,7 +163,7 @@ void dynstr_append_int(dynstr* to, int from)
 {
 	// @Optimize: slow :(
 	int length = snprintf(NULL, 0, "%d", from);
-	char* str = (char*) malloc(length + 1);
+	char* str = (char*) debug_malloc(length + 1);
 	snprintf(str, length + 1, "%d", from);
 
 	dynstr_append_str(to, str, length);

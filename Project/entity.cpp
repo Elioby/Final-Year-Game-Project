@@ -29,8 +29,8 @@ void entity_update()
 
 void entity_add(vec3 pos, team team)
 {
-	// @Todo: use of malloc :(
-	entity* ent = (entity*) malloc(sizeof(entity));
+	// @Todo: use of debug_malloc :(
+	entity* ent = (entity*) debug_malloc(sizeof(entity));
 	ent->id = last_entity_id++;
 	ent->pos = pos;
 	ent->mesh = asset_manager_get_mesh("robot");

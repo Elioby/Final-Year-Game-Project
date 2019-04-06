@@ -7,6 +7,7 @@
 struct shader_program : asset
 {
 	bgfx_program_handle_t handle;
+	bgfx_uniform_handle_t tint_uniform;
 };
 
 void shader_init();

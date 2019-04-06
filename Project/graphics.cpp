@@ -9,7 +9,6 @@
 
 /* ------- Globals --------- */
 bgfx_renderer_type_t graphics_renderer_type;
-bool graphics_debug_draw_normals = false;
 
 mat4 graphics_view_matrix;
 mat4 graphics_projection_matrix;
@@ -18,6 +17,8 @@ u32 graphics_projection_width;
 u32 graphics_projection_height; 
 
 bgfx_uniform_handle_t texture_sampler;
+
+bgfx_uniform_handle_t tint_color;
 
 // @Todo: cleanup!!!
 void bgfx_fatal_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, bgfx_fatal_t _code, const char* _str)
@@ -51,6 +52,8 @@ void graphics_init(int window_width, int window_height)
 
 	bgfx_init(&init);
 
+	tint_color = bgfx_create_uniform("tint_color", BGFX_UNIFORM_TYPE_VEC4, 1);
+
 	u32 flags = BGFX_RESET_MSAA_X16;
 
 	if(GRAPHICS_USE_VSYNC) flags |= BGFX_RESET_VSYNC;
@@ -72,7 +75,7 @@ void graphics_init(int window_width, int window_height)
 	texture_sampler = bgfx_create_uniform("textureSampler", BGFX_UNIFORM_TYPE_SAMPLER, 1);
 }
 
-void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix)
+void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix, vec4 color)
 {
 	bgfx_set_vertex_buffer(0, mesh->vb_handle, 0, mesh->vertex_count);
 	bgfx_set_index_buffer(mesh->idb_handle, 0, mesh->index_count);
@@ -81,70 +84,14 @@ void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix)
 
 	bgfx_set_transform(&transform_matrix, 1);
 
+	bgfx_set_uniform(tint_color, &color, 1);
+
 	bgfx_submit(0, asset_manager_get_shader("diffuse")->handle, 0, false);
+}
 
-	// This is very slow, but it's only for debugging so!?!
-	if(graphics_debug_draw_normals)
-	{
-		bgfx_vertex_decl_t decl;
-		bgfx_vertex_decl_begin(&decl, BGFX_RENDERER_TYPE_NOOP);
-		bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
-		bgfx_vertex_decl_end(&decl);
-
-		std::vector<vec3> vertices;
-
-		float draw_width = 0.05f;
-
-		for (u32 i = 0; i < mesh->vertex_count; i++)
-		{
-			pos_normal_vertex vertex = mesh->vertices[i];
-			u8* norm = (u8*) &vertex.normal;
-			i16 x_norm = norm[0] - 128;
-			i16 y_norm = norm[1] - 128;
-			i16 z_norm = norm[2] - 128;
-
-			float x_min = vertex.x;
-			float y_min = vertex.y;
-			float z_min = vertex.z;
-
-			float x_max = vertex.x + (x_norm / 128.0f);
-			float y_max = vertex.y + (y_norm / 128.0f);
-			float z_max = vertex.z + (z_norm / 128.0f);
-
-			vertices.push_back(vec3(x_min - draw_width, y_min, z_min));
-			vertices.push_back(vec3(x_max, y_max, z_max));
-			vertices.push_back(vec3(x_min + draw_width, y_min, z_min));
-		}
-
-		vec3* vertices_data = (vec3*) malloc(vertices.size() * sizeof(vec3));
-		u16* indices_data = (u16*) malloc(vertices.size() * sizeof(u16));
-
-		for (u32 i = 0; i < vertices.size(); i++)
-		{
-			vertices_data[i] = vertices[i];
-			indices_data[i] = i;
-		}
-
-		const bgfx_memory_t* vertices_mem = bgfx_make_ref(vertices_data, vertices.size() * sizeof(vec3));
-		bgfx_vertex_buffer_handle_t vb_handle = bgfx_create_vertex_buffer(vertices_mem, &decl, BGFX_BUFFER_NONE);
-		bgfx_make_ref_release(vertices_data, vertices.size() * sizeof(vec3), 0, 0);
-
-		const bgfx_memory_t* indices_mem = bgfx_make_ref(indices_data, vertices.size() * sizeof(u16));
-		bgfx_index_buffer_handle_t id_handle = bgfx_create_index_buffer(indices_mem, BGFX_BUFFER_NONE);
-		bgfx_make_ref_release(indices_data, vertices.size() * sizeof(u16), 0, 0);
-
-		bgfx_set_vertex_buffer(0, vb_handle, 0, vertices.size());
-		bgfx_set_index_buffer(id_handle, 0, vertices.size());
-
-		bgfx_set_transform(&transform_matrix, 1);
-
-		bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_MSAA, 0);
-
-		bgfx_submit(0, asset_manager_get_shader("gui")->handle, 0, false);
-
-		bgfx_destroy_vertex_buffer(vb_handle);
-		bgfx_destroy_index_buffer(id_handle);
-	}
+void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix)
+{
+	graphics_draw_mesh(mesh, transform_matrix, vec4(0.8f, 0.8f, 0.8f, 1.0f));
 }
 
 void graphics_draw_image(image* image, mat4 transform_matrix)

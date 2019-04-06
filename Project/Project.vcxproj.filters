@@ -90,6 +90,9 @@
     <ClCompile Include="ai.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="map_gen.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -168,6 +171,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ai.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="map_gen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

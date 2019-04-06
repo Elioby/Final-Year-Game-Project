@@ -21,9 +21,9 @@ inline u32 pack_vec3_into_u32(vec3 vec)
 	return result;
 }
 
-mesh* mesh_create(char* asset_id, pos_normal_vertex* vertices, u32 vertex_count, u16* indices, u32 index_count)
+mesh* mesh_create(char* asset_id, pos_normal_vertex* vertices, u32 vertex_count, u32* indices, u32 index_count)
 {
-	mesh* result = (mesh*) malloc(sizeof(mesh));
+	mesh* result = (mesh*) debug_malloc(sizeof(mesh));
 
 	result->asset_id = asset_id;
 	result->asset_type = ASSET_TYPE_MESH;
@@ -44,10 +44,10 @@ mesh* mesh_create(char* asset_id, pos_normal_vertex* vertices, u32 vertex_count,
 	bgfx_make_ref_release(vertices, vertex_byte_count, 0, 0);
 
 	result->index_count = index_count;
-	u32 index_byte_count = index_count * sizeof(u16);
+	u32 index_byte_count = index_count * sizeof(u32);
 
 	const bgfx_memory_t* vertex_index_mem = bgfx_make_ref(indices, index_byte_count);
-	result->idb_handle = bgfx_create_index_buffer(vertex_index_mem, BGFX_BUFFER_NONE);
+	result->idb_handle = bgfx_create_index_buffer(vertex_index_mem, BGFX_BUFFER_INDEX32);
 	result->indices = indices;
 	bgfx_make_ref_release(vertex_index_mem, index_byte_count, 0, 0);
 
@@ -78,7 +78,7 @@ mesh* load_obj_mesh(char* asset_id, char* filename)
 		return{};
 	}
 
-	std::vector<unsigned int> vertex_ids, uv_ids, normal_ids;
+	std::vector<u32> vertex_ids, uv_ids, normal_ids;
 	std::vector<vec3> temp_vertices;
 	std::vector<vec2> temp_uvs;
 	std::vector<vec3> temp_normals;
@@ -126,13 +126,13 @@ mesh* load_obj_mesh(char* asset_id, char* filename)
 
 	fclose(file);
 
-	// @Speed: you don't need 2 mallocs here
+	// @Speed: you don't need 2 debug_mallocs here
 	u32 vertex_count = temp_vertices.size();
-	pos_normal_vertex* vertices = (pos_normal_vertex*) malloc(vertex_count * sizeof(pos_normal_vertex));
+	pos_normal_vertex* vertices = (pos_normal_vertex*) debug_malloc(vertex_count * sizeof(pos_normal_vertex));
 
 	// Index all the normals for each vertex so we don't have to search for the normal for each vertex
-	vec3* vertex_normals = (vec3*) calloc(sizeof(vec3), vertex_count);
-	vec2* vertex_uvs = (vec2*) malloc(vertex_count * sizeof(vec2));
+	vec3* vertex_normals = (vec3*) debug_calloc(sizeof(vec3), vertex_count);
+	vec2* vertex_uvs = (vec2*) debug_malloc(vertex_count * sizeof(vec2));
 
 	for (u32 face_id = 0; face_id < vertex_ids.size(); face_id++)
 	{
@@ -151,8 +151,8 @@ mesh* load_obj_mesh(char* asset_id, char* filename)
 	}
 
 	u32 index_count = vertex_ids.size();
-	u32 index_byte_count = index_count * sizeof(u16);
-	u16* indices = (u16*) malloc(index_byte_count);
+	u32 index_byte_count = index_count * sizeof(u32);
+	u32* indices = (u32*) debug_malloc(index_byte_count);
 
 	for (u32 i = 0; i < index_count; i++)
 	{

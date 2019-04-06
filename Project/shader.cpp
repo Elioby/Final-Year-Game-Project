@@ -33,7 +33,7 @@ bgfx_shader_handle_t load_shader(char* filename)
 	long file_size = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	void* shader_data = malloc(file_size + 1);
+	void* shader_data = debug_malloc(file_size + 1);
 	fread(shader_data, file_size, 1, file);
 	((char*)shader_data)[file_size] = '\0';
 
@@ -47,7 +47,6 @@ bgfx_shader_handle_t load_shader(char* filename)
 		printf("Failed to load shader from file %s\n", filename);
 		return BGFX_INVALID_HANDLE;
 	}
-
 	bgfx_set_shader_name(shader, filename, strlen(filename));
 	return shader;
 }
@@ -65,7 +64,7 @@ shader_program* load_shader_program(char* asset_id, char* vs_filename, char* fs_
 	bgfx_shader_handle_t vs_handle = load_shader(vs_filename);
 	bgfx_shader_handle_t fs_handle = load_shader(fs_filename);
 
-	shader_program* shader = (shader_program*) malloc(sizeof(shader_program));
+	shader_program* shader = (shader_program*) debug_malloc(sizeof(shader_program));
 	shader->asset_id = asset_id;
 	shader->asset_type = ASSET_TYPE_SHADER;
 	shader->handle = bgfx_create_program(vs_handle, fs_handle, true);

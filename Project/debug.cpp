@@ -10,105 +10,9 @@
 #include "general.h"
 #include "window.h"
 
-struct timer
-{
-	char* id;
-	u64 current_start;
-	u64 accumulated;
-	u32 count;
-};
+#define DEBUG_PRINT_ALLOC false
 
-std::vector<timer*> timers;
-
-u64 get_current_time_ns()
-{
-	struct timespec ts;
-	timespec_get(&ts, TIME_UTC);
-
-	u64 seconds = (u64) ts.tv_sec;
-
-	return seconds * 1000000000 + (u64) ts.tv_nsec;
-}
-
-i32 get_timer_index(char* timer_id)
-{
-	u32 timer_array_index = 0;
-
-	for(; timer_array_index < timers.size(); timer_array_index++)
-	{
-		timer* timer = timers[timer_array_index];
-		if(strcmp(timer->id, timer_id) == 0) return timer_array_index;
-	}
-
-	return -1;
-}
-
-void debug_timer_start(char* timer_id)
-{
-	i32 timer_index = get_timer_index(timer_id);
-
-	timer* tim;
-	
-	if(timer_index < 0)
-	{
-		u32 id_len = strlen(timer_id);
-		tim = (timer*) calloc(1, sizeof(timer) + id_len + 1);
-		tim->id = (char*) tim + sizeof(timer);
-		memcpy(tim->id, timer_id, id_len);
-		timers.push_back(tim);
-	}
-	else
-	{
-		tim = timers[timer_index];
-	}
-
-	tim->current_start = get_current_time_ns();
-}
-
-void debug_timer_end(timer* tim, u64 current_time)
-{
-	debug_assert(tim->current_start, "Timer must be started for you to end it");
-
-	tim->accumulated += current_time - tim->current_start;
-
-	tim->count++;
-	tim->current_start = 0;
-}
-
-void debug_timer_end(char* timer_id)
-{
-	u64 time = get_current_time_ns();
-	debug_timer_end(timers[get_timer_index(timer_id)], time);
-}
-
-void debug_timer_reset(char* timer_id)
-{
-	i32 tim_index = get_timer_index(timer_id);
-
-	if(tim_index >= 0)
-	{
-		timer* tim = timers[tim_index];
-		timers.erase(timers.begin() + tim_index);
-		free(tim);
-	}
-}
-
-void debug_timer_finalize(char* timer_id)
-{
-	u64 current_time = get_current_time_ns();
-
-	i32 tim_index = get_timer_index(timer_id);
-
-	debug_assert(tim_index >= 0, "Timer not found");
-
-	timer* tim = timers[tim_index];
-
-	if(tim->current_start != 0) debug_timer_end(tim, current_time);
-
-	printf("TIMER %s TOOK %f MS TO RUN %i TIMES\n", timer_id, (tim->accumulated) / 1000000.0, tim->count);
-
-	debug_timer_reset(timer_id);
-}
+u64 debug_total_allocated = 0;
 
 void debug_assert(bool assert, char* message)
 {
@@ -123,4 +27,33 @@ void debug_assert(bool assert, char* message)
 			assert(false);
 		}
 	}
+}
+
+void* debug_malloc(size_t size)
+{
+#if DEBUG_PRINT_ALLOC
+	printf("Allocating %i\n", size);
+
+	debug_total_allocated += size;
+#endif
+
+	return malloc(size);
+}
+
+void* debug_calloc(size_t count, size_t size)
+{
+#if DEBUG_PRINT_ALLOC
+	printf("Callocating %i\n", size * count);
+
+	debug_total_allocated += size * count;
+#endif
+	
+	return calloc(count, size);
+}
+
+void debug_print_total_allocated()
+{
+#if DEBUG_PRINT_ALLOC
+	printf("Total allocated so far: %i\n", debug_total_allocated);
+#endif
 }

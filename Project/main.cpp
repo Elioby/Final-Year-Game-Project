@@ -4,6 +4,8 @@
 
 #include <bgfx/c99/bgfx.h>
 
+#include <libmorton/morton.h>
+
 #include "general.h"
 #include "window.h"
 #include "graphics.h"
@@ -44,6 +46,8 @@ int main()
 	action_init();
 	actionbar_init();
 	shader_init();
+
+	debug_print_total_allocated();
 
 	b = gui_create_button();
 	b->width = 100;

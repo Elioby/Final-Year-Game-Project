@@ -24,9 +24,9 @@ font* load_font(char* asset_id, char* filename)
 	u32 baked_width = 1024;
 	u32 baked_height = 1024;
 
-	// we pack the font structure, the font glyph data and the font texture into one malloc
+	// we pack the font structure, the font glyph data and the font texture into one debug_malloc
 	u32 char_data_bytes = sizeof(stbtt_bakedchar) * char_count;
-	font* fnt = (font*) malloc(sizeof(font) + char_data_bytes + baked_width * baked_height);
+	font* fnt = (font*) debug_malloc(sizeof(font) + char_data_bytes + baked_width * baked_height);
 	fnt->asset_id = asset_id;
 	fnt->asset_type = ASSET_TYPE_FONT;
 

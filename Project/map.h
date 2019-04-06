@@ -5,18 +5,13 @@
 #include "general.h"
 #include "mesh.h"
 #include "entity.h"
+#include "map_gen.h"
 
 // the step of the world raytrace
 #define MAP_RAYTRACE_ACCURACY 0.25f
 
-
-struct count_me
-{
-	vec3 pos1;
-	vec3 pos2;
-	u32 count;
-	bool los;
-};
+extern std::vector<road_segment> map_road_segments;
+extern std::vector<map_segment> map_segments;
 
 extern u32 map_max_x;
 extern u32 map_max_z;
@@ -29,8 +24,6 @@ struct cover {
 
 void map_init();
 void map_draw();
-
-mesh* map_generate_terrain_mesh(); 
 
 vec3 map_get_block_pos(vec3 pos);
 bool map_pos_equal(vec3 pos1, vec3 pos2);

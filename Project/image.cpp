@@ -8,7 +8,7 @@
 #include "file.h"
 #include "dynstr.h"
 
-// @Todo: should we malloc this?
+// @Todo: should we debug_malloc this?
 image* load_image(char* path)
 {
 	int width, height, channels;
@@ -55,7 +55,7 @@ image* create_image(image* img_memory, void* pixels, u32 width, u32 height, u8 b
 
 image* create_image(void* pixels, u32 width, u32 height, u8 bytes_per_pixel, bgfx_texture_format_t pixel_format)
 {
-	image* img = (image*) malloc(sizeof(image));
+	image* img = (image*) debug_malloc(sizeof(image));
 	return create_image(img, pixels, width, height, bytes_per_pixel, pixel_format);
 }
 
@@ -63,7 +63,7 @@ image* create_image(void* pixels, u32 width, u32 height, u8 bytes_per_pixel, bgf
 image* create_image(char* asset_id, void* pixels, u32 width, u32 height, u8 bytes_per_pixel, bgfx_texture_format_t pixel_format)
 {
 	u32 asid_len = strlen(asset_id) + 1;
-	image* img = (image*) malloc(sizeof(image) + asid_len);
+	image* img = (image*) debug_malloc(sizeof(image) + asid_len);
 
 	create_image(img, pixels, width, height, bytes_per_pixel, pixel_format);
 

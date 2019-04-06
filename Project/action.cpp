@@ -1,12 +1,14 @@
 #include "action.h"
 
+#include "libmorton\morton.h"
+
 #include "entity.h"
 #include "map.h"
+#include "map_gen.h"
 #include "gui.h"
 #include "input.h"
 #include "actionbar.h"
 #include "board_eval.h"
-#include "libmorton\morton.h"
 
 #include <queue>
 
@@ -89,7 +91,7 @@ bool get_next_target_nothing(entity* ent, u32* last_index, vec3* result)
 action_undo_data* gather_undo_data_move(entity* ent, vec3 target)
 {
 	// @Todo: replace this with a custom stack push?
-	action_undo_data_move* undo_data = (action_undo_data_move*) malloc(sizeof(action_undo_data_move));
+	action_undo_data_move* undo_data = (action_undo_data_move*) debug_malloc(sizeof(action_undo_data_move));
 
 	undo_data->old_pos = ent->pos;
 
@@ -174,7 +176,7 @@ bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
 
 	queue.push(start);
 
-	bool* already_searched = (bool*) calloc(map_max_x * map_max_z, sizeof(bool));
+	bool* already_searched = (bool*) debug_calloc(map_max_x * map_max_z, sizeof(bool));
 
 	while (queue.size() > 0)
 	{
@@ -196,7 +198,7 @@ bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
 action_undo_data* gather_undo_data_shoot(entity* ent, vec3 target)
 {
 	// @Todo: replace this with a custom stack push?
-	action_undo_data_shoot* undo_data = (action_undo_data_shoot*) malloc(sizeof(action_undo_data_shoot));
+	action_undo_data_shoot* undo_data = (action_undo_data_shoot*) debug_malloc(sizeof(action_undo_data_shoot));
 
 	entity* target_ent = map_get_entity_at_block(target);
 
@@ -495,6 +497,9 @@ void action_update()
 			current_action_mode = ACTION_MODE_SELECT_UNITS;
 			selected_entity = NULL;
 			poses.clear();
+
+			map_road_segments.clear();
+			map_gen();
 		}
 	}
 }
