@@ -41,6 +41,7 @@ mesh* map_gen_terrain_mesh()
 
 void map_gen_roads();
 void map_gen_segments();
+void map_gen_simplify_segments();
 
 void map_gen()
 {
@@ -52,6 +53,7 @@ void map_gen()
 	map_gen_roads();
 
 	map_gen_segments();
+	map_gen_simplify_segments();
 }
 
 // @Todo: pass in map object?
@@ -224,27 +226,7 @@ void map_gen_simplify_segments()
 			bool match_along_x = map_seg.scale.y == biggest_segment.scale.y;
 			bool match_along_z = map_seg.scale.x == biggest_segment.scale.x;
 
-			if(match_along_x)
-			{
-				if((biggest_max_x == map_min_x || biggest_min_x == map_max_x) && biggest_min_z == map_min_z && biggest_max_z == map_max_z)
-				{
-					map_segment merged_segment = {};
-					merged_segment.pos = vec2(glm::min(biggest_segment.pos.x, map_seg.pos.x), biggest_segment.pos.y);
-					merged_segment.scale = vec2(biggest_segment.scale.x + map_seg.scale.x, biggest_segment.scale.y);
-
-					// erase both the merging segments
-					map_segments.erase(map_segments.begin() + biggest_segment_index);
-					map_segments.erase(map_segments.begin() + (biggest_segment_index < i ? i - 1 : i)); // index might have changed due to the last erase
-
-					// add the new merged segment
-					map_segments.push_back(merged_segment);
-					fully_simplified_indexes.clear();
-
-					printf("merged\n");
-					break;
-				}
-			}
-			else if(match_along_z)
+			if(match_along_z)
 			{
 				if((biggest_max_z == map_min_z || biggest_min_z == map_max_z) && biggest_min_x == map_min_x && biggest_max_x == map_max_x)
 				{
@@ -259,8 +241,23 @@ void map_gen_simplify_segments()
 					// add the new merged segment
 					map_segments.push_back(merged_segment);
 					fully_simplified_indexes.clear();
+					break;
+				}
+			} else if(match_along_x)
+			{
+				if((biggest_max_x == map_min_x || biggest_min_x == map_max_x) && biggest_min_z == map_min_z && biggest_max_z == map_max_z)
+				{
+					map_segment merged_segment = {};
+					merged_segment.pos = vec2(glm::min(biggest_segment.pos.x, map_seg.pos.x), biggest_segment.pos.y);
+					merged_segment.scale = vec2(biggest_segment.scale.x + map_seg.scale.x, biggest_segment.scale.y);
 
-					printf("merged\n");
+					// erase both the merging segments
+					map_segments.erase(map_segments.begin() + biggest_segment_index);
+					map_segments.erase(map_segments.begin() + (biggest_segment_index < i ? i - 1 : i)); // index might have changed due to the last erase
+
+					// add the new merged segment
+					map_segments.push_back(merged_segment);
+					fully_simplified_indexes.clear();
 					break;
 				}
 			}
@@ -326,6 +323,4 @@ void map_gen_segments()
 			}
 		}
 	}
-
-	map_gen_simplify_segments();
 }

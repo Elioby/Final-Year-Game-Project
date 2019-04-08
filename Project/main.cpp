@@ -60,15 +60,16 @@ int main()
 	turn_start(TEAM_FRIENDLY);
 
 	float lastTime = 0;
-	float time, dt;
+	float time = 0, dt = 0;
 
 	shader_set_tint_uniform(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
 	while(!glfwWindowShouldClose(window))
 	{
-		time = (float) glfwGetTime();
 		dt = time - lastTime;
 		lastTime = time;
+
+		time = (float) glfwGetTime();
 
 		glfwPollEvents();
 		update(dt);
@@ -84,10 +85,9 @@ int main()
 
 		draw();
 
-		bgfx_frame(false);
-
 		input_end_frame();
 		gui_end_frame();
+		graphics_end_frame(dt);
 	}
 
 	bgfx_shutdown();

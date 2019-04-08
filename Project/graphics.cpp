@@ -16,6 +16,8 @@ mat4 graphics_projection_matrix;
 u32 graphics_projection_width;
 u32 graphics_projection_height; 
 
+u32 graphics_fps_cap = 120;
+
 bgfx_uniform_handle_t texture_sampler;
 
 bgfx_uniform_handle_t tint_color;
@@ -73,6 +75,11 @@ void graphics_init(int window_width, int window_height)
 	bgfx_set_view_rect(0, 0, 0, window_width, window_height);
 
 	texture_sampler = bgfx_create_uniform("textureSampler", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+}
+
+void graphics_end_frame(float dt)
+{
+	bgfx_frame(false);
 }
 
 void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix, vec4 color)

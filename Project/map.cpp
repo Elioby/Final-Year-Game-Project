@@ -11,8 +11,8 @@
 #include "debug.h"
 #include "map_gen.h"
 
-u32 map_max_x = 64;
-u32 map_max_z = 64;
+u32 map_max_x = 96;
+u32 map_max_z = 128;
 
 // @Todo: change "cover_at_block" to an array of tiles, each referencing either nothing, an entity, or cover 
 //         (this means you get O(n) lookup of whats in a block based on it's position)
@@ -28,12 +28,9 @@ void map_init()
 	// @Todo: move this to some random util file???
 	srand(time(0));
 
-	debug_assert(map_max_x >= map_max_z, "The map cannot be bigger on the z than the x");
-	debug_assert(fmod(sqrt(map_max_x * map_max_z), 2) == 0, "The map max x and z must be a power of 2");
-
 	map_gen();
 
-	cover_at_block = (bool*) debug_calloc(map_max_x * map_max_z, sizeof(bool));
+	cover_at_block = (bool*) debug_calloc(pow(max(map_max_x, map_max_z), 2), sizeof(bool));
 
 	u32 friendly_count = 4;
 	for(u32 i = 0; i < friendly_count; i++) 
