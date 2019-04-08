@@ -3,14 +3,16 @@
 #include <stdlib.h>
 #include <emmintrin.h>
 #include <libmorton/morton.h>
+#include <time.h>
 
 #include "mesh.h"
 #include "entity.h"
 #include "asset_manager.h"
 #include "debug.h"
+#include "map_gen.h"
 
-u32 map_max_x = 64;
-u32 map_max_z = 32;
+u32 map_max_x = 96;
+u32 map_max_z = 128;
 
 // @Todo: change "cover_at_block" to an array of tiles, each referencing either nothing, an entity, or cover 
 //         (this means you get O(n) lookup of whats in a block based on it's position)
@@ -18,11 +20,17 @@ u32 map_max_z = 32;
 
 bool* cover_at_block;
 
+std::vector<map_segment> map_segments;
+std::vector<road_segment> map_road_segments;
+
 void map_init()
 {
-	debug_assert(map_max_x >= map_max_z, "The map cannot be bigger on the z than the x");
+	// @Todo: move this to some random util file???
+	srand(time(0));
 
-	cover_at_block = (bool*) calloc(map_max_x * map_max_z, sizeof(bool));
+	map_gen();
+
+	cover_at_block = (bool*) debug_calloc(pow(max(map_max_x, map_max_z), 2), sizeof(bool));
 
 	u32 friendly_count = 4;
 	for(u32 i = 0; i < friendly_count; i++) 
@@ -35,207 +43,6 @@ void map_init()
 	{
 		entity_add(vec3(i * 2 + 1 + map_max_x / 2 - enemy_count, 0, map_max_z - 2), TEAM_ENEMY);
 	}
-
-	map_add_cover(vec3(5.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(6.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(7.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(8.0f, 0.0f, 4.0f));
-
-	map_add_cover(vec3(4.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(4.0f, 0.0f, 11.0f));
-	map_add_cover(vec3(4.0f, 0.0f, 12.0f));
-	map_add_cover(vec3(4.0f, 0.0f, 13.0f));
-	map_add_cover(vec3(4.0f, 0.0f, 14.0f));
-	map_add_cover(vec3(4.0f, 0.0f, 15.0f));
-	map_add_cover(vec3(4.0f, 0.0f, 16.0f));
-
-	map_add_cover(vec3(26.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(27.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(28.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(29.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(30.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(32.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(33.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(34.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(35.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(37.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(36.0f, 0.0f, 6.0f));
-	map_add_cover(vec3(28.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(29.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(30.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(32.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(33.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(34.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(29.0f, 0.0f, 4.0f));
-	map_add_cover(vec3(30.0f, 0.0f, 4.0f));
-	map_add_cover(vec3(32.0f, 0.0f, 4.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 4.0f));
-	map_add_cover(vec3(33.0f, 0.0f, 4.0f));
-	map_add_cover(vec3(34.0f, 0.0f, 4.0f));
-	map_add_cover(vec3(35.0f, 0.0f, 5.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(48.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(49.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(50.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 12.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 11.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 13.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 14.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 15.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 11.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 13.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 12.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 14.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 15.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 23.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 23.0f));
-	map_add_cover(vec3(51.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(50.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(49.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(48.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(46.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(45.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(46.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(46.0f, 0.0f, 13.0f));
-	map_add_cover(vec3(46.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(45.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(44.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(43.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(42.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(45.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(44.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(43.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(43.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(42.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(41.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(52.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(53.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(54.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(55.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(56.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(57.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(57.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(57.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(57.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(56.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(55.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(55.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(54.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(53.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(52.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(54.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(53.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(52.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(28.0f, 0.0f, 15.0f));
-	map_add_cover(vec3(27.0f, 0.0f, 14.0f));
-	map_add_cover(vec3(26.0f, 0.0f, 13.0f));
-	map_add_cover(vec3(25.0f, 0.0f, 12.0f));
-	map_add_cover(vec3(24.0f, 0.0f, 11.0f));
-	map_add_cover(vec3(23.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(22.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(21.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(20.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(17.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(16.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(15.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(14.0f, 0.0f, 10.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 11.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 12.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 13.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 14.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 15.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(14.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(15.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(16.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(17.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(18.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(19.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(20.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(23.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(25.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(24.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(26.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(28.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(27.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(28.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(28.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 19.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 23.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 25.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(19.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(19.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(19.0f, 0.0f, 23.0f));
-	map_add_cover(vec3(19.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(13.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(14.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(15.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(17.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(16.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(18.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(19.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(29.0f, 0.0f, 15.0f));
-	map_add_cover(vec3(30.0f, 0.0f, 15.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 15.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 16.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 17.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 18.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 23.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(20.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(21.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(22.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(20.0f, 0.0f, 24.0f));
-	map_add_cover(vec3(25.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(25.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(25.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(24.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(23.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(28.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(29.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(30.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 25.0f));
-	map_add_cover(vec3(31.0f, 0.0f, 26.0f));
-	map_add_cover(vec3(29.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(38.0f, 0.0f, 20.0f));
-	map_add_cover(vec3(39.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(37.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(38.0f, 0.0f, 21.0f));
-	map_add_cover(vec3(38.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(37.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(36.0f, 0.0f, 22.0f));
-	map_add_cover(vec3(47.0f, 0.0f, 9.0f));
-	map_add_cover(vec3(45.0f, 0.0f, 3.0f));
-	map_add_cover(vec3(46.0f, 0.0f, 3.0f));
-	map_add_cover(vec3(46.0f, 0.0f, 4.0f));
-	map_add_cover(vec3(45.0f, 0.0f, 4.0f));
 }
 
 void map_draw()
@@ -251,6 +58,32 @@ void map_draw()
 				graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(vec3(x, 0.0f, z), 0.0f, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)));
 			}
 		}
+	}
+
+	// draw road
+	for(u32 i = 0; i < map_road_segments.size(); i++)
+	{
+		road_segment seg = map_road_segments[i];
+		graphics_draw_mesh(asset_manager_get_mesh("cube"),
+			graphics_create_model_matrix(vec3(seg.pos.x, 0.0f, seg.pos.y), 0.0f, vec3(1.0f), vec3(seg.scale.x, 0.1f, seg.scale.y)), vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	}
+
+	u32 color_progress = 0;
+
+	// temp draw segments
+	for(u32 i = 0; i < map_segments.size(); i++)
+	{
+		map_segment seg = map_segments[i];
+
+		u32 current_color = color_progress += (255 * 255 * 255) / (map_segments.size() / 0.8f);
+		u8 r = *((u8*) &current_color);
+		u8 g = *((u8*) &current_color + 1);
+		u8 b = *((u8*) &current_color + 2);
+
+		vec4 seg_color = vec4((float) r / 255.0f, (float) g / 255.0f, (float) b / 255.0f, 1.0f);
+
+		graphics_draw_mesh(asset_manager_get_mesh("cube"), 
+			graphics_create_model_matrix(vec3(seg.pos.x, 0.0f, seg.pos.y), 0.0f, vec3(1.0f), vec3(seg.scale.x, 0.2f, seg.scale.y)), seg_color);
 	}
 
 	// draw entites and healthbars
@@ -282,40 +115,6 @@ void map_draw()
 	graphics_draw_mesh(asset_manager_get_mesh("terrain"), graphics_create_model_matrix(vec3(0.0f), 0.0f, vec3(1.0f), vec3(1.0f)));
 }
 
-mesh* map_generate_terrain_mesh()
-{
-	// x * y squares, 2 triangles per square, 3 vertices per triangle
-	u32 vertex_count = map_max_x * map_max_z * 3 * 2;
-	pos_normal_vertex* vertices = (pos_normal_vertex*) malloc(vertex_count * sizeof(pos_normal_vertex));
-
-	u32 i = 0;
-	u32 up_normal = pack_vec3_into_u32(vec3(0.0f, 1.0f, 0.0f));
-
-	for (float x = 0; x < map_max_x; x++)
-	{
-		for (float z = 0; z < map_max_z; z++)
-		{
-			vertices[i++] = { x, 0, z, 0.0f, 0.0f, up_normal };
-			vertices[i++] = { x + 1.0f, 0, z + 1.0f, 0.0f, 0.0f, up_normal };
-			vertices[i++] = { x + 1.0f, 0, z, 0.0f, 0.0f, up_normal };
-			vertices[i++] = { x, 0, z, 0.0f, 0.0f, up_normal };
-			vertices[i++] = { x, 0, z + 1.0f, 0.0f, 0.0f, up_normal };
-			vertices[i++] = { x + 1.0f, 0, z + 1.0f, 0.0f, 0.0f, up_normal };
-		}
-	}
-
-	u16* indices = (u16*) malloc(vertex_count * sizeof(u16));
-
-	debug_assert(vertex_count < UINT16_MAX, "Vertex count must be less than max size of u16");
-
-	for(u16 i = 0; i < vertex_count; i++)
-	{
-		indices[i] = i;
-	}
-
-	return mesh_create("terrain", vertices, vertex_count, indices, vertex_count);
-}
-
 void map_add_cover(vec3 block_pos)
 {
 	cover_at_block[libmorton::morton2D_32_encode((u32) block_pos.x, (u32) block_pos.z)] = true;
@@ -323,7 +122,8 @@ void map_add_cover(vec3 block_pos)
 
 bool map_is_cover_at_block(u32 x, u32 z)
 {
-	return cover_at_block[libmorton::morton2D_32_encode(x, z)];
+	uint_fast32_t i = libmorton::morton2D_32_encode(x, z);
+	return cover_at_block[i];
 }
 
 bool map_is_cover_at_block(vec3 block_pos)

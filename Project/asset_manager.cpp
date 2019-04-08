@@ -2,6 +2,7 @@
 
 #include "asset.h"
 #include "map.h"
+#include "map_gen.h"
 
 #include <vector>
 
@@ -14,6 +15,7 @@ void asset_manager_init()
 	asset_manager_register(load_obj_mesh("plane", "res/mesh/plane.obj"));
 	asset_manager_register(load_obj_mesh("robot", "res/mesh/robot.obj"));
 	asset_manager_register(load_obj_mesh("cube", "res/mesh/cube.obj"));
+	asset_manager_register(load_obj_mesh("light", "res/mesh/light.obj"));
 
 	// images
 	asset_manager_register(load_image("res/img/action_button.png"));
@@ -37,7 +39,7 @@ void asset_manager_init()
 	// fonts
 	asset_manager_register(load_font("inconsolata", "res/font/inconsolata.ttf"));
 
-	asset_manager_register(map_generate_terrain_mesh());
+	asset_manager_register(map_gen_terrain_mesh());
 }
 
 void asset_manager_register(asset* as)

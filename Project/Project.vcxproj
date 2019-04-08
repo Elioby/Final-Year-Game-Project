@@ -229,6 +229,7 @@
     <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map.cpp" />
+    <ClCompile Include="map_gen.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="minimax.cpp" />
     <ClCompile Include="raycast.cpp" />
@@ -257,6 +258,7 @@
     <ClInclude Include="image.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="map_gen.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="minimax.h" />
     <ClInclude Include="raycast.h" />

@@ -4,6 +4,7 @@
 #include "input.h"
 #include "window.h"
 
+// @Todo: move to struct?
 vec3 camera_pos = vec3(-10.0f, 15.0f, 12.5f);
 vec3 camera_dir = vec3(0.0f);
 
@@ -12,12 +13,12 @@ float camera_yaw = 0.0f;
 float camera_fov = 65.0f;
 float camera_zoom = 0.0f;
 
-float camera_move_speed = 20.0f;
+float camera_move_speed = 50.0f;
 float camera_rotate_speed = 50.0f;
+float camera_zoom_speed = 3.0f;
 
 void camera_update(float dt)
 {
-	// zooming and moving gets exponentially slower the closer in you get
 	vec3 move_x = dt * camera_move_speed * vec3(camera_dir.x, 0.0f, camera_dir.z);
 
 	// to move along z, we get the cross product of the normal move_x and up to get the perpendicular of them both which is 90deg clockwise of move_x
@@ -37,6 +38,8 @@ void camera_update(float dt)
 
 		if (camera_zoom > 0.0f) zoom_amount = input_mouse_wheel_delta_y;
 		else zoom_amount = input_mouse_wheel_delta_y;
+
+		zoom_amount *= camera_zoom_speed;
 
 		camera_zoom += zoom_amount;
 		camera_pos += camera_dir * zoom_amount;

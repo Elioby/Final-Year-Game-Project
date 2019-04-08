@@ -31,7 +31,7 @@ void board_eval_build_cache()
 
 	los_cache_table = hashtable_create(enemies * friendlies * 10);
 
-	los_cache_data = (hashtable_los_result*) malloc(sizeof(hashtable_los_result) * enemies * friendlies);
+	los_cache_data = (hashtable_los_result*) debug_malloc(sizeof(hashtable_los_result) * enemies * friendlies);
 
 	u32 index = 0;
 	for (u32 i = 0; i < entities.size(); i++)

@@ -14,7 +14,7 @@ hashtable* hashtable_create(u32 size)
 {
 	debug_assert(size > 0, "hashtable size must be > 0");
 
-	hashtable* table = (hashtable*) calloc(1, sizeof(hashtable) + sizeof(hashtable_item*) * size);
+	hashtable* table = (hashtable*) debug_calloc(1, sizeof(hashtable) + sizeof(hashtable_item*) * size);
 
 	table->size = size;
 	table->items = (hashtable_item**)((char*)table + sizeof(hashtable));

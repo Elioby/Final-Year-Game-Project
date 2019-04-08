@@ -14,7 +14,7 @@ file_data* file_load(char* path)
 	fseek(file, 0, SEEK_SET);
 
 	// pack the struct and file data into one memory allocation
-	file_data* data = (file_data*) malloc(sizeof(file_data) + file_size);
+	file_data* data = (file_data*) debug_malloc(sizeof(file_data) + file_size);
 
 	// the data pointer is after the struct data
 	void* file_buffer = (void*) ((char*) data + sizeof(file_data));
