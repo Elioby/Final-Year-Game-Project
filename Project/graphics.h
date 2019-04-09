@@ -20,7 +20,8 @@ extern u32 graphics_projection_height;
 
 extern u32 graphics_fps_cap;
 
-extern bgfx_uniform_handle_t texture_sampler;
+extern bgfx_uniform_handle_t graphics_texture_sampler;
+extern bgfx_uniform_handle_t graphics_tint_color;
 
 void graphics_init(int w_width, int w_height);
 void graphics_end_frame(float dt);

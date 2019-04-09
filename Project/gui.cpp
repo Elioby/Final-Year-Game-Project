@@ -82,7 +82,7 @@ void gui_draw_image(image* image, mat4 transform_matrix)
 	bgfx_set_vertex_buffer(0, plane_mesh->vb_handle, 0, plane_mesh->vertex_count);
 	bgfx_set_index_buffer(plane_mesh->idb_handle, 0, plane_mesh->index_count);
 
-	bgfx_set_texture(0, texture_sampler, image->handle, 0);
+	bgfx_set_texture(0, graphics_texture_sampler, image->handle, 0);
 
 	bgfx_set_transform(&transform_matrix, 1);
 
@@ -111,8 +111,10 @@ void gui_draw_button(button* button)
 	}
 }
 
-void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float scale)
+void gui_draw_text(font* font, char* text, vec4 color, u16 text_len, u32 x, u32 y, float scale)
 {
+	bgfx_set_uniform(graphics_tint_color, &color, 1);
+
 	scale *= 2.0f;
 
 	float x1 = 0;
@@ -153,7 +155,7 @@ void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float sca
 		// @Note: we can just use the index from our regular plane mesh
 		bgfx_set_index_buffer(plane_mesh->idb_handle, 0, plane_mesh->index_count);
 
-		bgfx_set_texture(0, texture_sampler, font->img->handle, 0);
+		bgfx_set_texture(0, graphics_texture_sampler, font->img->handle, 0);
 
 		mat4 transform_matrix = mat4(1.0f);
 		transform_matrix *= translate(transform_matrix, vec3(((x / 2.0f)) / (float) graphics_projection_width,

@@ -18,9 +18,9 @@ u32 graphics_projection_height;
 
 u32 graphics_fps_cap = 120;
 
-bgfx_uniform_handle_t texture_sampler;
+bgfx_uniform_handle_t graphics_texture_sampler;
 
-bgfx_uniform_handle_t tint_color;
+bgfx_uniform_handle_t graphics_tint_color;
 
 // @Todo: cleanup!!!
 void bgfx_fatal_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, bgfx_fatal_t _code, const char* _str)
@@ -54,7 +54,8 @@ void graphics_init(int window_width, int window_height)
 
 	bgfx_init(&init);
 
-	tint_color = bgfx_create_uniform("tint_color", BGFX_UNIFORM_TYPE_VEC4, 1);
+	graphics_tint_color = bgfx_create_uniform("tint_color", BGFX_UNIFORM_TYPE_VEC4, 1);
+	graphics_texture_sampler = bgfx_create_uniform("textureSampler", BGFX_UNIFORM_TYPE_SAMPLER, 1);
 
 	u32 flags = BGFX_RESET_MSAA_X16;
 
@@ -73,8 +74,6 @@ void graphics_init(int window_width, int window_height)
 	graphics_projection_height = window_height;
 
 	bgfx_set_view_rect(0, 0, 0, window_width, window_height);
-
-	texture_sampler = bgfx_create_uniform("textureSampler", BGFX_UNIFORM_TYPE_SAMPLER, 1);
 }
 
 void graphics_end_frame(float dt)
@@ -91,7 +90,7 @@ void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix, vec4 color)
 
 	bgfx_set_transform(&transform_matrix, 1);
 
-	bgfx_set_uniform(tint_color, &color, 1);
+	bgfx_set_uniform(graphics_tint_color, &color, 1);
 
 	bgfx_submit(0, asset_manager_get_shader("diffuse")->handle, 0, false);
 }
@@ -107,7 +106,7 @@ void graphics_draw_image(image* image, mat4 transform_matrix)
 	bgfx_set_vertex_buffer(0, plane_mesh->vb_handle, 0, plane_mesh->vertex_count);
 	bgfx_set_index_buffer(plane_mesh->idb_handle, 0, plane_mesh->index_count);
 
-	bgfx_set_texture(0, texture_sampler, image->handle, BGFX_SAMPLER_POINT);
+	bgfx_set_texture(0, graphics_texture_sampler, image->handle, BGFX_SAMPLER_POINT);
 
 	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_BLEND_ALPHA, 0);
 

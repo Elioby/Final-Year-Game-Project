@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shader Source">
+      <UniqueIdentifier>{333ccaef-c05d-4c98-93a8-255453641d7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader Source\diffuse">
+      <UniqueIdentifier>{f8b0fa38-bbac-4849-80a3-1a0b6cc6df19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader Source\gui">
+      <UniqueIdentifier>{1b5db849-8bc6-4ea4-8f3b-9dd706b241c6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp">
@@ -176,5 +185,34 @@
     <ClInclude Include="map_gen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shadersrc\bgfx_shader.sh">
+      <Filter>Shader Source</Filter>
+    </None>
+    <None Include="shadersrc\common.sh">
+      <Filter>Shader Source</Filter>
+    </None>
+    <None Include="shadersrc\shaderlib.sh">
+      <Filter>Shader Source</Filter>
+    </None>
+    <None Include="shadersrc\diffuse_fs.sc">
+      <Filter>Shader Source\diffuse</Filter>
+    </None>
+    <None Include="shadersrc\diffuse_varying.sc">
+      <Filter>Shader Source\diffuse</Filter>
+    </None>
+    <None Include="shadersrc\diffuse_vs.sc">
+      <Filter>Shader Source\diffuse</Filter>
+    </None>
+    <None Include="shadersrc\gui_fs.sc">
+      <Filter>Shader Source\gui</Filter>
+    </None>
+    <None Include="shadersrc\gui_varying.sc">
+      <Filter>Shader Source\gui</Filter>
+    </None>
+    <None Include="shadersrc\gui_vs.sc">
+      <Filter>Shader Source\gui</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -9,7 +9,9 @@ $input v_texcoord0
 
 SAMPLER2D(textureSampler, 0);
 
+uniform vec4 tint_color;
+
 void main()
 {
-	gl_FragColor = texture2D(textureSampler, v_texcoord0);
+	gl_FragColor = texture2D(textureSampler, v_texcoord0) * tint_color;
 }

@@ -267,6 +267,17 @@
     <ClInclude Include="turn.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shadersrc\bgfx_shader.sh" />
+    <None Include="shadersrc\common.sh" />
+    <None Include="shadersrc\diffuse_fs.sc" />
+    <None Include="shadersrc\diffuse_varying.sc" />
+    <None Include="shadersrc\diffuse_vs.sc" />
+    <None Include="shadersrc\gui_fs.sc" />
+    <None Include="shadersrc\gui_varying.sc" />
+    <None Include="shadersrc\gui_vs.sc" />
+    <None Include="shadersrc\shaderlib.sh" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
