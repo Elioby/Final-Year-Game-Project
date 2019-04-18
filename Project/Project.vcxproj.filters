@@ -22,6 +22,9 @@
     <Filter Include="Shader Source\gui">
       <UniqueIdentifier>{1b5db849-8bc6-4ea4-8f3b-9dd706b241c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader Source\font">
+      <UniqueIdentifier>{a9b2b0a5-a1e4-4126-a8e0-404e1838e65f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp">
@@ -100,6 +103,9 @@
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="map_gen.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="math.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -185,6 +191,9 @@
     <ClInclude Include="map_gen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shadersrc\bgfx_shader.sh">
@@ -213,6 +222,15 @@
     </None>
     <None Include="shadersrc\gui_vs.sc">
       <Filter>Shader Source\gui</Filter>
+    </None>
+    <None Include="shadersrc\font_fs.sc">
+      <Filter>Shader Source\font</Filter>
+    </None>
+    <None Include="shadersrc\font_varying.sc">
+      <Filter>Shader Source\font</Filter>
+    </None>
+    <None Include="shadersrc\font_vs.sc">
+      <Filter>Shader Source\font</Filter>
     </None>
   </ItemGroup>
 </Project>

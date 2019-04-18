@@ -6,7 +6,7 @@
 
 struct hashtable_item
 {
-	i32 key;
+	s32 key;
 };
 
 struct hashtable
@@ -16,7 +16,7 @@ struct hashtable
 	hashtable_item** items;
 };
 
-i32 hashtable_hash_u32(u32 x);
+s32 hashtable_hash_u32(u32 x);
 
 hashtable* hashtable_create(u32 size);
 void hashtable_destroy(hashtable* table);

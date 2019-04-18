@@ -12,11 +12,11 @@ struct entity {
 
 	mesh* mesh;
 
-	i32 health;
-	i32 max_health;
+	s32 health;
+	s32 max_health;
 
-	i32 ap;
-	i32 max_ap;
+	s32 ap;
+	s32 max_ap;
 
 	team team;
 	bool dead;
@@ -31,6 +31,6 @@ void entity_update();
 
 void entity_add(vec3 pos, team t);
 
-void entity_health_change(entity* ent, entity* inflict_ent, i32 amount);
-void entity_health_change(entity* ent, entity* inflict_ent, i32 amount, bool temp);
+void entity_health_change(entity* ent, entity* inflict_ent, s32 amount);
+void entity_health_change(entity* ent, entity* inflict_ent, s32 amount, bool temp);
 bool entity_is_same_team(entity* ent1, entity* ent2);

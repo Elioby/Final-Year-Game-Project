@@ -88,7 +88,7 @@ float evaluate_shot_chance(team team)
 					// is the cache enabled?
 					if (los_cache_table)
 					{
-						i32 hash = hashtable_hash_u32((u32) enemy->pos.x) + hashtable_hash_u32((u32) enemy->pos.z) 
+						s32 hash = hashtable_hash_u32((u32) enemy->pos.x) + hashtable_hash_u32((u32) enemy->pos.z) 
 							+ hashtable_hash_u32((u32) friendly->pos.x) + hashtable_hash_u32((u32) friendly->pos.z);
 						hashtable_los_result* result = (hashtable_los_result*) hashtable_get(los_cache_table, hash);
 
@@ -218,9 +218,9 @@ float evaluate_cover(team team)
 
 		if (!friendly->dead && friendly->team == team)
 		{
-			for (i8 x = -1; x <= 1; x++)
+			for (s8 x = -1; x <= 1; x++)
 			{
-				for (i8 z = -1; z <= 1; z++)
+				for (s8 z = -1; z <= 1; z++)
 				{
 					bool enemy_in_direction = false;
 

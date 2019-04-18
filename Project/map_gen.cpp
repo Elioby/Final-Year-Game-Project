@@ -2,6 +2,7 @@
 
 #include "map.h"
 
+// @Todo: i think this needs to be moved...
 mesh* map_gen_terrain_mesh()
 {
 	// x * y squares, 2 triangles per square, 3 vertices per triangle
@@ -40,8 +41,13 @@ mesh* map_gen_terrain_mesh()
 #define MAP_GEN_MIN_ROAD_LENGTH 10
 
 void map_gen_roads();
+
 void map_gen_segments();
 void map_gen_simplify_segments();
+void split_segments_on_point(u32 split_point, bool split_on_x);
+
+void map_gen_biomes();
+void map_gen_building(map_segment seg);
 
 void map_gen()
 {
@@ -110,65 +116,63 @@ void map_gen_roads()
 	}
 }
 
-void split_segment_on_point()
+void map_gen_segments()
 {
+	map_segment starting_segment = {};
+	starting_segment.pos = vec2(0.0f, 0.0f);
+	starting_segment.scale = vec2(map_max_x, map_max_z);
+	map_segments.push_back(starting_segment);
 
-}
-
-void split_segments_on_point(u32 split_point, bool split_on_x)
-{
-	std::vector<u32> to_remove;
-
-	u32 segments_size = map_segments.size();
-	for(u32 map_index = 0; map_index < segments_size; map_index++)
+	for(u32 road_index = 0; road_index < map_road_segments.size(); road_index++)
 	{
-		map_segment map_seg = map_segments[map_index];
+		road_segment road_seg = map_road_segments[road_index];
 
-		// the bounds of the segment
-		u32 map_min_x = map_seg.pos.x;
-		u32 map_max_x = map_seg.pos.x + map_seg.scale.x;
-		u32 map_min_z = map_seg.pos.y;
-		u32 map_max_z = map_seg.pos.y + map_seg.scale.y;
+		// the bounds of the road
+		u32 road_min_x = road_seg.pos.x;
+		u32 road_max_x = road_seg.pos.x + road_seg.scale.x;
+		u32 road_min_z = road_seg.pos.y;
+		u32 road_max_z = road_seg.pos.y + road_seg.scale.y;
 
-		if(split_on_x)
+		// split along the length of the road
+		if(road_seg.scale.x == MAP_GEN_ROAD_WIDTH)
 		{
-			if(split_point > map_min_x && split_point < map_max_x)
-			{
-				map_segment seg1 = {};
-				seg1.pos = map_seg.pos;
-				seg1.scale = vec2(split_point - map_seg.pos.x, map_seg.scale.y);
-				map_segments.push_back(seg1);
-
-				map_segment seg2 = {};
-				seg2.pos = vec2(seg1.pos.x + seg1.scale.x, map_seg.pos.y);
-				seg2.scale = vec2(map_seg.scale.x - seg1.scale.x, map_seg.scale.y);
-				map_segments.push_back(seg2);
-
-				to_remove.push_back(map_index);
-			}
+			split_segments_on_point(road_min_x, true);
+			split_segments_on_point(road_max_x, true);
 		}
 		else
 		{
-			if(split_point > map_min_z && split_point < map_max_z)
-			{
-				map_segment seg1 = {};
-				seg1.pos = map_seg.pos;
-				seg1.scale = vec2(map_seg.scale.x, split_point - map_seg.pos.y);
-				map_segments.push_back(seg1);
-
-				map_segment seg2 = {};
-				seg2.pos = vec2(map_seg.pos.x, seg1.pos.y + seg1.scale.y);
-				seg2.scale = vec2(map_seg.scale.x, map_seg.scale.y - seg1.scale.y);
-				map_segments.push_back(seg2);
-
-				to_remove.push_back(map_index);
-			}
+			split_segments_on_point(road_min_z, false);
+			split_segments_on_point(road_max_z, false);
 		}
 	}
 
-	for(u32 i = 0; i < to_remove.size(); i++)
+	// remove the segments under the roads
+	for(u32 road_index = 0; road_index < map_road_segments.size(); road_index++)
 	{
-		map_segments.erase(map_segments.begin() + (to_remove[i] - i));
+		road_segment road_seg = map_road_segments[road_index];
+
+		// the bounds of the road
+		u32 road_min_x = road_seg.pos.x;
+		u32 road_max_x = road_seg.pos.x + road_seg.scale.x;
+		u32 road_min_z = road_seg.pos.y;
+		u32 road_max_z = road_seg.pos.y + road_seg.scale.y;
+
+		for(u32 i = 0; i < map_segments.size(); i++)
+		{
+			map_segment map_seg = map_segments[i];
+
+			// the bounds of the segment
+			u32 map_min_x = map_seg.pos.x;
+			u32 map_max_x = map_seg.pos.x + map_seg.scale.x;
+			u32 map_min_z = map_seg.pos.y;
+			u32 map_max_z = map_seg.pos.y + map_seg.scale.y;
+
+			if(map_min_x >= road_min_x && map_max_x <= road_max_x && map_min_z >= road_min_z && map_max_z <= road_max_z)
+			{
+				map_segments.erase(map_segments.begin() + i);
+				i--;
+			}
+		}
 	}
 }
 
@@ -243,7 +247,8 @@ void map_gen_simplify_segments()
 					fully_simplified_indexes.clear();
 					break;
 				}
-			} else if(match_along_x)
+			}
+			else if(match_along_x)
 			{
 				if((biggest_max_x == map_min_x || biggest_min_x == map_max_x) && biggest_min_z == map_min_z && biggest_max_z == map_max_z)
 				{
@@ -265,62 +270,77 @@ void map_gen_simplify_segments()
 	}
 }
 
-void map_gen_segments()
+void split_segments_on_point(u32 split_point, bool split_on_x)
 {
-	map_segment starting_segment = {};
-	starting_segment.pos = vec2(0.0f, 0.0f);
-	starting_segment.scale = vec2(map_max_x, map_max_z);
-	map_segments.push_back(starting_segment);
+	std::vector<u32> to_remove;
 
-	for(u32 road_index = 0; road_index < map_road_segments.size(); road_index++)
+	u32 segments_size = map_segments.size();
+	for(u32 map_index = 0; map_index < segments_size; map_index++)
 	{
-		road_segment road_seg = map_road_segments[road_index];
+		map_segment map_seg = map_segments[map_index];
 
-		// the bounds of the road
-		u32 road_min_x = road_seg.pos.x;
-		u32 road_max_x = road_seg.pos.x + road_seg.scale.x;
-		u32 road_min_z = road_seg.pos.y;
-		u32 road_max_z = road_seg.pos.y + road_seg.scale.y;
+		// the bounds of the segment
+		u32 map_min_x = map_seg.pos.x;
+		u32 map_max_x = map_seg.pos.x + map_seg.scale.x;
+		u32 map_min_z = map_seg.pos.y;
+		u32 map_max_z = map_seg.pos.y + map_seg.scale.y;
 
-		// split along the length of the road
-		if(road_seg.scale.x == MAP_GEN_ROAD_WIDTH)
+		if(split_on_x)
 		{
-			split_segments_on_point(road_min_x, true);
-			split_segments_on_point(road_max_x, true);
+			if(split_point > map_min_x && split_point < map_max_x)
+			{
+				map_segment seg1 = {};
+				seg1.pos = map_seg.pos;
+				seg1.scale = vec2(split_point - map_seg.pos.x, map_seg.scale.y);
+				map_segments.push_back(seg1);
+
+				map_segment seg2 = {};
+				seg2.pos = vec2(seg1.pos.x + seg1.scale.x, map_seg.pos.y);
+				seg2.scale = vec2(map_seg.scale.x - seg1.scale.x, map_seg.scale.y);
+				map_segments.push_back(seg2);
+
+				to_remove.push_back(map_index);
+			}
 		}
 		else
 		{
-			split_segments_on_point(road_min_z, false);
-			split_segments_on_point(road_max_z, false);
-		}
-	}
-
-	// remove the segments under the roads
-	for(u32 road_index = 0; road_index < map_road_segments.size(); road_index++)
-	{
-		road_segment road_seg = map_road_segments[road_index];
-
-		// the bounds of the road
-		u32 road_min_x = road_seg.pos.x;
-		u32 road_max_x = road_seg.pos.x + road_seg.scale.x;
-		u32 road_min_z = road_seg.pos.y;
-		u32 road_max_z = road_seg.pos.y + road_seg.scale.y;
-
-		for(u32 i = 0; i < map_segments.size(); i++)
-		{
-			map_segment map_seg = map_segments[i];
-
-			// the bounds of the segment
-			u32 map_min_x = map_seg.pos.x;
-			u32 map_max_x = map_seg.pos.x + map_seg.scale.x;
-			u32 map_min_z = map_seg.pos.y;
-			u32 map_max_z = map_seg.pos.y + map_seg.scale.y;
-
-			if(map_min_x >= road_min_x && map_max_x <= road_max_x && map_min_z >= road_min_z && map_max_z <= road_max_z)
+			if(split_point > map_min_z && split_point < map_max_z)
 			{
-				map_segments.erase(map_segments.begin() + i);
-				i--;
+				map_segment seg1 = {};
+				seg1.pos = map_seg.pos;
+				seg1.scale = vec2(map_seg.scale.x, split_point - map_seg.pos.y);
+				map_segments.push_back(seg1);
+
+				map_segment seg2 = {};
+				seg2.pos = vec2(map_seg.pos.x, seg1.pos.y + seg1.scale.y);
+				seg2.scale = vec2(map_seg.scale.x, map_seg.scale.y - seg1.scale.y);
+				map_segments.push_back(seg2);
+
+				to_remove.push_back(map_index);
 			}
 		}
 	}
+
+	for(u32 i = 0; i < to_remove.size(); i++)
+	{
+		map_segments.erase(map_segments.begin() + (to_remove[i] - i));
+	}
+}
+
+void map_gen_biomes()
+{
+	for(u32 i = 0; i < map_segments.size(); i++)
+	{
+		map_segment seg = map_segments[i];
+
+		if(seg.scale.x > 5 && seg.scale.y > 5)
+		{
+			map_gen_building(seg);
+		}
+	}
+}
+
+void map_gen_building(map_segment seg)
+{
+	//u32 x_pad = ;
 }

@@ -32,8 +32,8 @@ extern void bgfx_log_callback(bgfx_callback_interface_t* _this, const char* _fil
 {
 	char temp[8192];
 	char* out = temp;
-	i32 len = vsnprintf(out, sizeof(temp), _format, _argList);
-	if ((i32)sizeof(temp) < len)
+	s32 len = vsnprintf(out, sizeof(temp), _format, _argList);
+	if ((s32)sizeof(temp) < len)
 	{
 		out = (char*)alloca(len + 1);
 		len = vsnprintf(out, len, _format, _argList);

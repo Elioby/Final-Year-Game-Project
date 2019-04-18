@@ -31,8 +31,8 @@ void gui_draw_image(image* image, u32 x, u32 y, u32 width, u32 height);
 void gui_draw_image(image* image, mat4 transform_matrix);
 void gui_draw_button(button* button);
 
-void gui_draw_text(font* font, char* text, u16 text_len, u32 x, u32 y, float scale);
-void gui_draw_text(font* font, char* text, u32 x, u32 y, float scale);
-void gui_draw_text(font* font, dynstr* text, u32 x, u32 y, float scale);
+void gui_draw_text(font* font, char* text, vec4 color, u16 text_len, u32 x, u32 y, float scale);
+void gui_draw_text(font* font, char* text, vec4 color, u32 x, u32 y, float scale);
+void gui_draw_text(font* font, dynstr* text, vec4 color, u32 x, u32 y, float scale);
 
 button* gui_create_button();

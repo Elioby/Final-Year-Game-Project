@@ -139,7 +139,7 @@ void actionbar_draw()
 			u32 text_width = (u32)font_get_text_width(inconsolata_font, text, scale);
 			u32 text_height = (u32)(128.0f * scale);
 
-			gui_draw_text(inconsolata_font, text, graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height, scale);
+			gui_draw_text(inconsolata_font, text, vec4(1.0f, 1.0f, 1.0f, 1.0f), graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height, scale);
 		}
 
 		// draw bottom action bar
@@ -149,7 +149,7 @@ void actionbar_draw()
 		dynstr_clear(ap_text);
 
 		dynstr_append(ap_text, "AP: %i / %i", selected_entity->ap, selected_entity->max_ap);
-		gui_draw_text(inconsolata_font, ap_text, (graphics_projection_width / 2) - (actionbar_width / 2) + 15, 15, 0.25f);
+		gui_draw_text(inconsolata_font, ap_text, vec4(0.0f, 0.0f, 0.0f, 1.0f), (graphics_projection_width / 2) - (actionbar_width / 2) + 15, 15, 0.25f);
 
 		for (u32 i = 0; i < actionbar_buttons.size(); i++)
 		{
@@ -162,7 +162,8 @@ void actionbar_draw()
 	{
 		u32 width = font_get_text_width(inconsolata_font, actionbar_msg.msg, 0.25f);
 
-		gui_draw_text(inconsolata_font, actionbar_msg.msg, graphics_projection_width / 2 - width / 2, graphics_projection_height / 7, 0.25f);
+		gui_draw_text(inconsolata_font, actionbar_msg.msg, vec4(glm::min(0.8f - actionbar_msg.seconds_since_start * 0.75f, 1.0f), 0.0f, 0.0f, 
+			glm::min(actionbar_msg.show_seconds - actionbar_msg.seconds_since_start, 1.0f)), graphics_projection_width / 2 - width / 2, graphics_projection_height / 7, 0.25f);
 	}
 
 	// draw combat log
@@ -173,7 +174,7 @@ void actionbar_draw()
 	u32 log_end = combat_log_text->len - 1;
 	u32 log_y = 0;
 	u32 log_text_y_pad = 30;
-	for (i32 i = combat_log_text->len - 2; i >= 0; i--)
+	for (s32 i = combat_log_text->len - 2; i >= 0; i--)
 	{
 		char c = combat_log_text->raw[i];
 
@@ -187,7 +188,7 @@ void actionbar_draw()
 				log_end -= 1;
 			}
 
-			gui_draw_text(inconsolata_font, combat_log_text->raw + start, log_end - i, 20, 30 + log_y, scale);
+			gui_draw_text(inconsolata_font, combat_log_text->raw + start, vec4(0.0f, 0.0f, 0.0f, 1.0f), log_end - i, 20, 30 + log_y, scale);
 			log_y += log_text_y_pad;
 			log_end = i - 2;
 
@@ -236,19 +237,6 @@ void action_move_mode()
 void action_shoot_mode()
 {
 	current_action_mode = ACTION_MODE_SHOOT;
-
-	for(u32 x = 0; x < map_max_x; x++)
-	{
-		for (u32 z = 0; z < map_max_z; z++)
-		{
-			vec3 pos = vec3(x, 0.0f, z);
-
-			if (map_has_los(selected_entity->pos, pos))
-			{
-				poses.push_back(pos);
-			}
-		}
-	}
 }
 
 void action_throw_mode()

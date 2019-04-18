@@ -377,12 +377,12 @@ void action_update()
 						}
 						else
 						{
-							actionbar_set_msg("Invalid move position", 2.0f);
+							actionbar_set_msg("Invalid move position", 3.0f);
 						}
 					}
 					else
 					{
-						actionbar_set_msg("Not enough AP", 2.0f);
+						actionbar_set_msg("Not enough AP", 3.0f);
 					}
 				}
 				else
@@ -417,29 +417,29 @@ void action_update()
 								}
 								else
 								{
-									actionbar_set_msg("Missed..", 2.0f);
+									actionbar_set_msg("Missed..", 3.0f);
 								}
 
 								selected_entity->ap -= 50;
 							}
 							else
 							{
-								actionbar_set_msg("No LOS", 2.0f);
+								actionbar_set_msg("No LOS", 3.0f);
 							}
 						}
 						else
 						{
-							actionbar_set_msg("No LOS", 2.0f);
+							actionbar_set_msg("No LOS", 3.0f);
 						}
 					}
 					else
 					{
-						actionbar_set_msg("Not enough AP", 2.0f);
+						actionbar_set_msg("Not enough AP", 3.0f);
 					}
 				}
 				else
 				{
-					actionbar_set_msg("Invalid target", 2.0f);
+					actionbar_set_msg("Invalid target", 3.0f);
 				}
 			}
 			else if (current_action_mode == ACTION_MODE_THROW)
@@ -483,7 +483,7 @@ void action_update()
 				else
 				{
 					// @Todo: abstract ap use out?
-					actionbar_set_msg("Not enough AP", 2.0f);
+					actionbar_set_msg("Not enough AP", 3.0f);
 				}
 
 				current_action_mode = ACTION_MODE_SELECT_UNITS;

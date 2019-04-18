@@ -82,6 +82,7 @@ void gui_draw_image(image* image, mat4 transform_matrix)
 	bgfx_set_vertex_buffer(0, plane_mesh->vb_handle, 0, plane_mesh->vertex_count);
 	bgfx_set_index_buffer(plane_mesh->idb_handle, 0, plane_mesh->index_count);
 
+	bgfx_set_uniform(graphics_tint_color, &vec4(1.0f), 1);
 	bgfx_set_texture(0, graphics_texture_sampler, image->handle, 0);
 
 	bgfx_set_transform(&transform_matrix, 1);
@@ -165,20 +166,20 @@ void gui_draw_text(font* font, char* text, vec4 color, u16 text_len, u32 x, u32 
 
 		bgfx_set_transform(&transform_matrix, 1);
 
-		bgfx_submit(1, asset_manager_get_shader("gui")->handle, 0, false);
+		bgfx_submit(1, asset_manager_get_shader("font")->handle, 0, false);
 	}
 }
 
-void gui_draw_text(font* font, char* text, u32 x, u32 y, float scale)
+void gui_draw_text(font* font, char* text, vec4 color, u32 x, u32 y, float scale)
 {
 	size_t len = strlen(text);
 
 	debug_assert(len <= UINT16_MAX, "String len must be shorter than u16 max");
 
-	gui_draw_text(font, text, (u16) len, x, y, scale);
+	gui_draw_text(font, text, color, (u16) len, x, y, scale);
 }
 
-void gui_draw_text(font* font, dynstr* text, u32 x, u32 y, float scale)
+void gui_draw_text(font* font, dynstr* text, vec4 color, u32 x, u32 y, float scale)
 {
-	gui_draw_text(font, text->raw, text->len, x, y, scale);
+	gui_draw_text(font, text->raw, color, text->len, x, y, scale);
 }

@@ -10,18 +10,9 @@
 #include <bgfx/c99/bgfx.h>
 
 #include "debug.h"
+#include "math.h"
 
 #define EPSILON 0.001f
-
-using glm::u8;
-using glm::u16;
-using glm::u32;
-using glm::u64;
-
-using glm::i8;
-using glm::i16;
-using glm::i32;
-using glm::i64;
 
 using glm::vec2;
 using glm::vec3;

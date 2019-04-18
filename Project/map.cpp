@@ -137,9 +137,9 @@ vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
 	float smallest_distance = +FLT_MAX;
 	vec3 closest_cover = vec3(-1.0f);
 
-	for(i8 x = -1; x <= 1; x++)
+	for(s8 x = -1; x <= 1; x++)
 	{
-		for(i8 z = -1; z <= 1; z++)
+		for(s8 z = -1; z <= 1; z++)
 		{
 			vec3 block_pos = start;
 			block_pos.x += x;

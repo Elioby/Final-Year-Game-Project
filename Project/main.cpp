@@ -74,10 +74,6 @@ int main()
 		glfwPollEvents();
 		update(dt);
 
-		// This dummy draw call is here to make sure that view 0 is cleared
-		// if no other draw calls are submitted to view 0.
-		bgfx_touch(0);
-
 		bgfx_dbg_text_clear(0, false);
 
 		bgfx_dbg_text_printf(0, 0, 0x0f, "Last frame time: %.2fms, FPS: %.0f", dt * 1000.0f, 1 / dt);
@@ -87,6 +83,11 @@ int main()
 
 		input_end_frame();
 		gui_end_frame();
+
+		// This dummy draw call is here to make sure that view 0 is cleared
+		// if no other draw calls are submitted to view 0.
+		bgfx_touch(0);
+
 		graphics_end_frame(dt);
 	}
 

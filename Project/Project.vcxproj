@@ -230,6 +230,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map.cpp" />
     <ClCompile Include="map_gen.cpp" />
+    <ClCompile Include="math.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="minimax.cpp" />
     <ClCompile Include="raycast.cpp" />
@@ -259,6 +260,7 @@
     <ClInclude Include="input.h" />
     <ClInclude Include="map.h" />
     <ClInclude Include="map_gen.h" />
+    <ClInclude Include="math.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="minimax.h" />
     <ClInclude Include="raycast.h" />
@@ -273,6 +275,9 @@
     <None Include="shadersrc\diffuse_fs.sc" />
     <None Include="shadersrc\diffuse_varying.sc" />
     <None Include="shadersrc\diffuse_vs.sc" />
+    <None Include="shadersrc\font_fs.sc" />
+    <None Include="shadersrc\font_varying.sc" />
+    <None Include="shadersrc\font_vs.sc" />
     <None Include="shadersrc\gui_fs.sc" />
     <None Include="shadersrc\gui_varying.sc" />
     <None Include="shadersrc\gui_vs.sc" />
