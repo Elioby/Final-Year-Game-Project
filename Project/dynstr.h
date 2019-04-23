@@ -8,14 +8,16 @@ struct dynstr
 
 	// @Todo: dynamically sized int len for different sized strings? (to save memory, and for longer strings than 16bit uint)
 	u16 len;
+
+	// @Todo: hide this?
 	u16 buf_len;
 };
 
-dynstr* dynstr_new(char* str);
-dynstr* dynstr_new(char* str, u16 len);
-dynstr* dynstr_new(u16 buf_len);
+dynstr* dynstr_create(char* str);
+dynstr* dynstr_create(char* str, u16 len);
+dynstr* dynstr_create(u16 buf_len);
 
-void dynstr_free(dynstr* str);
+void dynstr_destroy(dynstr* str);
 
 void dynstr_append_str(dynstr* to, char* from);
 void dynstr_append_str(dynstr* to, char* from, u16 from_len);

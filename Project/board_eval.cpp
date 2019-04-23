@@ -4,24 +4,18 @@
 #include "map.h"
 #include "team.h"
 
-struct hashtable_los_result : hashtable_item
-{
-	bool has_los;
-};
-
 hashtable* los_cache_table;
-hashtable_los_result* los_cache_data;
 
 void board_eval_build_cache()
 {
 	team team = TEAM_ENEMY;
 
-	u32 total = entities.size();
+	u32 total = entities->len;
 	u32 enemies = 0;
 
 	for (u32 i = 0; i < total; i++)
 	{
-		if (entities[i]->team != team)
+		if (((entity*) dynarray_get(entities, i))->team != team)
 		{
 			enemies++;
 		}
@@ -29,26 +23,23 @@ void board_eval_build_cache()
 
 	u32 friendlies = total - enemies;
 
-	los_cache_table = hashtable_create(enemies * friendlies * 10);
-
-	los_cache_data = (hashtable_los_result*) debug_malloc(sizeof(hashtable_los_result) * enemies * friendlies);
+	los_cache_table = hashtable_create(enemies * friendlies * 10, sizeof(bool));
 
 	u32 index = 0;
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* enemy = entities[i];
+		entity* enemy = (entity*) dynarray_get(entities, i);
 		if (enemy->team != team)
 		{
-			for (u32 j = 0; j < entities.size(); j++)
+			for (u32 j = 0; j < entities->len; j++)
 			{
-				entity* friendly = entities[j];
+				entity* friendly = (entity*) dynarray_get(entities, i);
 				if (friendly->team == team)
 				{
-					hashtable_los_result* result = los_cache_data + index++;
-					result->has_los = map_has_los(enemy, friendly);
-					result->key = hashtable_hash_u32((u32) enemy->pos.x) + hashtable_hash_u32((u32) enemy->pos.z)
+					bool result = map_has_los(enemy, friendly);
+					s32 hash = hashtable_hash_u32((u32) enemy->pos.x) + hashtable_hash_u32((u32) enemy->pos.z)
 						+ hashtable_hash_u32((u32) friendly->pos.x) + hashtable_hash_u32((u32) friendly->pos.z);
-					hashtable_put(los_cache_table, result);
+					hashtable_put(los_cache_table, hash, &result);
 				}
 			}
 		}
@@ -59,8 +50,6 @@ void board_eval_destroy_cache()
 {
 	hashtable_destroy(los_cache_table);
 	los_cache_table = NULL;
-
-	free(los_cache_data);
 }
 
 // maybe its okay to los the enemy if we have enough ap to kill someone? if not, stay in cover?
@@ -73,14 +62,14 @@ float evaluate_shot_chance(team team)
 	float enemy_hit_friendly_weight = -1.0f;
 
 	// @Todo: abstract this out for use in UI code as well as AI code
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* enemy = entities[i];
+		entity* enemy = (entity*) dynarray_get(entities, i);
 		if (!enemy->dead && enemy->team != team)
 		{
-			for (u32 j = 0; j < entities.size(); j++)
+			for (u32 j = 0; j < entities->len; j++)
 			{
-				entity* friendly = entities[j];
+				entity* friendly = (entity*) dynarray_get(entities, j);
 				if (!friendly->dead && friendly->team == team)
 				{
 					bool has_los;
@@ -90,11 +79,11 @@ float evaluate_shot_chance(team team)
 					{
 						s32 hash = hashtable_hash_u32((u32) enemy->pos.x) + hashtable_hash_u32((u32) enemy->pos.z) 
 							+ hashtable_hash_u32((u32) friendly->pos.x) + hashtable_hash_u32((u32) friendly->pos.z);
-						hashtable_los_result* result = (hashtable_los_result*) hashtable_get(los_cache_table, hash);
+						bool* result = (bool*) hashtable_get(los_cache_table, hash);
 
 						if (result != NULL)
 						{
-							has_los = result->has_los;
+							has_los = *result;
 						}
 						else
 						{
@@ -137,9 +126,9 @@ float evaluate_health(team team)
 	float alive_friendly_weight = 1.0f;
 	float alive_enemy_weight = -4.0f;
 
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = entities[i];
+		entity* ent = (entity*) dynarray_get(entities, i);
 
 		float entity_eval = (float) ent->health / ent->max_health;
 
@@ -172,17 +161,17 @@ float evaluate_distance_to_enemy(team team)
 	// @Weight: the further away you are (squared) the worse
 	float per_distance_sq_weight = -0.0005f;
 
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* friendly = entities[i];
+		entity* friendly = (entity*) dynarray_get(entities, i);
 		if (!friendly->dead && friendly->team == team)
 		{
 			bool anyone_alive = false;
 			float smallest_distance = FLT_MAX;
 
-			for (u32 j = 0; j < entities.size(); j++)
+			for (u32 j = 0; j < entities->len; j++)
 			{
-				entity* enemy = entities[j];
+				entity* enemy = (entity*) dynarray_get(entities, j);
 				if (!enemy->dead && enemy->team != team)
 				{
 					float distance = map_distance_squared(enemy->pos, friendly->pos);
@@ -212,9 +201,9 @@ float evaluate_cover(team team)
 	float in_cover_enemy_in_direction_weight = 1.0f;
 
 	// check if they are in cover from each angle (and prefer being in cover if there is an enemy in that direction)
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* friendly = entities[i];
+		entity* friendly = (entity*) dynarray_get(entities, i);
 
 		if (!friendly->dead && friendly->team == team)
 		{
@@ -232,9 +221,9 @@ float evaluate_cover(team team)
 					{
 						vec3 cover_to_covered_vector = glm::normalize(block_pos - friendly->pos);
 
-						for (u32 j = 0; j < entities.size(); j++)
+						for (u32 j = 0; j < entities->len; j++)
 						{
-							entity* enemy = entities[j];
+							entity* enemy = (entity*) dynarray_get(entities, j);
 
 							if(!enemy->dead && enemy->team != team)
 							{

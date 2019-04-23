@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-dynstr* dynstr_new(char* str, u16 str_len, u16 buf_len)
+dynstr* dynstr_create(char* str, u16 str_len, u16 buf_len)
 {
 	// @Todo: better asert?
 	debug_assert(str_len >= 0 && buf_len >= 0, "You can't have a negatively sized string or buffer");
@@ -30,32 +30,32 @@ dynstr* dynstr_new(char* str, u16 str_len, u16 buf_len)
 	return dstr;
 }
 
-dynstr* dynstr_new(char* str, u16 len)
+dynstr* dynstr_create(char* str, u16 len)
 {
 	debug_assert(len <= UINT16_MAX, "Dynstr only supports strings of length <= 65535");
 
-	return dynstr_new(str, (u16) len, (u16) len);
+	return dynstr_create(str, (u16) len, (u16) len);
 }
 
-dynstr* dynstr_new(char* str)
+dynstr* dynstr_create(char* str)
 {
 	size_t len = strlen(str);
 	debug_assert(len <= UINT16_MAX, "Dynstr only supports strings of length <= 65535");
 
-	return dynstr_new(str, (u16) len, (u16) len);
+	return dynstr_create(str, (u16) len, (u16) len);
 }
 
-dynstr* dynstr_new(u16 buf_len)
+dynstr* dynstr_create(u16 buf_len)
 {
-	return dynstr_new(0, 0, buf_len);
+	return dynstr_create(0, 0, buf_len);
 }
 
-dynstr* dynstr_new()
+dynstr* dynstr_create()
 {
-	return dynstr_new(0, 0, 0);
+	return dynstr_create(0, 0, 0);
 }
 
-void dynstr_free(dynstr* str)
+void dynstr_destroy(dynstr* str)
 {
 	free(str->raw);
 	free(str);
@@ -184,6 +184,7 @@ dynstr* dynstr_clear(dynstr* dstr)
 	return dstr;
 }
 
+// @Todo: incomplete
 dynstr* dynstr_set_buflen(dynstr* dstr, u16 buf_len)
 {
 

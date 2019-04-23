@@ -37,7 +37,7 @@ struct action_evaluation
 	bool valid;
 };
 
-extern std::vector<action> actions;
+extern action actions[2];
 
 extern action action_nothing;
 extern action_mode current_action_mode;

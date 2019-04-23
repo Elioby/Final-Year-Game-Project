@@ -3,7 +3,7 @@
 #include "general.h"
 #include "mesh.h"
 
-struct road_segment
+struct map_road_segment
 {
 	vec2 pos;
 	vec2 scale;

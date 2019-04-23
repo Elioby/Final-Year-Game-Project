@@ -5,6 +5,7 @@
 #include "action.h"
 #include "entity.h"
 #include "map.h"
+#include "dynarray.h"
 
 #define ENABLE_COMBAT_LOG true
 
@@ -17,12 +18,12 @@ struct actionbar_msg_show
 
 u32 actionbar_width;
 
-std::vector<button*> actionbar_buttons;
+button* actionbar_buttons[4];
 
-actionbar_msg_show actionbar_msg = { dynstr_new(20) };
+actionbar_msg_show actionbar_msg = { dynstr_create(20) };
 
-dynstr* ap_text = dynstr_new(12);
-dynstr* combat_log_text = dynstr_new(200);
+dynstr* ap_text = dynstr_create(12);
+dynstr* combat_log_text = dynstr_create(200);
 
 void action_move_mode();
 void action_shoot_mode();
@@ -47,7 +48,7 @@ void actionbar_init()
 	move_button->bg_img = bg;
 	move_button->hover_bg_img = hover;
 	move_button->click_callback = action_move_mode;
-	actionbar_buttons.push_back(move_button);
+	actionbar_buttons[0] = move_button;
 
 	button* shoot_button = gui_create_button();
 	shoot_button->width = button_width;
@@ -58,7 +59,7 @@ void actionbar_init()
 	shoot_button->bg_img = bg;
 	shoot_button->hover_bg_img = hover;
 	shoot_button->click_callback = action_shoot_mode;
-	actionbar_buttons.push_back(shoot_button);
+	actionbar_buttons[1] = shoot_button;
 
 	button* throw_button = gui_create_button();
 	throw_button->width = button_width;
@@ -69,7 +70,7 @@ void actionbar_init()
 	throw_button->bg_img = bg;
 	throw_button->hover_bg_img = hover;
 	throw_button->click_callback = action_throw_mode;
-	actionbar_buttons.push_back(throw_button);
+	actionbar_buttons[2] = throw_button;
 
 	button* end_button = gui_create_button();
 	end_button->width = button_width;
@@ -79,13 +80,15 @@ void actionbar_init()
 	end_button->bg_img = bg;
 	end_button->hover_bg_img = hover;
 	end_button->click_callback = action_end_turn;
-	actionbar_buttons.push_back(end_button);
+	actionbar_buttons[3] = end_button;
 
 	float padding = 0.5f;
 	float button_width_padding = button_width * (1.0f + padding);
 
-	u32 buttons_start = (u32) (graphics_projection_width / 2 - ((actionbar_buttons.size() * button_width) + ((actionbar_buttons.size() - 1) * button_width * padding)) / 2.0f);
-	for(u32 i = 0; i < actionbar_buttons.size(); i++)
+	u32 button_count = stack_array_length(actionbar_buttons);
+
+	u32 buttons_start = (u32) (graphics_projection_width / 2 - ((button_count * button_width) + ((button_count - 1) * button_width * padding)) / 2.0f);
+	for(u32 i = 0; i < button_count; i++)
 	{
 		button* b = actionbar_buttons[i];
 
@@ -98,6 +101,7 @@ void actionbar_update(float dt)
 	actionbar_msg.seconds_since_start += dt;
 }
 
+// @Todo: temp
 std::vector<vec3> poses;
 
 void actionbar_draw()
@@ -151,7 +155,7 @@ void actionbar_draw()
 		dynstr_append(ap_text, "AP: %i / %i", selected_entity->ap, selected_entity->max_ap);
 		gui_draw_text(inconsolata_font, ap_text, vec4(0.0f, 0.0f, 0.0f, 1.0f), (graphics_projection_width / 2) - (actionbar_width / 2) + 15, 15, 0.25f);
 
-		for (u32 i = 0; i < actionbar_buttons.size(); i++)
+		for (u32 i = 0; i < stack_array_length(actionbar_buttons); i++)
 		{
 			gui_draw_button(actionbar_buttons[i]);
 		}

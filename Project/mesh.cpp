@@ -63,8 +63,6 @@ void mesh_destroy(mesh* m)
 	bgfx_destroy_index_buffer(m->idb_handle);
 }
 
-// @Cleanup
-// @Todo: Remove use of std::?
 mesh* load_obj_mesh(char* asset_id, char* filename)
 {
 	FILE* file;

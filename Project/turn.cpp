@@ -12,11 +12,11 @@ void turn_start(team team)
 	turn_team = team;
 
 	// reset ap
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* entity = entities[i];
+		entity* ent = (entity*) dynarray_get(entities, i);
 
-		if (entity->team == team) entity->ap = entity->max_ap;
+		if (ent->team == team) ent->ap = ent->max_ap;
 	}
 
 	actionbar_combatlog_add("%s team's turn started", team_get_name(team));
@@ -31,11 +31,11 @@ void turn_start(team team)
 void turn_end()
 {
 	u32 enemies_alive = 0;
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* entity = entities[i];
+		entity* ent = (entity*) dynarray_get(entities, i);
 
-		if (entity->team == turn_team) entity->ap = 0;
+		if (ent->team == turn_team) ent->ap = 0;
 		else enemies_alive++;
 	}
 
@@ -60,15 +60,15 @@ bool turn_is_complete(team team)
 	u32 team_entities = 0;
 	u32 team_entities_ended = 0;
 
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* entity = entities[i];
+		entity* ent = (entity*) dynarray_get(entities, i);
 
-		if (entity->team == team)
+		if (ent->team == team)
 		{
 			team_entities++;
 
-			if (entity->ap <= 0) team_entities_ended++;
+			if (ent->ap <= 0) team_entities_ended++;
 		}
 	}
 

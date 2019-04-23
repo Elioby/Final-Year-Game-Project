@@ -32,9 +32,9 @@ void ai_perform_entity(entity* ent)
 
 void ai_perform_team(team team)
 {
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = entities[i];
+		entity* ent = (entity*) dynarray_get(entities, i);
 
 		if (ent->team == team && !ent->dead)
 		{

@@ -9,6 +9,7 @@
 #include "input.h"
 #include "actionbar.h"
 #include "board_eval.h"
+#include "dynqueue.h"
 
 #include <queue>
 
@@ -48,7 +49,7 @@ void undo_shoot(entity* ent, action_undo_data* undo_data);
 bool get_next_target_shoot(entity* ent, u32* last_index, vec3* result);
 
 // actions not including "nothing" action
-std::vector<action> actions;
+action actions[2];
 
 action action_nothing;
 
@@ -67,7 +68,7 @@ void action_init()
 	move_action.gather_undo_data = gather_undo_data_move;
 	move_action.undo = undo_move;
 	move_action.get_next_target = get_next_target_move;
-	actions.push_back(move_action);
+	actions[0] = move_action;
 
 	action shoot_action = { 0 };
 	shoot_action.name = "shoot";
@@ -75,7 +76,7 @@ void action_init()
 	shoot_action.gather_undo_data = gather_undo_data_shoot;
 	shoot_action.undo = undo_shoot;
 	shoot_action.get_next_target = get_next_target_shoot;
-	actions.push_back(shoot_action);
+	actions[1] = shoot_action;
 }
 
 bool get_next_target_nothing(entity* ent, u32* last_index, vec3* result)
@@ -128,7 +129,7 @@ struct point
 };
 
 // @Todo: i really think this could use some cleanup...
-bool tryz(bool* already_searched, vec3 pos, point last, std::queue<point>* queue, u32* i, u32* last_index, vec3* result)
+bool tryz(bool* already_searched, vec3 pos, point last, dynqueue* queue, u32* i, u32* last_index, vec3* result)
 {
 	if (pos.x >= 0 && pos.z >= 0 && pos.x < map_max_x && pos.z < map_max_z)
 	{
@@ -145,7 +146,7 @@ bool tryz(bool* already_searched, vec3 pos, point last, std::queue<point>* queue
 
 			if (next.distance_to_start < ACTION_MOVE_RADIUS)
 			{
-				queue->push(next);
+				dynqueue_push(queue, &next);
 			}
 
 			*i = *i + 1;
@@ -168,30 +169,31 @@ bool tryz(bool* already_searched, vec3 pos, point last, std::queue<point>* queue
 bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
 {
 	u32 i = 0;
-	// @Todo: write custom queue implementation
-	std::queue<point> queue;
+
+	dynqueue* queue = dynqueue_create(ACTION_MOVE_RADIUS * 4, sizeof(point));
 	point start = { 0 };
 	start.x = ent->pos.x;
 	start.z = ent->pos.z;
 	start.distance_to_start = 0;
 
-	queue.push(start);
+	dynqueue_push(queue, &start);
 
 	bool* already_searched = (bool*) debug_calloc(map_max_x * map_max_z, sizeof(bool));
 
-	while (queue.size() > 0)
+	while (queue->len > 0)
 	{
-		point p = queue.front();
+		point p = *(point*) dynqueue_front(queue);
 
 		// @Todo: i really think this could use some cleanup...
-		if(tryz(already_searched, vec3(p.x + 1, 0.0f, p.z), p, &queue, &i, last_index, result)) return true;
-		if (tryz(already_searched, vec3(p.x - 1, 0.0f, p.z), p, &queue, &i, last_index, result)) return true;
-		if (tryz(already_searched, vec3(p.x, 0.0f, p.z + 1), p, &queue, &i, last_index, result)) return true;
-		if (tryz(already_searched, vec3(p.x, 0.0f, p.z - 1), p, &queue, &i, last_index, result)) return true;
+		if(tryz(already_searched, vec3(p.x + 1, 0.0f, p.z), p, queue, &i, last_index, result)) return true;
+		if (tryz(already_searched, vec3(p.x - 1, 0.0f, p.z), p, queue, &i, last_index, result)) return true;
+		if (tryz(already_searched, vec3(p.x, 0.0f, p.z + 1), p, queue, &i, last_index, result)) return true;
+		if (tryz(already_searched, vec3(p.x, 0.0f, p.z - 1), p, queue, &i, last_index, result)) return true;
 
-		queue.pop();
+		dynqueue_pop(queue);
 	}
 
+	dynqueue_destroy(queue);
 	free(already_searched);
 	return false;
 }
@@ -228,9 +230,9 @@ void undo_shoot(entity* ent, action_undo_data* undo_data)
 
 bool get_next_target_shoot(entity* ent, u32* last_index, vec3* result)
 {
-	for (u32 i = *last_index; i < entities.size(); i++)
+	for (u32 i = *last_index; i < entities->len; i++)
 	{
-		entity* target_ent = entities[i];
+		entity* target_ent = (entity*) dynarray_get(entities, i);
 		
 		if (!target_ent->dead && !entity_is_same_team(target_ent, ent))
 		{
@@ -299,9 +301,9 @@ bool get_next_target_shoot(entity* ent, u32* last_index, vec3* result)
 //	float highest_eval = -FLT_MAX;
 //
 //	// find the best entity to shoot
-//	for (u32 i = 0; i < entities.size(); i++)
+//	for (u32 i = 0; i < entities->len; i++)
 //	{
-//		entity* target_ent = entities[i];
+//		entity* target_ent = (entity*) dynarray_get(entities, i);
 //
 //		if (!target_ent->dead && !entity_is_same_team(target_ent, ent))
 //		{
@@ -447,9 +449,9 @@ void action_update()
 				if (selected_entity->ap >= 50)
 				{
 					// @Todo: maybe we should have some abstract sense of "objects" that are on the map so we can remove them all together?
-					for (u32 i = 0; i < entities.size(); i++)
+					for (u32 i = 0; i < entities->len; i++)
 					{
-						entity* ent = entities[i];
+						entity* ent = (entity*) dynarray_get(entities, i);
 
 						// euclidean distance squared
 						float distance_squared = map_distance_squared(selected_block, ent->pos);
@@ -499,7 +501,7 @@ void action_update()
 			selected_entity = NULL;
 			poses.clear();
 
-			map_road_segments.clear();
+			dynarray_clear(map_road_segments);
 			map_gen();
 		}
 	}

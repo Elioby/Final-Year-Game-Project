@@ -4,22 +4,16 @@
 
 #define HASHTABLE_DEFAULT_SIZE 20
 
-struct hashtable_item
-{
-	s32 key;
-};
-
 struct hashtable
 {
-	u32 size;
-	u32 count;
-	hashtable_item** items;
+	u64 len;
 };
 
 s32 hashtable_hash_u32(u32 x);
+s32 hashtable_hash_str(char* nullterm_str);
 
-hashtable* hashtable_create(u32 size);
+hashtable* hashtable_create(u64 initial_size, u32 element_size);
 void hashtable_destroy(hashtable* table);
 
-hashtable_item* hashtable_get(hashtable* table, int key);
-void hashtable_put(hashtable* table, hashtable_item* item);
+void* hashtable_get(hashtable* table, s32 key);
+void hashtable_put(hashtable* table, s32 key, void* value);

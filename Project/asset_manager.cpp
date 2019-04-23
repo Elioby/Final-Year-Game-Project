@@ -3,10 +3,11 @@
 #include "asset.h"
 #include "map.h"
 #include "map_gen.h"
+#include "hashtable.h"
 
 #include <vector>
 
-std::vector<asset*> assets;
+hashtable* assets = hashtable_create(32, sizeof(asset*));
 
 void asset_manager_init()
 {
@@ -47,7 +48,7 @@ void asset_manager_register(asset* as)
 {
 	debug_assert(as, "Tried to register null asset");
 
-	assets.push_back(as);
+	hashtable_put(assets, hashtable_hash_str(as->asset_id), &as);
 }
 
 void asset_manager_register(mesh* as)
@@ -74,29 +75,16 @@ asset* asset_manager_get_asset(char* id, asset_type type)
 {
 	debug_assert(id, "Must provide an asset id");
 
-	for(u32 i = 0; i < assets.size(); i++)
-	{
-		asset* as = assets[i];
-		if(as->asset_id && strcmp(as->asset_id, id) == 0)
-		{
-			if(as->asset_type != type)
-			{
-				printf("Asset with id %s was not of expected type %i\n", id, type);
-				debug_assert(false, "asset_get type not the same as asset type at id");
-			}
+	asset* as = *((asset**) hashtable_get(assets, hashtable_hash_str(id)));
+	
+	debug_assert(as, "Unable to find asset");
 
-			return as;
-		}
-	}
-
-	printf("Unable to find asset with id %s\n", id);
-	debug_assert(false, "Unable to find asset");
-	return NULL;
+	return as;
 }
 
 mesh* asset_manager_get_mesh(char* id)
 {
-	return (mesh*)asset_manager_get_asset(id, ASSET_TYPE_MESH);
+	return (mesh*) asset_manager_get_asset(id, ASSET_TYPE_MESH);
 }
 
 font* asset_manager_get_font(char* id)

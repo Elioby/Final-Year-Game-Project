@@ -108,6 +108,12 @@
     <ClCompile Include="math.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="dynarray.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dynqueue.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -192,6 +198,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dynarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dynqueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

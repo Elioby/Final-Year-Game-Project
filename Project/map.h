@@ -10,8 +10,8 @@
 // the step of the world raytrace
 #define MAP_RAYTRACE_ACCURACY 0.25f
 
-extern std::vector<road_segment> map_road_segments;
-extern std::vector<map_segment> map_segments;
+extern dynarray* map_road_segments;
+extern dynarray* map_segments;
 
 extern u32 map_max_x;
 extern u32 map_max_z;

@@ -25,7 +25,7 @@ image* load_image(char* path)
 	u32 len = file_get_length_without_extension(path);
 	u32 filename_start = file_get_filename_start(path);
 
-	dynstr* asset_id = dynstr_new(path, len);
+	dynstr* asset_id = dynstr_create(path, len);
 	dynstr_trim_start(asset_id, filename_start);
 	
 	image* img = create_image(asset_id->raw, pixels, width, height, 4, BGFX_TEXTURE_FORMAT_RGBA8);

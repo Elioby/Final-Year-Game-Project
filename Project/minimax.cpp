@@ -28,7 +28,7 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 star
 
 	chosen_act.eval = extreme_eval;
 
-	for(u32 action_index = 0; action_index < actions.size(); action_index++)
+	for(u32 action_index = 0; action_index < stack_array_length(actions); action_index++)
 	{
 		action act = actions[action_index];
 

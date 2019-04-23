@@ -20,8 +20,8 @@ u32 map_max_z = 128;
 
 bool* cover_at_block;
 
-std::vector<map_segment> map_segments;
-std::vector<road_segment> map_road_segments;
+dynarray* map_segments = dynarray_create(20, sizeof(map_segment));
+dynarray* map_road_segments = dynarray_create(20, sizeof(map_road_segment));
 
 void map_init()
 {
@@ -61,9 +61,9 @@ void map_draw()
 	}
 
 	// draw road
-	for(u32 i = 0; i < map_road_segments.size(); i++)
+	for(u32 i = 0; i < map_road_segments->len; i++)
 	{
-		road_segment seg = map_road_segments[i];
+		map_road_segment seg = *(map_road_segment*) dynarray_get(map_road_segments, i);
 		graphics_draw_mesh(asset_manager_get_mesh("cube"),
 			graphics_create_model_matrix(vec3(seg.pos.x, 0.0f, seg.pos.y), 0.0f, vec3(1.0f), vec3(seg.scale.x, 0.1f, seg.scale.y)), vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	}
@@ -71,11 +71,11 @@ void map_draw()
 	u32 color_progress = 0;
 
 	// temp draw segments
-	for(u32 i = 0; i < map_segments.size(); i++)
+	for(u32 i = 0; i < map_segments->len; i++)
 	{
-		map_segment seg = map_segments[i];
+		map_segment seg = *(map_segment*) dynarray_get(map_segments, i);
 
-		u32 current_color = color_progress += (255 * 255 * 255) / (map_segments.size() / 0.8f);
+		u32 current_color = color_progress += (255 * 255 * 255) / (map_segments->len / 0.8f);
 		u8 r = *((u8*) &current_color);
 		u8 g = *((u8*) &current_color + 1);
 		u8 b = *((u8*) &current_color + 2);
@@ -87,9 +87,9 @@ void map_draw()
 	}
 
 	// draw entites and healthbars
-	for(u32 i = 0; i < entities.size(); i++)
+	for(u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = entities[i];
+		entity* ent = (entity*) dynarray_get(entities, i);
 
 		if(!ent->dead)
 		{
@@ -166,8 +166,6 @@ bool map_has_los_internal(float start_x, float start_z, float end_x, float end_z
 
 	start_x += 0.5f;
 	start_z += 0.5f;
-
-	// v * inversesqrt(dot(v, v));
 
 	float step_x = direction.x * MAP_RAYTRACE_ACCURACY;
 	float step_z = direction.y * MAP_RAYTRACE_ACCURACY;
@@ -280,9 +278,9 @@ float map_distance_squared(vec3 pos1, vec3 pos2)
 entity* map_get_entity_at_block(vec3 block_pos)
 {
 	// @Todo: it's very slow to loop through for lookup :(
-	for(u32 i = 0; i < entities.size(); i++)
+	for(u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = entities[i];
+		entity* ent = (entity*) dynarray_get(entities, i);
 
 		if(map_pos_equal(ent->pos, block_pos))
 		{

@@ -3,6 +3,7 @@
 #include "general.h"
 #include "mesh.h"
 #include "team.h"
+#include "dynarray.h"
 
 #include <vector>
 
@@ -22,7 +23,7 @@ struct entity {
 	bool dead;
 };
 
-extern std::vector<entity*> entities;
+extern dynarray* entities;
 
 // @Cleanup: honestly idk where else to put this
 extern entity* selected_entity;

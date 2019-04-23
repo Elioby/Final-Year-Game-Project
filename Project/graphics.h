@@ -5,7 +5,7 @@
 #include "mesh.h"
 #include "image.h"
 
-#define GRAPHICS_USE_VSYNC false
+#define GRAPHICS_USE_VSYNC true
 
 /* ------- Globals --------- */
 extern bgfx_renderer_type_t graphics_renderer_type;

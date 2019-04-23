@@ -218,6 +218,7 @@
     <ClCompile Include="board_eval.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="debug.cpp" />
+    <ClCompile Include="dynqueue.cpp" />
     <ClCompile Include="dynstr.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="file.cpp" />
@@ -235,6 +236,7 @@
     <ClCompile Include="minimax.cpp" />
     <ClCompile Include="raycast.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="dynarray.cpp" />
     <ClCompile Include="team.cpp" />
     <ClCompile Include="turn.cpp" />
     <ClCompile Include="window.cpp" />
@@ -248,6 +250,8 @@
     <ClInclude Include="board_eval.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="debug.h" />
+    <ClInclude Include="dynarray.h" />
+    <ClInclude Include="dynqueue.h" />
     <ClInclude Include="dynstr.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="file.h" />

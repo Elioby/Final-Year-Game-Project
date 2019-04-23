@@ -21,6 +21,7 @@
 #include "hashtable.h"
 #include "turn.h"
 #include "board_eval.h"
+#include "dynarray.h"
 
 void draw();
 void update(float dt);

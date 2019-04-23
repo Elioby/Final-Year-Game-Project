@@ -4,8 +4,7 @@
 #include "map.h"
 #include "actionbar.h"
 
-// @Todo: change with a quadtree!
-std::vector<entity*> entities;
+dynarray* entities = dynarray_create(10, sizeof(entity));
 
 entity* selected_entity;
 u32 last_entity_id;
@@ -15,32 +14,31 @@ void entity_update()
 	// if our unit dies on our turn, unselect them!
 	if (selected_entity != NULL && selected_entity->dead) selected_entity = NULL;
 
-	for (u32 i = 0; i < entities.size(); i++)
+	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = entities[i];
+		entity* ent = (entity*) dynarray_get(entities, i);
 
 		if (ent->dead) 
 		{
-			entities.erase(entities.begin() + i);
-			free(ent);
+			dynarray_remove(entities, i);
+			i--;
 		}
 	}
 }
 
 void entity_add(vec3 pos, team team)
 {
-	// @Todo: use of debug_malloc :(
-	entity* ent = (entity*) debug_malloc(sizeof(entity));
-	ent->id = last_entity_id++;
-	ent->pos = pos;
-	ent->mesh = asset_manager_get_mesh("robot");
-	ent->max_health = 10;
-	ent->health = ent->max_health;
-	ent->max_ap = 100;
-	ent->ap = 0;
-	ent->dead = false;
-	ent->team = team;
-	entities.push_back(ent);
+	entity ent = { 0 };
+	ent.id = last_entity_id++;
+	ent.pos = pos;
+	ent.mesh = asset_manager_get_mesh("robot");
+	ent.max_health = 10;
+	ent.health = ent.max_health;
+	ent.max_ap = 100;
+	ent.ap = 0;
+	ent.dead = false;
+	ent.team = team;
+	dynarray_add(entities, &ent);
 }
 
 void entity_kill(entity* ent, bool temp)

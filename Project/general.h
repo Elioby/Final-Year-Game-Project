@@ -14,6 +14,8 @@
 
 #define EPSILON 0.001f
 
+#define stack_array_length(arr) sizeof(arr) / sizeof(arr[0])
+
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;

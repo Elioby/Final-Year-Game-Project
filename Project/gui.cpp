@@ -8,8 +8,9 @@
 #include "asset_manager.h"
 #include "input.h"
 #include "graphics.h"
+#include "dynarray.h"
 
-std::vector<button*> buttons;
+dynarray* buttons = dynarray_create(10, sizeof(button));
 
 bool handled_click = false;
 bool has_gui_update_happened_this_frame = false;
@@ -24,13 +25,13 @@ void gui_update()
 {
 	handled_click = false;
 
-	for(u32 i = 0; i < buttons.size(); i++)
+	for(u32 i = 0; i < buttons->len; i++)
 	{
-		button* button = buttons[i];
-		if(input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START && input_mouse_x >= button->x && input_mouse_x <= button->x + button->width 
-			&& input_mouse_y >= button->y && input_mouse_y <= button->y + button->height)
+		button* butt = (button*) dynarray_get(buttons, i);
+		if(input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START && input_mouse_x >= butt->x && input_mouse_x <= butt->x + butt->width
+			&& input_mouse_y >= butt->y && input_mouse_y <= butt->y + butt->height)
 		{
-			if(button->click_callback) button->click_callback();
+			if(butt->click_callback) butt->click_callback();
 			handled_click = true;
 		}
 	}
@@ -53,10 +54,11 @@ bool gui_handled_click()
 button* gui_create_button()
 {
 	// @Todo: use of debug_malloc :(
-	button* butt = (button*) debug_calloc(1, sizeof(button));
-	buttons.push_back(butt);
+	button b = { 0 };
 
-	return butt;
+	button* butt = (button*) dynarray_add(buttons, &b);
+
+	return butt; 
 }
 
 void gui_draw_image(image* image, u32 x, u32 y, u32 width, u32 height)
