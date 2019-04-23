@@ -91,7 +91,7 @@ bool get_next_target_nothing(entity* ent, u32* last_index, vec3* result)
 
 action_undo_data* gather_undo_data_move(entity* ent, vec3 target)
 {
-	// @Todo: replace this with a custom stack push?
+	// @Speed: replace this with a custom stack push?
 	action_undo_data_move* undo_data = (action_undo_data_move*) debug_malloc(sizeof(action_undo_data_move));
 
 	undo_data->old_pos = ent->pos;
@@ -110,17 +110,6 @@ void undo_move(entity* ent, action_undo_data* undo_data)
 	ent->pos = undo_data_move->old_pos;
 }
 
-//For each point in the grid, store:
-//
-//The minimum distance from the unit to this point.
-//The next step towards the unit in the shortest path.
-//To calculate this, do a breadth - first search :
-//
-//Set your unit's point distance cost to 0 and its "path pointer" doesn't matter / null.
-//Create a queue and put the initial point in it.
-//While the queue is not empty :
-//	Take the next point and propagate it(look at all the neighbors.If going to them through the current point is profitable, set their distance / path and add them to the end of the queue)
-
 struct point
 {
 	u32 x, z;
@@ -128,8 +117,7 @@ struct point
 	float distance_to_start;
 };
 
-// @Todo: i really think this could use some cleanup...
-bool tryz(bool* already_searched, vec3 pos, point last, dynqueue* queue, u32* i, u32* last_index, vec3* result)
+bool get_next_target_move_direction(bool* already_searched, vec3 pos, point last, dynqueue* moveable_positions_queue, u32* current_index, u32* last_index, vec3* result)
 {
 	if (pos.x >= 0 && pos.z >= 0 && pos.x < map_max_x && pos.z < map_max_z)
 	{
@@ -138,25 +126,23 @@ bool tryz(bool* already_searched, vec3 pos, point last, dynqueue* queue, u32* i,
 		if (!(*already_searched_this) && !map_is_cover_at_block(pos) && map_get_entity_at_block(pos) == NULL)
 		{
 			point next = { 0 };
-			next.x = pos.x;
-			next.z = pos.z;
+			next.x = (u32) pos.x;
+			next.z = (u32) pos.z;
 			next.distance_to_start = last.distance_to_start + 1;
 
 			*already_searched_this = true;
 
 			if (next.distance_to_start < ACTION_MOVE_RADIUS)
 			{
-				dynqueue_push(queue, &next);
+				dynqueue_push(moveable_positions_queue, &next);
 			}
 
-			*i = *i + 1;
+			*current_index = *current_index + 1;
 
-			if (*i > *last_index)
+			if (*current_index > *last_index)
 			{
-				*last_index = *i;
+				*last_index = *current_index;
 				*result = pos;
-
-				free(already_searched);
 				return true;
 			}
 		}
@@ -165,42 +151,49 @@ bool tryz(bool* already_searched, vec3 pos, point last, dynqueue* queue, u32* i,
 	return false;
 }
 
-// @Todo: this is pretty slow.. return a list instead of calling this everytime you want a new one?
+// @Speed: this is very slow for no reason other than you call it everytime you want a new move position, so you have to recurse down more every time..
+//          we could just return a dynarray of moves instead, it would be much quicker (although we would need a memory allocation)
 bool get_next_target_move(entity* ent, u32* last_index, vec3* result)
 {
 	u32 i = 0;
 
-	dynqueue* queue = dynqueue_create(ACTION_MOVE_RADIUS * 4, sizeof(point));
+	dynqueue* moveable_positions_queue = dynqueue_create(ACTION_MOVE_RADIUS * 4, sizeof(point));
 	point start = { 0 };
-	start.x = ent->pos.x;
-	start.z = ent->pos.z;
+	start.x = (u32) ent->pos.x;
+	start.z = (u32) ent->pos.z;
 	start.distance_to_start = 0;
 
-	dynqueue_push(queue, &start);
+	dynqueue_push(moveable_positions_queue, &start);
 
+	// @Speed we do a calloc everytime we want a new target position..
 	bool* already_searched = (bool*) debug_calloc(map_max_x * map_max_z, sizeof(bool));
 
-	while (queue->len > 0)
+	bool found_next = false;
+
+	while (moveable_positions_queue->len > 0)
 	{
-		point p = *(point*) dynqueue_front(queue);
+		point p = *(point*) dynqueue_front(moveable_positions_queue);
 
-		// @Todo: i really think this could use some cleanup...
-		if(tryz(already_searched, vec3(p.x + 1, 0.0f, p.z), p, queue, &i, last_index, result)) return true;
-		if (tryz(already_searched, vec3(p.x - 1, 0.0f, p.z), p, queue, &i, last_index, result)) return true;
-		if (tryz(already_searched, vec3(p.x, 0.0f, p.z + 1), p, queue, &i, last_index, result)) return true;
-		if (tryz(already_searched, vec3(p.x, 0.0f, p.z - 1), p, queue, &i, last_index, result)) return true;
+		if (get_next_target_move_direction(already_searched, vec3(p.x + 1, 0, p.z), p, moveable_positions_queue, &i, last_index, result) ||
+			get_next_target_move_direction(already_searched, vec3(p.x - 1, 0, p.z), p, moveable_positions_queue, &i, last_index, result) ||
+			get_next_target_move_direction(already_searched, vec3(p.x, 0, p.z + 1), p, moveable_positions_queue, &i, last_index, result) ||
+			get_next_target_move_direction(already_searched, vec3(p.x, 0, p.z - 1), p, moveable_positions_queue, &i, last_index, result))
+		{
+			found_next = true;
+			break;
+		}
 
-		dynqueue_pop(queue);
+		dynqueue_pop(moveable_positions_queue);
 	}
 
-	dynqueue_destroy(queue);
+	dynqueue_destroy(moveable_positions_queue);
 	free(already_searched);
-	return false;
+	return found_next;
 }
 
 action_undo_data* gather_undo_data_shoot(entity* ent, vec3 target)
 {
-	// @Todo: replace this with a custom stack push?
+	// @Speed: replace this with a custom stack push?
 	action_undo_data_shoot* undo_data = (action_undo_data_shoot*) debug_malloc(sizeof(action_undo_data_shoot));
 
 	entity* target_ent = map_get_entity_at_block(target);
@@ -313,7 +306,6 @@ bool get_next_target_shoot(entity* ent, u32* last_index, vec3* result)
 //
 //			action_perform_shoot(ent, target_ent, true);
 //
-//			// @Todo: talk to frank about this. We have a chance to hit the shot, how should this effect the evaluation?
 //			float eval = evaluate_board(ent->team);
 //
 //			// if the dmg done was > previous hp, just heal back the previous health (otherwise they gain health)

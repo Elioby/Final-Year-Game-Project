@@ -41,21 +41,10 @@ void entity_add(vec3 pos, team team)
 	dynarray_add(entities, &ent);
 }
 
-void entity_kill(entity* ent, bool temp)
+void entity_kill(entity* ent)
 {
 	ent->dead = true;
 	ent->health = 0;
-
-	// @Todo: what if temp?
-	if(!temp)
-	{
-
-	}
-}
-
-void entity_kill(entity* ent)
-{
-	entity_kill(ent, false);
 }
 
 void entity_health_change(entity* target_ent, entity* inflict_ent, s32 amount)

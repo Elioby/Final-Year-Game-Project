@@ -26,11 +26,11 @@ dynarray* map_road_segments = dynarray_create(20, sizeof(map_road_segment));
 void map_init()
 {
 	// @Todo: move this to some random util file???
-	srand(time(0));
+	srand((u32) time(0));
 
 	map_gen();
 
-	cover_at_block = (bool*) debug_calloc(pow(max(map_max_x, map_max_z), 2), sizeof(bool));
+	cover_at_block = (bool*) debug_calloc((u32) pow(max(map_max_x, map_max_z), 2), sizeof(bool));
 
 	u32 friendly_count = 4;
 	for(u32 i = 0; i < friendly_count; i++) 
@@ -75,7 +75,7 @@ void map_draw()
 	{
 		map_segment seg = *(map_segment*) dynarray_get(map_segments, i);
 
-		u32 current_color = color_progress += (255 * 255 * 255) / (map_segments->len / 0.8f);
+		u32 current_color = color_progress += (u32) ((255 * 255 * 255) / (map_segments->len / 0.8f));
 		u8 r = *((u8*) &current_color);
 		u8 g = *((u8*) &current_color + 1);
 		u8 b = *((u8*) &current_color + 2);

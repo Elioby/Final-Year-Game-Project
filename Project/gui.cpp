@@ -53,7 +53,6 @@ bool gui_handled_click()
 
 button* gui_create_button()
 {
-	// @Todo: use of debug_malloc :(
 	button b = { 0 };
 
 	button* butt = (button*) dynarray_add(buttons, &b);
@@ -133,7 +132,6 @@ void gui_draw_text(font* font, char* text, vec4 color, u16 text_len, u32 x, u32 
 		stbtt_aligned_quad q = {};
 		stbtt_GetBakedQuad(font->char_data, font->width, font->height, c - 32, &x1, &y1, &q, 1);// @Volatile: 1=opengl & d3d10+,0=d3d9
 
-		// @Todo: abstract out
 		bgfx_vertex_decl_t decl;
 		bgfx_vertex_decl_begin(&decl, BGFX_RENDERER_TYPE_NOOP);
 		bgfx_vertex_decl_add(&decl, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);

@@ -240,7 +240,6 @@ float evaluate_cover(team team)
 							}
 						}
 
-						// @Todo: ask frank, do we need an opposite to this. ie. if it's good to be in cover, do we need to punish for not being in cover?
 						eval += enemy_in_direction ? in_cover_enemy_in_direction_weight : in_cover_no_enemy_in_direction_weight;
 					}
 				}

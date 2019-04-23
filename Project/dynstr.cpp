@@ -5,12 +5,10 @@
 #include <string.h>
 #include <stdio.h>
 
-dynstr* dynstr_create(char* str, u16 str_len, u16 buf_len)
+dynstr* dynstr_create(char* str, u32 str_len, u32 buf_len)
 {
-	// @Todo: better asert?
 	debug_assert(str_len >= 0 && buf_len >= 0, "You can't have a negatively sized string or buffer");
 
-	// @Factor: use our custom allocator?
 	dynstr* mem = (dynstr*) debug_malloc(sizeof(dynstr));
 	char* raw = (char*) debug_malloc(buf_len + 1);
 
@@ -30,7 +28,7 @@ dynstr* dynstr_create(char* str, u16 str_len, u16 buf_len)
 	return dstr;
 }
 
-dynstr* dynstr_create(char* str, u16 len)
+dynstr* dynstr_create(char* str, u32 len)
 {
 	debug_assert(len <= UINT16_MAX, "Dynstr only supports strings of length <= 65535");
 
@@ -45,7 +43,7 @@ dynstr* dynstr_create(char* str)
 	return dynstr_create(str, (u16) len, (u16) len);
 }
 
-dynstr* dynstr_create(u16 buf_len)
+dynstr* dynstr_create(u32 buf_len)
 {
 	return dynstr_create(0, 0, buf_len);
 }
@@ -59,6 +57,89 @@ void dynstr_destroy(dynstr* str)
 {
 	free(str->raw);
 	free(str);
+}
+
+dynstr* dynstr_set_buflen(dynstr* dstr, u32 new_buf_len)
+{
+	dstr->raw = (char*)realloc(dstr->raw, new_buf_len + 1);
+	dstr->buf_len = new_buf_len;
+
+	return dstr;
+}
+
+dynstr* dynstr_set_strlen(dynstr* dstr, u32 str_len)
+{
+	dstr->len = str_len;
+	dstr->raw[str_len] = 0;
+
+	return dstr;
+}
+
+// Ensures that the capacity is at least equal to the specified minimum. If the capacity is smaller it will be expanded to the maximum of: min_len. buf_len * 2 + 2
+dynstr* dynstr_ensure_buflen(dynstr* dstr, u32 min_len)
+{
+	debug_assert(min_len <= UINT16_MAX, "Dynstr only supports strings of length <= 65535");
+
+	if(dstr->buf_len < min_len)
+	{
+		dynstr_set_buflen(dstr, max(min_len, dstr->buf_len * 2 + 2));
+	}
+
+	return dstr;
+}
+
+dynstr* dynstr_append_char(dynstr* to, char from)
+{
+	u32 new_len = to->len + 1;
+	dynstr_ensure_buflen(to, new_len);
+
+	to->raw[to->len] = from;
+
+	dynstr_set_strlen(to, new_len);
+
+	return to;
+}
+
+// The dynstr pointer will still be valid, but the raw pointer might be invalidated
+dynstr* dynstr_append_str(dynstr* to, char* from, u32 from_len)
+{
+	debug_assert(from != 0, "Cannot append null string");
+
+	if (from_len == 0)
+	{
+		return to;
+	}
+
+	u32 old_len = to->len;
+	u32 new_len = old_len + from_len;
+
+	dynstr_ensure_buflen(to, new_len);
+
+	strncpy(to->raw + old_len, from, from_len);
+
+	dynstr_set_strlen(to, new_len);
+
+	return to;
+}
+
+dynstr* dynstr_append_str(dynstr* to, char* from)
+{
+	size_t from_len = strlen(from);
+
+	return dynstr_append_str(to, from, from_len);
+}
+
+dynstr* dynstr_append_int(dynstr* to, int from)
+{
+	// @Speed: slow :(
+	u32 length = snprintf(NULL, 0, "%d", from);
+	char* str = (char*) debug_malloc(length + 1);
+	snprintf(str, length + 1, "%d", from);
+
+	dynstr_append_str(to, str, length);
+	free(str);
+
+	return to;
 }
 
 dynstr* dynstr_append_va(dynstr* to, char* format, va_list args)
@@ -84,7 +165,7 @@ dynstr* dynstr_append_va(dynstr* to, char* format, va_list args)
 			}
 			else if (c == '%')
 			{
-				// @Optimize: use a single char append method?
+				// @Speed: use a single char append method?
 				dynstr_append_str(to, "%", 1);
 			}
 
@@ -98,7 +179,7 @@ dynstr* dynstr_append_va(dynstr* to, char* format, va_list args)
 			ch[0] = c;
 			ch[1] = 0;
 
-			// @Optimize: use a single char append method?
+			// @Speed: use a single char append method?
 			dynstr_append_str(to, ch, 1);
 		}
 		else
@@ -122,54 +203,6 @@ dynstr* dynstr_append(dynstr* to, char* format, ...)
 	return to;
 }
 
-// @Optimize: reallocate 2* last size
-// @Factor: we could factor this into some "set length" method?
-// The dynstr pointer will still be valid, but the raw pointer might be invalidated
-void dynstr_append_str(dynstr* to, char* from, u16 from_len)
-{
-	debug_assert(from != 0, "Cannot append null string");
-	debug_assert((u32) from_len + (u32) to->len < UINT16_MAX, "Dynstr only supports strings of length <= 65535");
-
-	if (from_len == 0)
-	{
-		return;
-	}
-
-	int old_raw_len = to->len;
-	int new_raw_len = old_raw_len + from_len;
-
-	if(to->buf_len < new_raw_len)
-	{
-		to->raw = (char*) realloc(to->raw, new_raw_len + 1);
-		to->buf_len = new_raw_len;
-	}
-
-	to->len = new_raw_len;
-
-	strncpy(to->raw + old_raw_len, from, from_len);
-
-	*(to->raw + to->len) = 0;
-}
-
-void dynstr_append_str(dynstr* to, char* from)
-{
-	size_t from_len = strlen(from);
-	debug_assert(from_len < UINT16_MAX, "Dynstr only supports strings of length <= 65535");
-
-	return dynstr_append_str(to, from, (u16) from_len);
-}
-
-void dynstr_append_int(dynstr* to, int from)
-{
-	// @Optimize: slow :(
-	int length = snprintf(NULL, 0, "%d", from);
-	char* str = (char*) debug_malloc(length + 1);
-	snprintf(str, length + 1, "%d", from);
-
-	dynstr_append_str(to, str, length);
-	free(str);
-}
-
 dynstr* dynstr_append(dynstr* to, dynstr* from)
 {
 	dynstr_append_str(to, from->raw, from->len);
@@ -184,27 +217,11 @@ dynstr* dynstr_clear(dynstr* dstr)
 	return dstr;
 }
 
-// @Todo: incomplete
-dynstr* dynstr_set_buflen(dynstr* dstr, u16 buf_len)
-{
-
-
-	return dstr;
-}
-
-dynstr* dynstr_set_strlen(dynstr* dstr, u16 str_len)
-{
-	dstr->len = str_len;
-	dstr->raw[str_len] = 0;
-
-	return dstr;
-}
-
-dynstr* dynstr_trim_start(dynstr* dstr, u16 amount)
+dynstr* dynstr_trim_start(dynstr* dstr, u32 amount)
 {
 	debug_assert(amount < dstr->len, "You cannot trim further than 1 minus the len of the string");
 
-	u16 len = dstr->len - amount;
+	u32 len = dstr->len - amount;
 	memcpy(dstr->raw, dstr->raw + amount, len);
 	dynstr_set_strlen(dstr, len);
 

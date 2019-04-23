@@ -128,10 +128,10 @@ void map_gen_segments()
 		map_road_segment road_seg = *(map_road_segment*) dynarray_get(map_road_segments, road_index);
 
 		// the bounds of the road
-		u32 road_min_x = road_seg.pos.x;
-		u32 road_max_x = road_seg.pos.x + road_seg.scale.x;
-		u32 road_min_z = road_seg.pos.y;
-		u32 road_max_z = road_seg.pos.y + road_seg.scale.y;
+		u32 road_min_x = (u32) road_seg.pos.x;
+		u32 road_max_x = (u32) road_seg.pos.x + (u32) road_seg.scale.x;
+		u32 road_min_z = (u32) road_seg.pos.y;
+		u32 road_max_z = (u32) road_seg.pos.y + (u32) road_seg.scale.y;
 
 		// split along the length of the road
 		if(road_seg.scale.x == MAP_GEN_ROAD_WIDTH)
@@ -152,20 +152,20 @@ void map_gen_segments()
 		map_road_segment road_seg = *(map_road_segment*) dynarray_get(map_road_segments, road_index);
 
 		// the bounds of the road
-		u32 road_min_x = road_seg.pos.x;
-		u32 road_max_x = road_seg.pos.x + road_seg.scale.x;
-		u32 road_min_z = road_seg.pos.y;
-		u32 road_max_z = road_seg.pos.y + road_seg.scale.y;
+		u32 road_min_x = (u32) road_seg.pos.x;
+		u32 road_max_x = (u32) road_seg.pos.x + (u32) road_seg.scale.x;
+		u32 road_min_z = (u32) road_seg.pos.y;
+		u32 road_max_z = (u32) road_seg.pos.y + (u32) road_seg.scale.y;
 
 		for(u32 i = 0; i < map_segments->len; i++)
 		{
 			map_segment map_seg = *(map_segment*) dynarray_get(map_segments, i);
 
 			// the bounds of the segment
-			u32 map_min_x = map_seg.pos.x;
-			u32 map_max_x = map_seg.pos.x + map_seg.scale.x;
-			u32 map_min_z = map_seg.pos.y;
-			u32 map_max_z = map_seg.pos.y + map_seg.scale.y;
+			u32 map_min_x = (u32) map_seg.pos.x;
+			u32 map_max_x = (u32) map_seg.pos.x + (u32) map_seg.scale.x;
+			u32 map_min_z = (u32) map_seg.pos.y;
+			u32 map_max_z = (u32) map_seg.pos.y + (u32) map_seg.scale.y;
 
 			if(map_min_x >= road_min_x && map_max_x <= road_max_x && map_min_z >= road_min_z && map_max_z <= road_max_z)
 			{
@@ -217,10 +217,10 @@ void map_gen_simplify_segments()
 
 		map_segment biggest_segment = *(map_segment*) dynarray_get(map_segments, biggest_segment_index);
 
-		u32 biggest_min_x = biggest_segment.pos.x;
-		u32 biggest_max_x = biggest_segment.pos.x + biggest_segment.scale.x;
-		u32 biggest_min_z = biggest_segment.pos.y;
-		u32 biggest_max_z = biggest_segment.pos.y + biggest_segment.scale.y;
+		u32 biggest_min_x = (u32) biggest_segment.pos.x;
+		u32 biggest_max_x = (u32) biggest_segment.pos.x + (u32) biggest_segment.scale.x;
+		u32 biggest_min_z = (u32) biggest_segment.pos.y;
+		u32 biggest_max_z = (u32) biggest_segment.pos.y + (u32) biggest_segment.scale.y;
 
 		for(u32 i = 0; i < map_segments->len; i++)
 		{
@@ -229,10 +229,10 @@ void map_gen_simplify_segments()
 
 			map_segment map_seg = *(map_segment*) dynarray_get(map_segments, i);
 
-			u32 map_min_x = map_seg.pos.x;
-			u32 map_max_x = map_seg.pos.x + map_seg.scale.x;
-			u32 map_min_z = map_seg.pos.y;
-			u32 map_max_z = map_seg.pos.y + map_seg.scale.y;
+			u32 map_min_x = (u32) map_seg.pos.x;
+			u32 map_max_x = (u32) map_seg.pos.x + (u32) map_seg.scale.x;
+			u32 map_min_z = (u32) map_seg.pos.y;
+			u32 map_max_z = (u32) map_seg.pos.y + (u32) map_seg.scale.y;
 
 			bool match_along_x = map_seg.scale.y == biggest_segment.scale.y;
 			bool match_along_z = map_seg.scale.x == biggest_segment.scale.x;
@@ -246,8 +246,8 @@ void map_gen_simplify_segments()
 					merged_segment.scale = vec2(biggest_segment.scale.x, biggest_segment.scale.y + map_seg.scale.y);
 
 					// erase both the merging segments
-					dynarray_remove(map_segments, biggest_segment_index);
-					dynarray_remove(map_segments, (biggest_segment_index < i ? i - 1 : i)); // index might have changed due to the last erase
+					dynarray_remove(map_segments, (u32) biggest_segment_index);
+					dynarray_remove(map_segments, ((u32) biggest_segment_index < i ? i - 1 : i)); // index might have changed due to the last erase
 
 					// add the new merged segment
 					dynarray_add(map_segments, &merged_segment);
@@ -264,8 +264,8 @@ void map_gen_simplify_segments()
 					merged_segment.scale = vec2(biggest_segment.scale.x + map_seg.scale.x, biggest_segment.scale.y);
 
 					// erase both the merging segments
-					dynarray_remove(map_segments, biggest_segment_index);
-					dynarray_remove(map_segments, (biggest_segment_index < i ? i - 1 : i)); // index might have changed due to the last erase
+					dynarray_remove(map_segments, (u32) biggest_segment_index);
+					dynarray_remove(map_segments, ((u32) biggest_segment_index < i ? i - 1 : i)); // index might have changed due to the last erase
 
 					// add the new merged segment
 					dynarray_add(map_segments, &merged_segment);
@@ -288,10 +288,10 @@ void split_segments_on_point(u32 split_point, bool split_on_x)
 		map_segment map_seg = *(map_segment*) dynarray_get(map_segments, map_index);
 
 		// the bounds of the segment
-		u32 map_min_x = map_seg.pos.x;
-		u32 map_max_x = map_seg.pos.x + map_seg.scale.x;
-		u32 map_min_z = map_seg.pos.y;
-		u32 map_max_z = map_seg.pos.y + map_seg.scale.y;
+		u32 map_min_x = (u32) map_seg.pos.x;
+		u32 map_max_x = (u32) map_seg.pos.x + (u32) map_seg.scale.x;
+		u32 map_min_z = (u32) map_seg.pos.y;
+		u32 map_max_z = (u32) map_seg.pos.y + (u32) map_seg.scale.y;
 
 		if(split_on_x)
 		{

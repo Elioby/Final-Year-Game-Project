@@ -1,7 +1,6 @@
 #include "dynarray.h"
 
-// @Todo: do we want to say new or create?
-dynarray* dynarray_create(u64 initial_len, u32 element_size)
+dynarray* dynarray_create(u32 initial_len, u32 element_size)
 {
 	debug_assert(initial_len >= 0, "A dynamic array must have an initial size >= 0");
 
@@ -25,7 +24,7 @@ void dynarray_destory(dynarray* arr)
 
 void dynarray_grow(dynarray* arr)
 {
-	dynarray_internal* internal_arr = (dynarray_internal*)arr;
+	dynarray_internal* internal_arr = (dynarray_internal*) arr;
 
 	internal_arr->buf_len += internal_arr->buf_len / 2;
 
@@ -37,7 +36,7 @@ void dynarray_clear(dynarray* arr)
 	arr->len = 0;
 }
 
-void* dynarray_get(dynarray* arr, u64 index)
+void* dynarray_get(dynarray* arr, u32 index)
 {
 	debug_assert(index < arr->len && index >= 0, "Dynamic array index out of bounds");
 
@@ -64,7 +63,7 @@ void* dynarray_add(dynarray* arr, void* data)
 	return element;
 }
 
-void dynarray_remove(dynarray* arr, u64 index)
+void dynarray_remove(dynarray* arr, u32 index)
 {
 	dynarray_internal* internal_arr = (dynarray_internal*) arr;
 

@@ -8,7 +8,6 @@
 #include "file.h"
 #include "dynstr.h"
 
-// @Todo: should we debug_malloc this?
 image* load_image(char* path)
 {
 	int width, height, channels;

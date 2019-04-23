@@ -22,30 +22,6 @@ bgfx_uniform_handle_t graphics_texture_sampler;
 
 bgfx_uniform_handle_t graphics_tint_color;
 
-// @Todo: cleanup!!!
-void bgfx_fatal_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, bgfx_fatal_t _code, const char* _str)
-{
-	printf("FATAL ERROR!!!");
-}
-
-extern void bgfx_log_callback(bgfx_callback_interface_t* _this, const char* _filePath, u16 _line, const char* _format, va_list _argList)
-{
-	char temp[8192];
-	char* out = temp;
-	s32 len = vsnprintf(out, sizeof(temp), _format, _argList);
-	if ((s32)sizeof(temp) < len)
-	{
-		out = (char*)alloca(len + 1);
-		len = vsnprintf(out, len, _format, _argList);
-	}
-	out[len] = '\0';
-	printf(out);
-}
-
-u32 bgfx_cache_read_size_callback(bgfx_callback_interface_t* _this, u64 _id) { return 0; }
-bool bgfx_cache_read_callback(bgfx_callback_interface_t* _this, u64 _id, void* _data, u32 _size) { return 0; }
-void bgfx_cache_write_callback(bgfx_callback_interface_t* _this, u64 _id, const void* _data, u32 _size) {}
-
 void graphics_init(int window_width, int window_height)
 {
 	bgfx_init_t init;

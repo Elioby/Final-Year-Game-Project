@@ -203,7 +203,6 @@ void actionbar_draw()
 
 void actionbar_set_msg(char* msg, float show_seconds)
 {
-	// @Todo: flash red when setting
 	dynstr_clear(actionbar_msg.msg);
 	dynstr_append_str(actionbar_msg.msg, msg);
 	actionbar_msg.show_seconds = show_seconds;
@@ -219,8 +218,7 @@ void actionbar_combatlog_add(char* format, ...)
 
 	dynstr_append_va(combat_log_text, format, args);
 	
-	// @Todo: use char append?
-	dynstr_append_str(combat_log_text, "\n");
+	dynstr_append_char(combat_log_text, '\n');
 
 	va_end(args);
 }

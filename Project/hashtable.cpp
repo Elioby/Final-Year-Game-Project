@@ -2,9 +2,10 @@
 
 #include <stdio.h>
 
+// @Todo: why is this called hashtable and everything else is "dyn" (dynarray, dynqueue)
+
 struct hashtable_entry
 {
-	// @Todo: make sure to set this to false when removing a value?
 	// is this entry empty?
 	bool full;
 
@@ -14,7 +15,7 @@ struct hashtable_entry
 
 struct hashtable_internal : hashtable
 {
-	u64 buf_len;
+	u32 buf_len;
 	u32 element_size;
 
 	hashtable_entry* entries;
@@ -42,7 +43,7 @@ s32 hashtable_hash_str(char* nullterm_str)
 	return hash;
 }
 
-hashtable* hashtable_create(u64 initial_size, u32 element_size)
+hashtable* hashtable_create(u32 initial_size, u32 element_size)
 {
 	debug_assert(initial_size > 0, "hashtable size must be > 0");
 
@@ -127,7 +128,7 @@ void hashtable_put(hashtable* table, s32 hash, void* value)
 	memcpy(entry->value, value, itable->element_size);
 }
 
-// @Todo:
+// @Todo: hashtable remove
 //hashtable_item* hashtable_remove(hashtable* table, hashtable_item* item) 
 //{
 //	int hash_index = hashtable_hashcode(table, item->key);

@@ -6,7 +6,7 @@
 struct dynqueue : dynarray { };
 struct dynqueue_internal : dynarray_internal { };
 
-dynqueue* dynqueue_create(u64 initial_size, u32 element_size);
+dynqueue* dynqueue_create(u32 initial_size, u32 element_size);
 void dynqueue_destroy(dynqueue* queue);
 
 void* dynqueue_front(dynqueue* queue);
