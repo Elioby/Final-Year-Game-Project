@@ -27,8 +27,11 @@ void gui_end_frame();
 // Checks if a click was already handled by the gui (must be called after gui_update)
 bool gui_handled_click();
 
+void gui_draw_colored_rect(vec4 color, u32 x, u32 y, u32 width, u32 height);
+
 void gui_draw_image(image* image, u32 x, u32 y, u32 width, u32 height);
 void gui_draw_image(image* image, mat4 transform_matrix);
+
 void gui_draw_button(button* button);
 
 void gui_draw_text(font* font, char* text, vec4 color, u16 text_len, u32 x, u32 y, float scale);

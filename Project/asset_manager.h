@@ -12,6 +12,7 @@ void asset_manager_register(font* as);
 void asset_manager_register(shader_program* as);
 void asset_manager_register(image* as);
 
+asset* asset_manager_get_asset(char* id);
 asset* asset_manager_get_asset(char* id, asset_type type);
 mesh* asset_manager_get_mesh(char* id);
 font* asset_manager_get_font(char* id);

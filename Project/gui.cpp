@@ -60,6 +60,22 @@ button* gui_create_button()
 	return butt; 
 }
 
+void gui_draw_colored_rect(vec4 color, u32 x, u32 y, u32 width, u32 height)
+{
+	bgfx_set_uniform(graphics_tint_color, &color, 1);
+
+	vec2 pos = vec2(x / (graphics_projection_width * 2.0f) - 0.25f, y / (graphics_projection_height * 2.0f) - 0.25f);
+
+	vec2 scale = vec2(width / (float)graphics_projection_width, height / (float)graphics_projection_height);
+
+	mat4 transform_matrix = mat4(1.0f);
+	transform_matrix *= translate(transform_matrix, vec3(pos, 0.0f));
+	transform_matrix *= rotate(transform_matrix, 0.0f, vec3(1.0f));
+	transform_matrix *= glm::scale(transform_matrix, vec3(scale, 1.0f));
+
+	bgfx_submit(1, asset_manager_get_shader("gui")->handle, 0, false);
+}
+
 void gui_draw_image(image* image, u32 x, u32 y, u32 width, u32 height)
 {
 	vec2 pos = vec2(x / (graphics_projection_width * 2.0f) - 0.25f, y / (graphics_projection_height * 2.0f) - 0.25f);

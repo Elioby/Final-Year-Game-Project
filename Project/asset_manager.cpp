@@ -11,8 +11,7 @@ hashtable* assets = hashtable_create(32, sizeof(asset*));
 
 void asset_manager_init()
 {
-	// @Todo: asset_manager_load_folder("", true);
-
+	// meshes
 	asset_manager_register(load_obj_mesh("plane", "res/mesh/plane.obj"));
 	asset_manager_register(load_obj_mesh("robot", "res/mesh/robot.obj"));
 	asset_manager_register(load_obj_mesh("cube", "res/mesh/cube.obj"));
@@ -71,13 +70,22 @@ void asset_manager_register(image* as)
 	asset_manager_register((asset*) as);
 }
 
-asset* asset_manager_get_asset(char* id, asset_type type)
+asset* asset_manager_get_asset(char* id)
 {
 	debug_assert(id, "Must provide an asset id");
 
 	asset* as = *((asset**) hashtable_get(assets, hashtable_hash_str(id)));
-	
+
 	debug_assert(as, "Unable to find asset");
+
+	return as;
+}
+
+asset* asset_manager_get_asset(char* id, asset_type type)
+{
+	asset* as = asset_manager_get_asset(id);
+
+	debug_assert(type == as->asset_type, "Asset of different type than expected");
 
 	return as;
 }
