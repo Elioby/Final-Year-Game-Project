@@ -34,6 +34,7 @@ void asset_manager_init()
 
 	// shaders
 	asset_manager_register(load_shader_program("diffuse", "res/shader/diffuse.vs", "res/shader/diffuse.fs"));
+	asset_manager_register(load_shader_program("colored", "res/shader/colored.vs", "res/shader/colored.fs"));
 	asset_manager_register(load_shader_program("gui", "res/shader/gui.vs", "res/shader/gui.fs"));
 	asset_manager_register(load_shader_program("font", "res/shader/font.vs", "res/shader/font.fs"));
 
