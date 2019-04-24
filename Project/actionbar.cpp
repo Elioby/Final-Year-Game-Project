@@ -192,7 +192,7 @@ void actionbar_draw()
 				log_end -= 1;
 			}
 
-			gui_draw_text(inconsolata_font, combat_log_text->raw + start, vec4(0.0f, 0.0f, 0.0f, 1.0f), log_end - i, 20, 30 + log_y, scale);
+			gui_draw_text(inconsolata_font, combat_log_text->raw + start, log_end - i, vec4(0.0f, 0.0f, 0.0f, 1.0f), 20, 30 + log_y, scale);
 			log_y += log_text_y_pad;
 			log_end = i - 2;
 

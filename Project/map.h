@@ -30,6 +30,7 @@ bool map_pos_equal(vec3 pos1, vec3 pos2);
 float map_distance_squared(vec3 pos1, vec3 pos2);
 
 void map_add_cover(vec3 pos);
+void map_clear_cover();
 bool map_is_cover_at_block(vec3 block_pos);
 entity* map_get_entity_at_block(vec3 block_pos);
 

@@ -34,7 +34,7 @@ void entity_add(vec3 pos, team team)
 	ent.mesh = asset_manager_get_mesh("robot");
 	ent.max_health = 10;
 	ent.health = ent.max_health;
-	ent.max_ap = 100;
+	ent.max_ap = 2;
 	ent.ap = 0;
 	ent.dead = false;
 	ent.team = team;

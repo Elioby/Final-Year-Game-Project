@@ -10,7 +10,7 @@
 #include "general.h"
 #include "window.h"
 
-#define DEBUG_PRINT_ALLOC false
+#define DEBUG_PRINT_ALLOC true
 
 u64 debug_total_allocated = 0;
 

@@ -16,6 +16,7 @@
 #define ACTION_SHOOT_DAMAGE 6
 #define ACTION_MOVE_RADIUS 8
 #define ACTION_GRENADE_RADIUS 3
+#define ACTION_GRENADE_DAMAGE 4
 
 action_mode current_action_mode;
 

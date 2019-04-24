@@ -129,7 +129,7 @@ void gui_draw_button(button* button)
 	}
 }
 
-void gui_draw_text(font* font, char* text, vec4 color, u16 text_len, u32 x, u32 y, float scale)
+void gui_draw_text(font* font, char* text, u16 text_len, vec4 color, u32 x, u32 y, float scale)
 {
 	bgfx_set_uniform(graphics_tint_color, &color, 1);
 
@@ -192,10 +192,10 @@ void gui_draw_text(font* font, char* text, vec4 color, u32 x, u32 y, float scale
 
 	debug_assert(len <= UINT16_MAX, "String len must be shorter than u16 max");
 
-	gui_draw_text(font, text, color, (u16) len, x, y, scale);
+	gui_draw_text(font, text, (u16) len, color, x, y, scale);
 }
 
 void gui_draw_text(font* font, dynstr* text, vec4 color, u32 x, u32 y, float scale)
 {
-	gui_draw_text(font, text->raw, color, text->len, x, y, scale);
+	gui_draw_text(font, text->raw, (u16) text->len, color, x, y, scale);
 }

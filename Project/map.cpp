@@ -28,8 +28,7 @@ void map_init()
 	// @Todo: move this to some random util file???
 	srand((u32) time(0));
 
-	map_gen();
-
+	srand(6969);
 	cover_at_block = (bool*) debug_calloc((u32) pow(max(map_max_x, map_max_z), 2), sizeof(bool));
 
 	u32 friendly_count = 4;
@@ -43,6 +42,8 @@ void map_init()
 	{
 		entity_add(vec3(i * 2 + 1 + map_max_x / 2 - enemy_count, 0, map_max_z - 2), TEAM_ENEMY);
 	}
+
+	map_gen();
 }
 
 void map_draw()
@@ -118,6 +119,11 @@ void map_draw()
 void map_add_cover(vec3 block_pos)
 {
 	cover_at_block[libmorton::morton2D_32_encode((u32) block_pos.x, (u32) block_pos.z)] = true;
+}
+
+void map_clear_cover()
+{
+	memset(cover_at_block, 0, (u32) pow(max(map_max_x, map_max_z), 2));
 }
 
 bool map_is_cover_at_block(u32 x, u32 z)

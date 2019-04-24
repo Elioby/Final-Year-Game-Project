@@ -38,7 +38,7 @@ mesh* map_gen_terrain_mesh()
 }
 
 #define MAP_GEN_ROAD_WIDTH 5
-#define MAP_GEN_MIN_ROAD_LENGTH 10
+#define MAP_GEN_MIN_ROAD_LENGTH 14
 
 void map_gen_roads();
 
@@ -54,18 +54,21 @@ void map_gen()
 	// make sure we have a clean slate
 	dynarray_clear(map_road_segments);
 	dynarray_clear(map_segments);
+	map_clear_cover();
 
 	// first we build the roads, and then the rest of the generation revolves around this
 	map_gen_roads();
 
 	map_gen_segments();
-	map_gen_simplify_segments();
+	//map_gen_simplify_segments();
+
+	map_gen_biomes();
 }
 
 // @Todo: pass in map object?
 void map_gen_roads()
 {
-	vec3 start = vec3(0.0f, 0.0f, map_max_z - 1);
+	vec3 start = vec3(0.0f, 0.0f, map_max_z - 8.0f);
 	vec3 progress = start;
 
 	vec3 direction = vec3(1.0f, 0.0f, 0.0f);
@@ -80,7 +83,18 @@ void map_gen_roads()
 		if(current_segment_length++ > MAP_GEN_MIN_ROAD_LENGTH || end_of_road)
 		{
 			double random = ((double) rand() / (double) RAND_MAX);
-			bool change_direction = random <= 0.05f;
+
+			// randomly change direction, but only if you're not too close to the edge of the map
+			bool change_direction = random <= 1.0f;
+
+			bool close_to_end = progress.x >= map_max_x - MAP_GEN_MIN_ROAD_LENGTH - MAP_GEN_ROAD_WIDTH - 1 || progress.y >= map_max_z - MAP_GEN_MIN_ROAD_LENGTH - MAP_GEN_ROAD_WIDTH - 1;
+
+			// also force us to end the road at 0 on the z axis
+			if(close_to_end)
+			{
+				change_direction = direction.z == 0.0f;
+			}
+
 			if(change_direction || end_of_road)
 			{
 				map_road_segment seg = {};
@@ -217,6 +231,12 @@ void map_gen_simplify_segments()
 
 		map_segment biggest_segment = *(map_segment*) dynarray_get(map_segments, biggest_segment_index);
 
+		if(max(biggest_segment.scale.x, biggest_segment.scale.y) / min(biggest_segment.scale.x, biggest_segment.scale.y) > 5.0f)
+		{
+			dynarray_add(fully_simplified_indexes, &biggest_segment_index);
+			continue;
+		}
+
 		u32 biggest_min_x = (u32) biggest_segment.pos.x;
 		u32 biggest_max_x = (u32) biggest_segment.pos.x + (u32) biggest_segment.scale.x;
 		u32 biggest_min_z = (u32) biggest_segment.pos.y;
@@ -277,6 +297,14 @@ void map_gen_simplify_segments()
 	}
 }
 
+void add_mini_segments(vec2 pos, vec2 scale)
+{
+	map_segment seg = {};
+	seg.pos = pos;
+	seg.scale = scale;
+	dynarray_add(map_segments, &seg);
+}
+
 void split_segments_on_point(u32 split_point, bool split_on_x)
 {
 	// @Speed: we could improve performance by making one of these once and just clearing it
@@ -297,15 +325,8 @@ void split_segments_on_point(u32 split_point, bool split_on_x)
 		{
 			if(split_point > map_min_x && split_point < map_max_x)
 			{
-				map_segment seg1 = {};
-				seg1.pos = map_seg.pos;
-				seg1.scale = vec2(split_point - map_seg.pos.x, map_seg.scale.y);
-				dynarray_add(map_segments, &seg1);
-
-				map_segment seg2 = {};
-				seg2.pos = vec2(seg1.pos.x + seg1.scale.x, map_seg.pos.y);
-				seg2.scale = vec2(map_seg.scale.x - seg1.scale.x, map_seg.scale.y);
-				dynarray_add(map_segments, &seg2);
+				add_mini_segments(map_seg.pos, vec2(split_point - map_seg.pos.x, map_seg.scale.y));
+				add_mini_segments(vec2(map_seg.pos.x + (split_point - map_seg.pos.x), map_seg.pos.y), vec2(map_seg.scale.x - (split_point - map_seg.pos.x), map_seg.scale.y));
 
 				dynarray_add(to_remove, &map_index);
 			}
@@ -343,7 +364,8 @@ void map_gen_biomes()
 	{
 		map_segment seg = *(map_segment*) dynarray_get(map_segments, i);
 
-		if(seg.scale.x > 5 && seg.scale.y > 5)
+		// must be > 20 on each side and not be more than 2x wide than long and vise versa
+		if(seg.scale.x > 20 && seg.scale.y > 20 && max(seg.scale.x, seg.scale.y) / min(seg.scale.x, seg.scale.y) <= 3.0f)
 		{
 			map_gen_building(seg);
 		}
@@ -352,5 +374,27 @@ void map_gen_biomes()
 
 void map_gen_building(map_segment seg)
 {
-	//u32 x_pad = ;
+	// @Todo: have min and max pad????
+	u32 x_pad = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.x / 3.0f));
+	u32 z_pad = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.y / 3.0f));
+
+	// walls along x
+	for (u32 x = seg.pos.x + x_pad; x <= seg.pos.x + seg.scale.x - x_pad; x++)
+	{
+		// bottom x wall
+		map_add_cover(vec3(x, 0.0f, seg.pos.y + z_pad));
+
+		// top x wall
+		map_add_cover(vec3(x, 0.0f, seg.pos.y + seg.scale.y - z_pad));
+	}
+
+	// wall along z
+	for (u32 z = seg.pos.y + z_pad; z < seg.pos.y + seg.scale.y - z_pad; z++)
+	{
+		// bottom z wall
+		map_add_cover(vec3(seg.pos.x + x_pad, 0.0f, z));
+
+		// top z wall
+		map_add_cover(vec3(seg.pos.x + seg.scale.x - x_pad, 0.0f, z));
+	}
 }
