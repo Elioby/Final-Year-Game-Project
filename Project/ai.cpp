@@ -16,7 +16,7 @@ void ai_perform_entity(entity* ent)
 
 	board_eval_build_cache();
 
-	best_eval = minimax_search(ent, best_eval, 3, 3, team, team, -FLT_MAX, +FLT_MAX); 
+	best_eval = minimax_search(ent, best_eval, 2, 2, team, team, -FLT_MAX, +FLT_MAX); 
 	
 	best_action = best_eval.action;
 

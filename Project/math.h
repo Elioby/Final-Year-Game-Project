@@ -27,3 +27,5 @@ u8 max(u8 a, u8 b);
 u16 max(u16 a, u16 b);
 u32 max(u32 a, u32 b);
 u64 max(u64 a, u64 b);
+
+u32 math_u32_next_power_of_2(u32 v);

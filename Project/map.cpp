@@ -12,7 +12,7 @@
 #include "map_gen.h"
 
 u32 map_max_x = 96;
-u32 map_max_z = 128;
+u32 map_max_z = 96;
 
 // @Todo: change "cover_at_block" to an array of tiles, each referencing either nothing, an entity, or cover 
 //         (this means you get O(n) lookup of whats in a block based on it's position)
@@ -27,9 +27,10 @@ void map_init()
 {
 	// @Todo: move this to some random util file???
 	srand((u32) time(0));
+	
+	u32 next_power_of_2 = math_u32_next_power_of_2(max(map_max_x, map_max_z));
 
-	srand(6969);
-	cover_at_block = (bool*) debug_calloc((u32) pow(max(map_max_x, map_max_z), 2), sizeof(bool));
+	cover_at_block = (bool*) debug_calloc(next_power_of_2 * next_power_of_2, sizeof(bool));
 
 	u32 friendly_count = 4;
 	for(u32 i = 0; i < friendly_count; i++) 
@@ -123,7 +124,9 @@ void map_add_cover(vec3 block_pos)
 
 void map_clear_cover()
 {
-	memset(cover_at_block, 0, (u32) pow(max(map_max_x, map_max_z), 2));
+	u32 next_power_of_2 = math_u32_next_power_of_2(max(map_max_x, map_max_z));
+
+	memset(cover_at_block, 0, next_power_of_2 * next_power_of_2);
 }
 
 bool map_is_cover_at_block(u32 x, u32 z)

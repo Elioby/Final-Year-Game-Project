@@ -49,9 +49,17 @@ void split_segments_on_point(u32 split_point, bool split_on_x);
 void map_gen_biomes();
 void map_gen_building(map_segment seg);
 
+// @Cleanup: this is messy and kinda a hack :(
+u32 building_coverage = 0;
+u32 building_count = 0;
+u32 regen_tries = 0;
+
 void map_gen()
 {
 	// make sure we have a clean slate
+	building_coverage = 0;
+	building_count = 0;
+
 	dynarray_clear(map_road_segments);
 	dynarray_clear(map_segments);
 	map_clear_cover();
@@ -60,9 +68,21 @@ void map_gen()
 	map_gen_roads();
 
 	map_gen_segments();
-	//map_gen_simplify_segments();
+	map_gen_simplify_segments();
 
 	map_gen_biomes();
+
+	// regen if we have a bad building coverage
+	if ((building_coverage / (double) (map_max_x * map_max_z) < 0.3f || building_count < 3) && regen_tries <= 30)
+	{
+		regen_tries++;
+		map_gen();
+	}
+	else
+	{
+		printf("Retried %i times, current coverage: %f\n", regen_tries, building_coverage / (double) (map_max_x * map_max_z));
+		regen_tries = 0;
+	}
 }
 
 // @Todo: pass in map object?
@@ -85,7 +105,7 @@ void map_gen_roads()
 			double random = ((double) rand() / (double) RAND_MAX);
 
 			// randomly change direction, but only if you're not too close to the edge of the map
-			bool change_direction = random <= 1.0f;
+			bool change_direction = random <= 0.075f;
 
 			bool close_to_end = progress.x >= map_max_x - MAP_GEN_MIN_ROAD_LENGTH - MAP_GEN_ROAD_WIDTH - 1 || progress.y >= map_max_z - MAP_GEN_MIN_ROAD_LENGTH - MAP_GEN_ROAD_WIDTH - 1;
 
@@ -231,12 +251,6 @@ void map_gen_simplify_segments()
 
 		map_segment biggest_segment = *(map_segment*) dynarray_get(map_segments, biggest_segment_index);
 
-		if(max(biggest_segment.scale.x, biggest_segment.scale.y) / min(biggest_segment.scale.x, biggest_segment.scale.y) > 5.0f)
-		{
-			dynarray_add(fully_simplified_indexes, &biggest_segment_index);
-			continue;
-		}
-
 		u32 biggest_min_x = (u32) biggest_segment.pos.x;
 		u32 biggest_max_x = (u32) biggest_segment.pos.x + (u32) biggest_segment.scale.x;
 		u32 biggest_min_z = (u32) biggest_segment.pos.y;
@@ -375,26 +389,31 @@ void map_gen_biomes()
 void map_gen_building(map_segment seg)
 {
 	// @Todo: have min and max pad????
-	u32 x_pad = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.x / 3.0f));
-	u32 z_pad = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.y / 3.0f));
+	u32 x_pad_1 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.x / 4.0f));
+	u32 x_pad_2 = max(2, (((double)rand() / RAND_MAX)) * (seg.scale.x / 4.0f));
+	u32 z_pad_1 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.y / 4.0f));
+	u32 z_pad_2 = max(2, (((double)rand() / RAND_MAX)) * (seg.scale.y / 4.0f));
+
+	building_coverage += (seg.scale.x - x_pad_1 - x_pad_2) * (seg.scale.y - z_pad_1 - z_pad_2);
+	building_count++;
 
 	// walls along x
-	for (u32 x = seg.pos.x + x_pad; x <= seg.pos.x + seg.scale.x - x_pad; x++)
+	for (u32 x = seg.pos.x + x_pad_1; x <= seg.pos.x + seg.scale.x - x_pad_2; x++)
 	{
 		// bottom x wall
-		map_add_cover(vec3(x, 0.0f, seg.pos.y + z_pad));
+		map_add_cover(vec3(x, 0.0f, seg.pos.y + z_pad_1));
 
 		// top x wall
-		map_add_cover(vec3(x, 0.0f, seg.pos.y + seg.scale.y - z_pad));
+		map_add_cover(vec3(x, 0.0f, seg.pos.y + seg.scale.y - z_pad_2));
 	}
 
 	// wall along z
-	for (u32 z = seg.pos.y + z_pad; z < seg.pos.y + seg.scale.y - z_pad; z++)
+	for (u32 z = seg.pos.y + z_pad_1; z < seg.pos.y + seg.scale.y - z_pad_2; z++)
 	{
 		// bottom z wall
-		map_add_cover(vec3(seg.pos.x + x_pad, 0.0f, z));
+		map_add_cover(vec3(seg.pos.x + x_pad_1, 0.0f, z));
 
 		// top z wall
-		map_add_cover(vec3(seg.pos.x + seg.scale.x - x_pad, 0.0f, z));
+		map_add_cover(vec3(seg.pos.x + seg.scale.x - x_pad_2, 0.0f, z));
 	}
 }
