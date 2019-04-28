@@ -48,7 +48,7 @@ void camera_update(float dt)
 	// clamp infinitely close to -90 and +90
 	camera_pitch = clamp(camera_pitch, -90.0f + EPSILON, 90.0f - EPSILON);
 
-	vec3 cam_pos = camera_pos * 4.0f;
+	vec3 cam_pos = camera_pos;
 	camera_dir = vec3(cos(radians(camera_pitch)) * cos(radians(camera_yaw)), sin(radians(camera_pitch)), 
 		cos(radians(camera_pitch)) * sin(radians(camera_yaw)));
 

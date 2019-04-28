@@ -10,6 +10,7 @@
 struct entity {
 	u32 id;
 	vec3 pos;
+	float rotation;
 
 	mesh* mesh;
 

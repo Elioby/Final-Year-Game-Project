@@ -103,13 +103,13 @@ void map_draw()
 				if(ent->team == TEAM_ENEMY) img = asset_manager_get_image("enemy_healthbar");
 				else img = asset_manager_get_image("friendly_healthbar");
 
-				graphics_draw_image(img, graphics_create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.038f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f),
+				graphics_draw_image(img, graphics_create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.538f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f),
 					vec3((0.5f - 0.1f / 3.0f) * (ent->health / (float)ent->max_health), 0.1285f, 1.0f)));
 			}
 
-			graphics_draw_image(asset_manager_get_image("healthbox"), graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.0f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f), healthbox_aspect * 0.5f));
+			graphics_draw_image(asset_manager_get_image("healthbox"), graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.5f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f), healthbox_aspect * 0.5f));
 
-			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, 0.0f, vec3(1.0f), vec3(1.0f)), vec4(0.961f, 0.965f, 0.98f, 1.0f));
+			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, ent->rotation, vec3(0.0f, 1.0f, 0.0f), vec3(ent->pos.x + 0.5f, 0.0f, ent->pos.z + 0.5f), vec3(1.0f)), vec4(0.961f, 0.965f, 0.98f, 1.0f));
 		}
 	}
 

@@ -95,8 +95,18 @@ void graphics_draw_image(image* image, mat4 transform_matrix)
 mat4 graphics_create_model_matrix(vec3 pos, float rot, vec3 rot_axis, vec3 scale)
 {
 	mat4 matrix = mat4(1.0f);
-	matrix *= translate(matrix, pos);
-	matrix *= rotate(matrix, rot, rot_axis);
-	matrix *= glm::scale(matrix, scale * 4.0f);
+	matrix = glm::translate(matrix, pos);
+	matrix = glm::rotate(matrix, glm::radians(rot), rot_axis);
+	matrix = glm::scale(matrix, scale);
+	return matrix;
+}
+
+mat4 graphics_create_model_matrix(vec3 pos, float rot, vec3 rot_axis, vec3 rot_origin, vec3 scale)
+{
+	mat4 matrix = mat4(1.0f);
+	matrix = glm::translate(matrix, rot_origin);
+	matrix = glm::rotate(matrix, glm::radians(rot), rot_axis);
+	matrix = glm::translate(matrix, pos - rot_origin);
+	matrix = glm::scale(matrix, scale);
 	return matrix;
 }

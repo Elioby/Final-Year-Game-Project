@@ -31,5 +31,6 @@ void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix, vec4 color);
 void graphics_draw_image(image* image, mat4 transform_matrix);
 
 mat4 graphics_create_model_matrix(vec3 pos, float rot, vec3 rot_axis, vec3 scale);
+mat4 graphics_create_model_matrix(vec3 pos, float rot, vec3 rot_axis, vec3 rot_origin, vec3 scale);
 
 #endif

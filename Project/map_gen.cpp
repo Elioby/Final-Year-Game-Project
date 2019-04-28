@@ -389,11 +389,10 @@ void map_gen_biomes()
 
 void map_gen_building(map_segment seg)
 {
-	// @Todo: have min and max pad????
 	u32 x_pad_1 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.x / 4.0f));
-	u32 x_pad_2 = max(2, (((double)rand() / RAND_MAX)) * (seg.scale.x / 4.0f));
+	u32 x_pad_2 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.x / 4.0f));
 	u32 z_pad_1 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.y / 4.0f));
-	u32 z_pad_2 = max(2, (((double)rand() / RAND_MAX)) * (seg.scale.y / 4.0f));
+	u32 z_pad_2 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.y / 4.0f));
 
 	building_coverage += (seg.scale.x - x_pad_1 - x_pad_2) * (seg.scale.y - z_pad_1 - z_pad_2);
 	building_count++;

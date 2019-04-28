@@ -31,6 +31,7 @@ void entity_add(vec3 pos, team team)
 	entity ent = { 0 };
 	ent.id = last_entity_id++;
 	ent.pos = pos;
+	ent.rotation = 180.0f;
 	ent.mesh = asset_manager_get_mesh("robot");
 	ent.max_health = 10;
 	ent.health = ent.max_health;
