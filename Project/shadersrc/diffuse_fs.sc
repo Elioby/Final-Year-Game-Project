@@ -15,8 +15,8 @@ void main()
 	vec3 light_pos = vec3(128.0f, 50.0f, 128.0f);
 
 	/* Ambient lighting */
-    float ambient_strength = 0.3f;
-    vec3 ambient = ambient_strength * light_color;
+	float ambient_strength = 0.3f;
+	vec3 ambient = ambient_strength * light_color;
 
 	/* Diffuse lighting */
 	vec3 normal_dir = normalize(v_normal);

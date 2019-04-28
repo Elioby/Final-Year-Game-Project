@@ -10,7 +10,6 @@ struct font : asset
 {
 	image* img;
 	stbtt_bakedchar* char_data;
-	u32 width, height;
 };
 
 font* load_font(char* asset_type, char* filename);

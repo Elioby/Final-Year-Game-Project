@@ -118,8 +118,6 @@ void update(float dt)
 
 void draw()
 {
-	gui_draw_colored_rect(vec4(1.0f, 0.0f, 0.0f, 1.0f), 0, 0, 500, 500);
-
 	b->x = graphics_projection_width - b->width - 30;
 	b->y = graphics_projection_height - b->height - 30;
 	gui_draw_button(b);

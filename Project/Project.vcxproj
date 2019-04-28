@@ -234,7 +234,7 @@
     <ClCompile Include="math.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="minimax.cpp" />
-    <ClCompile Include="raycast.cpp" />
+    <ClCompile Include="physics.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="dynarray.cpp" />
     <ClCompile Include="team.cpp" />
@@ -267,7 +267,7 @@
     <ClInclude Include="math.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="minimax.h" />
-    <ClInclude Include="raycast.h" />
+    <ClInclude Include="physics.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="team.h" />
     <ClInclude Include="turn.h" />

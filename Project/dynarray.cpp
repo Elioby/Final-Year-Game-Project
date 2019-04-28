@@ -56,6 +56,7 @@ void* dynarray_add(dynarray* arr, void* data)
 
 	void* element = internal_arr->data + (internal_arr->len * internal_arr->element_size);
 
+	// @Speed: we could avoid memcpy here
 	memcpy(element, data, internal_arr->element_size);
 
 	internal_arr->len++;

@@ -14,9 +14,7 @@ mat4 graphics_view_matrix;
 mat4 graphics_projection_matrix;
 
 u32 graphics_projection_width;
-u32 graphics_projection_height; 
-
-u32 graphics_fps_cap = 120;
+u32 graphics_projection_height;
 
 bgfx_uniform_handle_t graphics_texture_sampler;
 
@@ -84,7 +82,7 @@ void graphics_draw_image(image* image, mat4 transform_matrix)
 
 	bgfx_set_texture(0, graphics_texture_sampler, image->handle, BGFX_SAMPLER_POINT);
 
-	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_BLEND_ALPHA, 0);
+	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_BLEND_ALPHA | BGFX_STATE_MSAA, 0);
 
 	bgfx_set_transform(&transform_matrix, 1);
 

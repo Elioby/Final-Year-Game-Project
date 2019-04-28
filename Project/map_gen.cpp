@@ -107,7 +107,8 @@ void map_gen_roads()
 			// randomly change direction, but only if you're not too close to the edge of the map
 			bool change_direction = random <= 0.075f;
 
-			bool close_to_end = progress.x >= map_max_x - MAP_GEN_MIN_ROAD_LENGTH - MAP_GEN_ROAD_WIDTH - 1 || progress.y >= map_max_z - MAP_GEN_MIN_ROAD_LENGTH - MAP_GEN_ROAD_WIDTH - 1;
+			// check if we're close to the end (cast to s32 just incase MAP_GEN_MIN_ROAD_LENGTH - MAP_GEN_ROAD_WIDTH - 1 > map_max_x (and then we would wrap back to 2.4bil)
+			bool close_to_end = progress.x >= (s32) map_max_x - MAP_GEN_MIN_ROAD_LENGTH - MAP_GEN_ROAD_WIDTH - 1 || progress.z <= MAP_GEN_MIN_ROAD_LENGTH + MAP_GEN_ROAD_WIDTH + 1;
 
 			// also force us to end the road at 0 on the z axis
 			if(close_to_end)

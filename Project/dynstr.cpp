@@ -165,8 +165,7 @@ dynstr* dynstr_append_va(dynstr* to, char* format, va_list args)
 			}
 			else if (c == '%')
 			{
-				// @Speed: use a single char append method?
-				dynstr_append_str(to, "%", 1);
+				dynstr_append_char(to, '%');
 			}
 
 			last_was_percent = false;
@@ -175,12 +174,7 @@ dynstr* dynstr_append_va(dynstr* to, char* format, va_list args)
 
 		if (c != '%')
 		{
-			char ch[2];
-			ch[0] = c;
-			ch[1] = 0;
-
-			// @Speed: use a single char append method?
-			dynstr_append_str(to, ch, 1);
+			dynstr_append_char(to, c);
 		}
 		else
 		{

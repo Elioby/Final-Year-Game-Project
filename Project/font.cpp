@@ -21,8 +21,8 @@ font* load_font(char* asset_id, char* filename)
 
 	const u32 char_count = 96;
 
-	u32 baked_width = 1024;
-	u32 baked_height = 1024;
+	u32 baked_width = 4096;
+	u32 baked_height = 4096;
 
 	// we pack the font structure, the font glyph data and the font texture into one debug_malloc
 	u32 char_data_bytes = sizeof(stbtt_bakedchar) * char_count;
@@ -32,17 +32,14 @@ font* load_font(char* asset_id, char* filename)
 
 	asset_manager_register(fnt);
 
-	fnt->width = baked_width;
-	fnt->height = baked_height;
-
 	fnt->char_data = (stbtt_bakedchar*) (((char*) fnt) + sizeof(font));
 
 	unsigned char* font_data = (unsigned char*) file->data;
 	unsigned char* pixels = (unsigned char*) (((char*) fnt->char_data) + char_data_bytes);
 
-	stbtt_BakeFontBitmap(font_data, 0, 128.0f, pixels, fnt->width, fnt->height, 32, char_count, fnt->char_data);
+	stbtt_BakeFontBitmap(font_data, 0, 512.0f, pixels, baked_width, baked_height, 32, char_count, fnt->char_data);
 
-	fnt->img = create_image(pixels, fnt->width, fnt->height, 1, BGFX_TEXTURE_FORMAT_A8);
+	fnt->img = create_image(pixels, baked_width, baked_height, 1, BGFX_TEXTURE_FORMAT_A8);
 
 	return fnt;
 }

@@ -12,7 +12,6 @@ image* load_image(char* path)
 {
 	int width, height, channels;
 
-	// @Todo: use our file load function
 	unsigned char *pixels = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
 
 	if(pixels == 0)

@@ -60,9 +60,6 @@
     <ClCompile Include="mesh.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="raycast.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="shader.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -114,6 +111,9 @@
     <ClCompile Include="dynqueue.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="physics.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -147,9 +147,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="raycast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="shader.h">
@@ -204,6 +201,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dynqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="physics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

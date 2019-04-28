@@ -142,7 +142,7 @@ void gui_draw_text(font* font, char* text, u16 text_len, vec4 color, u32 x, u32 
 {
 	bgfx_set_uniform(graphics_tint_color, &color, 1);
 
-	scale *= 2.0f;
+	scale /= 2.0f;
 
 	float x1 = 0;
 	float y1 = 0;
@@ -155,7 +155,7 @@ void gui_draw_text(font* font, char* text, u16 text_len, vec4 color, u32 x, u32 
 
 		const stbtt_bakedchar *b = font->char_data + c - 32;
 		stbtt_aligned_quad q = {};
-		stbtt_GetBakedQuad(font->char_data, font->width, font->height, c - 32, &x1, &y1, &q, 1);// @Volatile: 1=opengl & d3d10+,0=d3d9
+		stbtt_GetBakedQuad(font->char_data, font->img->width, font->img->height, c - 32, &x1, &y1, &q, 1);// @Volatile: 1=opengl & d3d10+,0=d3d9
 
 		bgfx_vertex_decl_t decl;
 		bgfx_vertex_decl_begin(&decl, BGFX_RENDERER_TYPE_NOOP);

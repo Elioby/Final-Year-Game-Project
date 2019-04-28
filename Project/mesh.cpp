@@ -137,13 +137,23 @@ mesh* load_obj_mesh(char* asset_id, char* filename)
 		int vertex_id = vertex_ids[face_id] - 1;
 
 		vertex_normals[vertex_id] += temp_normals[normal_ids[face_id] - 1];
-		vertex_uvs[vertex_id] = temp_uvs[uv_ids[face_id] - 1];
+
+		if(temp_uvs.size() > 0) vertex_uvs[vertex_id] = temp_uvs[uv_ids[face_id] - 1];
 	}
 
 	for (u32 i = 0; i < vertex_count; i++)
 	{
 		vec3 ver = temp_vertices[i];
-		vec2 uv = vertex_uvs[i];
+		vec2 uv;
+
+		if(temp_uvs.size() > 0)
+		{
+			uv = vertex_uvs[i];
+		}
+		else
+		{
+			uv = vec2(0.0f);
+		}
 
 		vertices[i] = { ver.x, ver.y, ver.z, uv.x, uv.y, pack_vec3_into_u32(normalize(vertex_normals[i])) };
 	}

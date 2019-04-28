@@ -11,8 +11,8 @@
 #include "debug.h"
 #include "map_gen.h"
 
-u32 map_max_x = 96;
-u32 map_max_z = 96;
+u32 map_max_x = 64;
+u32 map_max_z = 64;
 
 // @Todo: change "cover_at_block" to an array of tiles, each referencing either nothing, an entity, or cover 
 //         (this means you get O(n) lookup of whats in a block based on it's position)
@@ -67,7 +67,7 @@ void map_draw()
 	{
 		map_road_segment seg = *(map_road_segment*) dynarray_get(map_road_segments, i);
 		graphics_draw_mesh(asset_manager_get_mesh("cube"),
-			graphics_create_model_matrix(vec3(seg.pos.x, 0.0f, seg.pos.y), 0.0f, vec3(1.0f), vec3(seg.scale.x, 0.1f, seg.scale.y)), vec4(0.3f, 0.3f, 0.3f, 1.0f));
+			graphics_create_model_matrix(vec3(seg.pos.x, 0.0f, seg.pos.y), 0.0f, vec3(1.0f), vec3(seg.scale.x, 0.05f, seg.scale.y)), vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	}
 
 	u32 color_progress = 0;

@@ -4,7 +4,7 @@
 
 #include "graphics.h"
 #include "window.h"
-#include "raycast.h"
+#include "physics.h"
 #include "map.h"
 #include "camera.h"
 
@@ -38,7 +38,7 @@ void input_update()
 
 	input_mouse_ray = calculate_mouse_ray();
 
-	vec3 intersection = ray_plane_intersection(camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	vec3 intersection = physics_plane_intersection_with_ray(camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 	if(!map_pos_equal(intersection, vec3(-1.0f)))
 	{
@@ -64,23 +64,7 @@ void input_end_frame()
 
 vec3 calculate_mouse_ray()
 {
-	float x = (2.0f * (float) input_mouse_x) / (float) graphics_projection_width - 1.0f;
-	float y = (2.0f * (float) input_mouse_y) / (float) graphics_projection_height - 1.0f;
-
-	// normalize the position into graphics coords (-1.0 to 1.0, -1.0 to 1.0)
-	vec3 ray_norm = vec3(x, y, 1.0f);
-
-	// move into clip coords and point the vector into the screen (-1 on z)
-	vec4 ray_clip = vec4(ray_norm.x, ray_norm.y, -1.0f, 1.0f);
-
-	// move into eye coords
-	vec4 ray_eye = inverse(graphics_projection_matrix) * ray_clip;
-	ray_eye.z = -1.0f;
-	ray_eye.w = 0.0f;
-
-	// move into world coords by mulitplying by the inverse of the view matrix (and norm because we only need a direction vector)
-	vec4 ray_world = inverse(graphics_view_matrix) * ray_eye;
-	return normalize(vec3(ray_world.x, ray_world.y, ray_world.z));
+	return physics_raycast_from_screen_location(input_mouse_x, input_mouse_y);
 }
 
 void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
