@@ -60,7 +60,7 @@ void graphics_draw_mesh(mesh* mesh, mat4 transform_matrix, vec4 color)
 	bgfx_set_vertex_buffer(0, mesh->vb_handle, 0, mesh->vertex_count);
 	bgfx_set_index_buffer(mesh->idb_handle, 0, mesh->index_count);
 
-	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW | BGFX_STATE_MSAA, 0);
+	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_BLEND_ALPHA | BGFX_STATE_CULL_CW | BGFX_STATE_MSAA, 0);
 
 	bgfx_set_transform(&transform_matrix, 1);
 
@@ -85,6 +85,9 @@ void graphics_draw_image(image* image, mat4 transform_matrix)
 	bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_BLEND_ALPHA | BGFX_STATE_MSAA, 0);
 
 	bgfx_set_transform(&transform_matrix, 1);
+
+	vec4 tint_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	bgfx_set_uniform(graphics_tint_color, &tint_color, 1);
 
 	bgfx_submit(0, asset_manager_get_shader("gui")->handle, 0, false);
 }

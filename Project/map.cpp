@@ -57,7 +57,7 @@ void map_draw()
 			bool cover = map_is_cover_at_block(vec3(x, 0.0f, z));
 			if(cover)
 			{
-				graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(vec3(x, 0.0f, z), 0.0f, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)));
+				graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(vec3(x, 0.0f, z), 0.0f, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)), vec4(0.6f, 0.6f, 0.6f, 1.0f));
 			}
 		}
 	}
@@ -73,7 +73,7 @@ void map_draw()
 	u32 color_progress = 0;
 
 	// temp draw segments
-	for(u32 i = 0; i < map_segments->len; i++)
+	/*for(u32 i = 0; i < map_segments->len; i++)
 	{
 		map_segment seg = *(map_segment*) dynarray_get(map_segments, i);
 
@@ -86,7 +86,7 @@ void map_draw()
 
 		graphics_draw_mesh(asset_manager_get_mesh("cube"), 
 			graphics_create_model_matrix(vec3(seg.pos.x, 0.0f, seg.pos.y), 0.0f, vec3(1.0f), vec3(seg.scale.x, 0.2f, seg.scale.y)), seg_color);
-	}
+	}*/
 
 	// draw entites and healthbars
 	for(u32 i = 0; i < entities->len; i++)
@@ -109,12 +109,12 @@ void map_draw()
 
 			graphics_draw_image(asset_manager_get_image("healthbox"), graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.0f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f), healthbox_aspect * 0.5f));
 
-			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, 0.0f, vec3(1.0f), vec3(1.0f)));
+			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, 0.0f, vec3(1.0f), vec3(1.0f)), vec4(0.961f, 0.965f, 0.98f, 1.0f));
 		}
 	}
 
 	// draw terrain
-	graphics_draw_mesh(asset_manager_get_mesh("terrain"), graphics_create_model_matrix(vec3(0.0f), 0.0f, vec3(1.0f), vec3(1.0f)));
+	graphics_draw_mesh(asset_manager_get_mesh("terrain"), graphics_create_model_matrix(vec3(0.0f), 0.0f, vec3(1.0f), vec3(1.0f)), vec4(0.498f, 0.561f, 0.651f, 1.0f));
 }
 
 void map_add_cover(vec3 block_pos)

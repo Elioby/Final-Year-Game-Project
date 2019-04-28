@@ -108,7 +108,7 @@ void actionbar_draw()
 {
 	for (u32 i = 0; i < poses.size(); i++)
 	{
-		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(poses[i], 0.0f, vec3(1.0f), vec3(1.0f, 0.25f, 1.0f)));
+		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(poses[i], 0.0f, vec3(1.0f), vec3(1.0f, 0.25f, 1.0f)), vec4(0.267f, 0.741f, 0.012f, 0.5f));
 	}
 
 	font* inconsolata_font = asset_manager_get_font("inconsolata");

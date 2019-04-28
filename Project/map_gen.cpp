@@ -70,19 +70,19 @@ void map_gen()
 	map_gen_segments();
 	map_gen_simplify_segments();
 
-	map_gen_biomes();
+	//map_gen_biomes();
 
-	// regen if we have a bad building coverage
-	if ((building_coverage / (double) (map_max_x * map_max_z) < 0.3f || building_count < 3) && regen_tries <= 30)
-	{
-		regen_tries++;
-		map_gen();
-	}
-	else
-	{
-		printf("Retried %i times, current coverage: %f\n", regen_tries, building_coverage / (double) (map_max_x * map_max_z));
-		regen_tries = 0;
-	}
+	//// regen if we have a bad building coverage
+	//if ((building_coverage / (double) (map_max_x * map_max_z) < 0.3f || building_count < 3) && regen_tries <= 30)
+	//{
+	//	regen_tries++;
+	//	map_gen();
+	//}
+	//else
+	//{
+	//	printf("Retried %i times, current coverage: %f\n", regen_tries, building_coverage / (double) (map_max_x * map_max_z));
+	//	regen_tries = 0;
+	//}
 }
 
 // @Todo: pass in map object?

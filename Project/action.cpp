@@ -357,18 +357,23 @@ void action_update()
 			if (current_action_mode == ACTION_MODE_SELECT_UNITS)
 			{
 				selected_entity = clicked_entity;
+
+				if(clicked_entity == NULL)
+				{
+					map_add_cover(input_mouse_block_pos);
+				}
 			}
 			else if (current_action_mode == ACTION_MODE_MOVE)
 			{
 				// we can only move to free blocks
 				if (!clicked_entity)
 				{
-					if (selected_entity->ap >= 50)
+					if (true)
 					{
 						if (!map_is_cover_at_block(selected_block))
 						{
 							selected_entity->pos = selected_block;
-							selected_entity->ap -= 50;
+							selected_entity->ap -= 1;
 						}
 						else
 						{
@@ -392,7 +397,7 @@ void action_update()
 			{
 				if (clicked_entity && clicked_entity != selected_entity && !entity_is_same_team(selected_entity, clicked_entity))
 				{
-					if (selected_entity->ap >= 50)
+					if (selected_entity->ap >= 1)
 					{
 						bool has_los = map_has_los(selected_entity, clicked_entity);
 
@@ -494,8 +499,8 @@ void action_update()
 			selected_entity = NULL;
 			poses.clear();
 
-			dynarray_clear(map_road_segments);
-			map_gen();
+			/*dynarray_clear(map_road_segments);
+			map_gen();*/
 		}
 	}
 }

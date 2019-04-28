@@ -25,6 +25,6 @@ void main()
 	vec3 diffuse = dot * light_color;
 
 	/* Combination */
-	vec4 result = vec4(ambient + diffuse, 1.0f) * tint_color;
+	vec4 result = vec4((ambient + diffuse) * tint_color.xyz, tint_color.w);
 	gl_FragColor = result;
 }
