@@ -40,6 +40,9 @@ struct action_evaluation
 extern action actions[2];
 
 extern action action_nothing;
+extern action action_move;
+extern action action_shoot;
+
 extern action_mode current_action_mode;
 
 void action_init();

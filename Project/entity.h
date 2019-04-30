@@ -28,10 +28,11 @@ extern dynarray* entities;
 
 // @Cleanup: honestly idk where else to put this
 extern entity* selected_entity;
+extern entity* targeted_entity;
 
 void entity_update();
 
-void entity_add(vec3 pos, team t);
+entity* entity_add(vec3 pos, team t);
 
 void entity_health_change(entity* ent, entity* inflict_ent, s32 amount);
 void entity_health_change(entity* ent, entity* inflict_ent, s32 amount, bool temp);

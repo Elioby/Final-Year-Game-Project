@@ -7,6 +7,7 @@
 dynarray* entities = dynarray_create(10, sizeof(entity));
 
 entity* selected_entity;
+entity* targeted_entity;
 u32 last_entity_id;
 
 void entity_update()
@@ -26,7 +27,7 @@ void entity_update()
 	}
 }
 
-void entity_add(vec3 pos, team team)
+entity* entity_add(vec3 pos, team team)
 {
 	entity ent = { 0 };
 	ent.id = last_entity_id++;
@@ -39,7 +40,7 @@ void entity_add(vec3 pos, team team)
 	ent.ap = 0;
 	ent.dead = false;
 	ent.team = team;
-	dynarray_add(entities, &ent);
+	return (entity*) dynarray_add(entities, &ent);
 }
 
 void entity_kill(entity* ent)

@@ -31,7 +31,7 @@ void action_init();
 // @Todo: temp
 button* b;
 
-void button_end_turn_all()
+void button_end_turn_all(button* this_button)
 {
 	turn_end();
 }
@@ -123,12 +123,9 @@ void draw()
 	gui_draw_button(b);
 
 	// draw selected tile
-	graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(input_mouse_block_pos, 0.0f, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)), vec4(0.267f, 0.741f, 0.012f, 1.0f));
-
-	// draw selected entity
-	if(selected_entity)
+	if(!map_is_cover(input_mouse_block_pos))
 	{
-		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(selected_entity->pos, radians(0.0f), vec3(1.0f, 0.0f, 0.0f), vec3(1.0f, 0.05f, 1.0f)));
+		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(input_mouse_block_pos, 0.0f, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 	}
 
 	map_draw();

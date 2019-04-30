@@ -11,8 +11,6 @@
 #include "board_eval.h"
 #include "dynqueue.h"
 
-#include <queue>
-
 #define ACTION_SHOOT_DAMAGE 6
 #define ACTION_MOVE_RADIUS 8
 #define ACTION_GRENADE_RADIUS 3
@@ -53,6 +51,8 @@ bool get_next_target_shoot(entity* ent, u32* last_index, vec3* result);
 action actions[2];
 
 action action_nothing;
+action action_move;
+action action_shoot;
 
 void action_init()
 {
@@ -63,21 +63,21 @@ void action_init()
 	action_nothing.undo = undo_nothing;
 	action_nothing.get_next_target = get_next_target_nothing;
 
-	action move_action = { 0 };
-	move_action.name = "move";
-	move_action.perform = perform_move;
-	move_action.gather_undo_data = gather_undo_data_move;
-	move_action.undo = undo_move;
-	move_action.get_next_target = get_next_target_move;
-	actions[0] = move_action;
+	action_move = { 0 };
+	action_move.name = "move";
+	action_move.perform = perform_move;
+	action_move.gather_undo_data = gather_undo_data_move;
+	action_move.undo = undo_move;
+	action_move.get_next_target = get_next_target_move;
+	actions[0] = action_move;
 
-	action shoot_action = { 0 };
-	shoot_action.name = "shoot";
-	shoot_action.perform = perform_shoot;
-	shoot_action.gather_undo_data = gather_undo_data_shoot;
-	shoot_action.undo = undo_shoot;
-	shoot_action.get_next_target = get_next_target_shoot;
-	actions[1] = shoot_action;
+	action_shoot = { 0 };
+	action_shoot.name = "shoot";
+	action_shoot.perform = perform_shoot;
+	action_shoot.gather_undo_data = gather_undo_data_shoot;
+	action_shoot.undo = undo_shoot;
+	action_shoot.get_next_target = get_next_target_shoot;
+	actions[1] = action_shoot;
 }
 
 bool get_next_target_nothing(entity* ent, u32* last_index, vec3* result)
@@ -124,7 +124,7 @@ bool get_next_target_move_direction(bool* already_searched, vec3 pos, point last
 	{
 		bool* already_searched_this = already_searched + (u32) pos.x + (u32) pos.z * map_max_x;
 
-		if (!(*already_searched_this) && !map_is_cover_at_block(pos) && map_get_entity_at_block(pos) == NULL)
+		if (!(*already_searched_this) && !map_is_cover(pos) && map_get_entity_at_block(pos) == NULL)
 		{
 			point next = { 0 };
 			next.x = (u32) pos.x;
@@ -357,11 +357,6 @@ void action_update()
 			if (current_action_mode == ACTION_MODE_SELECT_UNITS)
 			{
 				selected_entity = clicked_entity;
-
-				if(clicked_entity == NULL)
-				{
-					map_add_cover(input_mouse_block_pos);
-				}
 			}
 			else if (current_action_mode == ACTION_MODE_MOVE)
 			{
@@ -370,10 +365,12 @@ void action_update()
 				{
 					if (true)
 					{
-						if (!map_is_cover_at_block(selected_block))
+						if (!map_is_cover(selected_block))
 						{
-							selected_entity->pos = selected_block;
+							action_move.perform(selected_entity, selected_block, false);
 							selected_entity->ap -= 1;
+
+							poses.clear();
 						}
 						else
 						{
@@ -397,7 +394,7 @@ void action_update()
 			{
 				if (clicked_entity && clicked_entity != selected_entity && !entity_is_same_team(selected_entity, clicked_entity))
 				{
-					if (selected_entity->ap >= 1)
+					if (true || selected_entity->ap >= 1)
 					{
 						bool has_los = map_has_los(selected_entity, clicked_entity);
 
@@ -420,7 +417,7 @@ void action_update()
 									actionbar_set_msg("Missed..", 3.0f);
 								}
 
-								selected_entity->ap -= 50;
+								selected_entity->ap -= 1;
 							}
 							else
 							{
@@ -444,7 +441,7 @@ void action_update()
 			}
 			else if (current_action_mode == ACTION_MODE_THROW)
 			{
-				if (selected_entity->ap >= 50)
+				if (true || selected_entity->ap >= 50)
 				{
 					// @Todo: maybe we should have some abstract sense of "objects" that are on the map so we can remove them all together?
 					for (u32 i = 0; i < entities->len; i++)
@@ -499,8 +496,8 @@ void action_update()
 			selected_entity = NULL;
 			poses.clear();
 
-			/*dynarray_clear(map_road_segments);
-			map_gen();*/
+			dynarray_clear(map_road_segments);
+			map_gen();
 		}
 	}
 }

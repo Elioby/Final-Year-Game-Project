@@ -11,12 +11,21 @@ void turn_start(team team)
 {
 	turn_team = team;
 
+	bool enemies_alive = false;
+
 	// reset ap
 	for (u32 i = 0; i < entities->len; i++)
 	{
 		entity* ent = (entity*) dynarray_get(entities, i);
 
 		if (ent->team == team) ent->ap = ent->max_ap;
+		else enemies_alive = true;
+	}
+
+	if(!enemies_alive)
+	{
+		actionbar_combatlog_add("%s team won!", team_get_name(team));
+		return;
 	}
 
 	actionbar_combatlog_add("%s team's turn started", team_get_name(team));

@@ -217,7 +217,7 @@ float evaluate_cover(team team)
 					block_pos.x += x;
 					block_pos.z += z;
 
-					if (map_is_cover_at_block(block_pos))
+					if (map_is_cover(block_pos))
 					{
 						vec3 cover_to_covered_vector = glm::normalize(block_pos - friendly->pos);
 

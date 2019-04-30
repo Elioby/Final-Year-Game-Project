@@ -18,7 +18,7 @@ u32 map_max_z = 64;
 //         (this means you get O(n) lookup of whats in a block based on it's position)
 // @Todo: make a map object that holds tile array
 
-bool* cover_at_block;
+u8* cover_height_at_block;
 
 dynarray* map_segments = dynarray_create(20, sizeof(map_segment));
 dynarray* map_road_segments = dynarray_create(20, sizeof(map_road_segment));
@@ -29,22 +29,48 @@ void map_init()
 	srand((u32) time(0));
 	
 	u32 next_power_of_2 = math_u32_next_power_of_2(max(map_max_x, map_max_z));
-
-	cover_at_block = (bool*) debug_calloc(next_power_of_2 * next_power_of_2, sizeof(bool));
-
-	u32 friendly_count = 4;
-	for(u32 i = 0; i < friendly_count; i++) 
-	{
-		entity_add(vec3(i * 2 + 1 + map_max_x / 2 - friendly_count, 0, 2), TEAM_FRIENDLY);
-	}
-
-	u32 enemy_count = 4;
-	for(u32 i = 0; i < enemy_count; i++) 
-	{
-		entity_add(vec3(i * 2 + 1 + map_max_x / 2 - enemy_count, 0, map_max_z - 2), TEAM_ENEMY);
-	}
+	cover_height_at_block = (u8*) debug_calloc(next_power_of_2 * next_power_of_2, sizeof(u8));
 
 	map_gen();
+
+	map_road_segment* first_road_segment = ((map_road_segment*) dynarray_get(map_road_segments, 0));
+	map_road_segment* last_road_segment = ((map_road_segment*) dynarray_get(map_road_segments, map_road_segments->len - 1));
+
+	float road_end_x = last_road_segment->pos.x;
+
+	// spawn friendlies
+	entity* friendly;
+
+	friendly = entity_add(vec3(road_end_x + 1, 0, 1), TEAM_FRIENDLY);
+	friendly->rotation = 0.0f;
+
+	friendly = entity_add(vec3(road_end_x + 1, 0, 3), TEAM_FRIENDLY);
+	friendly->rotation = 0.0f;
+
+	friendly = entity_add(vec3(road_end_x + 3, 0, 1), TEAM_FRIENDLY);
+	friendly->rotation = 0.0f;
+
+	friendly = entity_add(vec3(road_end_x + 3, 0, 3), TEAM_FRIENDLY);
+	friendly->rotation = 0.0f;
+
+	float enemy_facing_direction = 90.0f;
+
+	if (first_road_segment->scale.y >= first_road_segment->scale.x) enemy_facing_direction = 180.0f;
+
+	// spawn enemies
+	entity* enemy;
+
+	enemy = entity_add(vec3(1, 0, 53), TEAM_ENEMY);
+	enemy->rotation = enemy_facing_direction;
+
+	enemy = entity_add(vec3(1, 0, 55), TEAM_ENEMY);
+	enemy->rotation = enemy_facing_direction;
+
+	enemy = entity_add(vec3(3, 0, 53), TEAM_ENEMY);
+	enemy->rotation = enemy_facing_direction;
+
+	enemy = entity_add(vec3(3, 0, 55), TEAM_ENEMY);
+	enemy->rotation = enemy_facing_direction;
 }
 
 void map_draw()
@@ -54,10 +80,10 @@ void map_draw()
 	{
 		for(u32 z = 0; z < map_max_z; z++)
 		{
-			bool cover = map_is_cover_at_block(vec3(x, 0.0f, z));
-			if(cover)
+			u8 cover_height = map_get_cover_height(vec3(x, 0.0f, z));
+			if(cover_height)
 			{
-				graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(vec3(x, 0.0f, z), 0.0f, vec3(1.0f), vec3(1.0f, 2.0f, 1.0f)), vec4(0.6f, 0.6f, 0.6f, 1.0f));
+				graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(vec3(x, 0.0f, z), 0.0f, vec3(1.0f), vec3(1.0f, cover_height, 1.0f)), vec4(0.6f, 0.6f, 0.6f, 1.0f));
 			}
 		}
 	}
@@ -97,19 +123,33 @@ void map_draw()
 		{
 			vec3 healthbox_aspect = vec3(1.0f, 1.0f / 3.0f, 1.0f);
 
+			// big hack
+			ent->pos.y = 0.05f;
+
 			if(ent->health > 0)
 			{
 				image* img;
 				if(ent->team == TEAM_ENEMY) img = asset_manager_get_image("enemy_healthbar");
 				else img = asset_manager_get_image("friendly_healthbar");
 
-				graphics_draw_image(img, graphics_create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.538f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f),
-					vec3((0.5f - 0.1f / 3.0f) * (ent->health / (float)ent->max_health), 0.1285f, 1.0f)));
+				graphics_draw_image(img, graphics_create_model_matrix(vec3(ent->pos.x + 0.033333f, ent->pos.y + 2.538f, ent->pos.z + 0.5f), ent->rotation, vec3(0.0f, 1.0f, 0.0f), vec3(ent->pos.x + 0.5f, 0.0f, ent->pos.z + 0.5f),
+					vec3((0.5f - 0.1f / 3.0f) * (ent->health / (float) ent->max_health), 0.1285f, 1.0f)));
 			}
 
-			graphics_draw_image(asset_manager_get_image("healthbox"), graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.5f, ent->pos.z + 0.5f), 0.0f, vec3(1.0f), healthbox_aspect * 0.5f));
+			graphics_draw_image(asset_manager_get_image("healthbox"), graphics_create_model_matrix(vec3(ent->pos.x, ent->pos.y + 2.5f, ent->pos.z + 0.5f), ent->rotation, vec3(0.0f, 1.0f, 0.0f), 
+				vec3(ent->pos.x + 0.5f, 0.0f, ent->pos.z + 0.5f), healthbox_aspect * 0.5f));
 
-			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, ent->rotation, vec3(0.0f, 1.0f, 0.0f), vec3(ent->pos.x + 0.5f, 0.0f, ent->pos.z + 0.5f), vec3(1.0f)), vec4(0.961f, 0.965f, 0.98f, 1.0f));
+			vec4 entity_color = vec4(0.961f, 0.965f, 0.98f, 1.0f);
+
+			// selected entity color change
+			if (selected_entity == ent) entity_color = vec4(0.501f, 0.980f, 0.607f, 1.0f);
+
+			// targeted entity color change
+			if(targeted_entity == ent) entity_color = vec4(0.988f, 0.533f, 0.537f, 1.0f);
+
+			graphics_draw_mesh(ent->mesh, graphics_create_model_matrix(ent->pos, ent->rotation, vec3(0.0f, 1.0f, 0.0f), vec3(ent->pos.x + 0.5f, 0.0f, ent->pos.z + 0.5f), vec3(1.0f)), entity_color);
+
+			ent->pos.y = 0.0f;
 		}
 	}
 
@@ -117,28 +157,33 @@ void map_draw()
 	graphics_draw_mesh(asset_manager_get_mesh("terrain"), graphics_create_model_matrix(vec3(0.0f), 0.0f, vec3(1.0f), vec3(1.0f)), vec4(0.498f, 0.561f, 0.651f, 1.0f));
 }
 
-void map_add_cover(vec3 block_pos)
+void map_set_cover(vec3 block_pos, u8 height)
 {
-	cover_at_block[libmorton::morton2D_32_encode((u32) block_pos.x, (u32) block_pos.z)] = true;
+	cover_height_at_block[libmorton::morton2D_32_encode((u32) block_pos.x, (u32) block_pos.z)] = height;
 }
 
 void map_clear_cover()
 {
 	u32 next_power_of_2 = math_u32_next_power_of_2(max(map_max_x, map_max_z));
 
-	memset(cover_at_block, 0, next_power_of_2 * next_power_of_2);
+	memset(cover_height_at_block, 0, next_power_of_2 * next_power_of_2);
 }
 
-bool map_is_cover_at_block(u32 x, u32 z)
+u8 map_get_cover_height(u32 x, u32 z)
 {
 	uint_fast32_t i = libmorton::morton2D_32_encode(x, z);
-	return cover_at_block[i];
+	return cover_height_at_block[i];
 }
 
-bool map_is_cover_at_block(vec3 block_pos)
+u8 map_get_cover_height(vec3 block_pos)
 {
 	if (block_pos.x < 0 || block_pos.z < 0  || block_pos.x >= map_max_x || block_pos.z >= map_max_z) return false;
-	return map_is_cover_at_block((u32) block_pos.x, (u32) block_pos.z);
+	return map_get_cover_height((u32) block_pos.x, (u32) block_pos.z);
+}
+
+bool map_is_cover(vec3 block_pos)
+{
+	return map_get_cover_height(block_pos);
 }
 
 vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
@@ -158,7 +203,7 @@ vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to)
 			float z_delta = abs(block_pos.z - closest_to.z);
 
 			float distance = (x_delta * x_delta) + (z_delta * z_delta);
-			if(smallest_distance > distance && map_is_cover_at_block(block_pos))
+			if(smallest_distance > distance && map_is_cover(block_pos))
 			{
 				closest_cover = block_pos;
 				smallest_distance = distance;
@@ -200,13 +245,13 @@ bool map_has_los_internal(float start_x, float start_z, float end_x, float end_z
 
 			// if this block is cover, they have no los
 			int_fast16_t index = libmorton::morton2D_32_encode(next_block_x, next_block_z);
-			if(cover_at_block[index]) return false;
+			if(cover_height_at_block[index]) return false;
 
 			// if the next block is diagonal to the current, check that we didn't move through a diagonal wall
 			if(last_block_x != -1 && last_block_z != -1 && next_block_x != last_block_x && next_block_z != last_block_z)
 			{
-				if (cover_at_block[libmorton::morton2D_32_encode(next_block_x, last_block_z)] 
-					&& cover_at_block[libmorton::morton2D_32_encode(last_block_x, next_block_z)]) return false;
+				if (cover_height_at_block[libmorton::morton2D_32_encode(next_block_x, last_block_z)]
+					&& cover_height_at_block[libmorton::morton2D_32_encode(last_block_x, next_block_z)]) return false;
 			}
 
 			// if we reached the target, we have full los

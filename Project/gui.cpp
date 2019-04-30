@@ -28,11 +28,25 @@ void gui_update()
 	for(u32 i = 0; i < buttons->len; i++)
 	{
 		button* butt = (button*) dynarray_get(buttons, i);
-		if(input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START && input_mouse_x >= butt->x && input_mouse_x <= butt->x + butt->width
-			&& input_mouse_y >= butt->y && input_mouse_y <= butt->y + butt->height)
+		if(butt->visible && input_mouse_x >= butt->x 
+			&& input_mouse_x <= butt->x + butt->width && input_mouse_y >= butt->y && input_mouse_y <= butt->y + butt->height)
 		{
-			if(butt->click_callback) butt->click_callback();
-			handled_click = true;
+			if (!butt->hovering)
+			{
+				butt->hovering = true;
+				if (butt->hover_callback) butt->hover_callback(butt);
+			}
+
+			if (input_mouse_button_left == INPUT_MOUSE_BUTTON_UP_START)
+			{
+				if (butt->click_callback) butt->click_callback(butt);
+				handled_click = true;
+			}
+		}
+		else if(butt->hovering)
+		{
+			butt->hovering = false;
+			if(butt->hover_callback) butt->hover_callback(butt);
 		}
 	}
 
@@ -54,6 +68,7 @@ bool gui_handled_click()
 button* gui_create_button()
 {
 	button b = { 0 };
+	b.visible = true;
 
 	button* butt = (button*) dynarray_add(buttons, &b);
 
@@ -118,10 +133,12 @@ void gui_draw_image(image* image, mat4 transform_matrix)
 
 void gui_draw_button(button* button)
 {
-	debug_assert(button->bg_img, "Image must have a bg image");
+	if(!button->visible) return;
+
+	debug_assert(button->bg_img, "Button must have a bg image");
 
 	image* img;
-	if(button->hover_bg_img && input_mouse_x >= button->x && input_mouse_x <= button->x + button->width && input_mouse_y >= button->y && input_mouse_y <= button->y + button->height)
+	if(button->hover_bg_img && button->hovering)
 	{
 		img = button->hover_bg_img;
 	}

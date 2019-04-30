@@ -48,8 +48,7 @@ u32 font_get_text_width(font* font, char* text, u16 text_len, float scale)
 {
 	u32 i = 0;
 
-	float x1 = 0;
-	float y1 = 0;
+	scale /= 4.0f;
 
 	float total_width = 0.0f;
 
@@ -59,7 +58,7 @@ u32 font_get_text_width(font* font, char* text, u16 text_len, float scale)
 	{
 		char c = text[i++];
 
-		if (c == 0) break;
+		if (c == 0 || i >= text_len) break;
 		stbtt_bakedchar* b = baked_start + c;
 		total_width += b->xadvance * scale;
 	}

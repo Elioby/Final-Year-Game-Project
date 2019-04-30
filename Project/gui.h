@@ -12,12 +12,16 @@ struct button
 	u32 width;
 	u32 height;
 
+	bool visible;
+	bool hovering;
+
 	image* icon_img;
 
 	image* bg_img;
 	image* hover_bg_img;
 
-	void (*click_callback)();
+	void (*click_callback)(button* this_button);
+	void (*hover_callback)(button* this_button);
 };
 
 void gui_init();
@@ -39,3 +43,4 @@ void gui_draw_text(font* font, char* text, vec4 color, u32 x, u32 y, float scale
 void gui_draw_text(font* font, dynstr* text, vec4 color, u32 x, u32 y, float scale);
 
 button* gui_create_button();
+void gui_destroy_button(button* button);
