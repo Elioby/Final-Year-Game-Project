@@ -211,7 +211,21 @@ void perform_shoot(entity* ent, vec3 target, bool temp)
 {
 	entity* target_ent = map_get_entity_at_block(target);
 
-	entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
+	if(temp)
+	{
+		float los_amount = map_get_los_angle(ent, target_ent);
+		if (los_amount > 0.0f)
+		{
+			printf("shoot with chance %f\n", los_amount);
+
+			double random = (double) rand() / (double) RAND_MAX;
+
+			if (random <= los_amount)
+			{
+				entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
+			}
+		}
+	}
 }
 
 void undo_shoot(entity* ent, action_undo_data* undo_data)
