@@ -43,7 +43,7 @@ mesh* map_gen_terrain_mesh()
 #define MIN_BUILDING_SIZE 20
 
 #define BUILDING_MAX_WIDTH_LENGTH_RATIO 3.0f
-#define BUILDING_MAX_PAD_RATIO 4.0f
+#define BUILDING_MAX_PAD_RATIO 5.0f
 
 #define MIN_MAX_ROOM_LEN 6
 
@@ -64,26 +64,27 @@ u32 regen_tries = 0;
 
 void map_gen()
 {
+	if(regen_tries > 0) map_clear_blocks();
+
 	// make sure we have a clean slate
 	building_coverage = 0;
 	building_count = 0;
 
 	dynarray_clear(map_road_segments);
 	dynarray_clear(map_segments);
-	map_clear_cover();
 
 	// first we build the roads, and then the rest of the generation revolves around this
 	map_gen_roads();
-
-	map_gen_cars();
 
 	map_gen_segments();
 	map_gen_simplify_segments();
 
 	map_gen_biomes();
 
+	map_gen_cars();
+
 	// regen if we have a bad building coverage
-	if ((building_coverage / (double) (map_max_x * map_max_z) < 0.3f || building_count < 3) && regen_tries <= 30)
+	if ((building_coverage / (double) (map_max_x * map_max_z) < 0.1f || building_count < 2) && regen_tries <= 50)
 	{
 		regen_tries++;
 		map_gen();
@@ -95,7 +96,6 @@ void map_gen()
 	}
 }
 
-// @Todo: pass in map object?
 void map_gen_roads()
 {
 	vec3 start = vec3(0.0f, 0.0f, map_max_z - 8.0f);
@@ -163,9 +163,13 @@ void map_gen_roads()
 
 void map_gen_cars()
 {
+	s32 car_width = 3;
+	s32 car_length = 5;
+	s32 min_car_padding = 1;
+
 	for (u32 road_index = 0; road_index < map_road_segments->len; road_index++)
 	{
-		map_road_segment road_seg = *(map_road_segment*)dynarray_get(map_road_segments, road_index);
+		map_road_segment road_seg = *(map_road_segment*) dynarray_get(map_road_segments, road_index);
 
 		// the bounds of the road
 		u32 road_min_x = (u32) road_seg.pos.x;
@@ -173,7 +177,72 @@ void map_gen_cars()
 		u32 road_min_z = (u32) road_seg.pos.y;
 		u32 road_max_z = (u32) road_seg.pos.y + (u32) road_seg.scale.y;
 
-		map_set_cover(vec3(road_min_x, 0.0f, road_min_z), 1);
+		if(road_seg.scale.x > road_seg.scale.y)
+		{
+			s32 last_car = road_seg.pos.x;
+
+			if(road_index > 0) last_car = -car_length - 1;
+
+			u32 current_pos = 0;
+
+			while (true)
+			{
+				if (current_pos++ < last_car + car_length + min_car_padding)
+				{
+					current_pos = last_car + car_length + min_car_padding;
+				}
+
+				if (current_pos + car_length >= road_max_x - road_min_x) break;
+
+				double random = (double) rand() / RAND_MAX;
+
+				if (random < 0.2)
+				{
+					last_car = current_pos;
+
+					for (u32 x = 0; x < car_length; x++)
+					{
+						for (u32 z = 0; z < car_width; z++)
+						{
+							map_set_cover(vec3(road_min_x + current_pos + x + 1, 0.0f, road_min_z + z + 1), x == car_length - 1 ? 1 : 2);
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			s32 last_car = road_max_z;
+
+			if (road_index > 0) last_car = road_max_z;
+
+			s32 current_pos = road_max_z;
+
+			while (true)
+			{
+				if (current_pos-- > last_car - car_length - min_car_padding)
+				{
+					current_pos = last_car - car_length - min_car_padding;
+				}
+
+				if (current_pos < (s32) road_min_z) break;
+
+				double random = (double) rand() / RAND_MAX;
+
+				if (random < 0.2)
+				{
+					last_car = current_pos;
+
+					for (u32 x = 0; x < car_width; x++)
+					{
+						for (u32 z = 0; z < car_length; z++)
+						{
+							map_set_cover(vec3(road_min_x + x + 1, 0.0f, current_pos + z), z == 0 ? 1 : 2);
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -303,7 +372,7 @@ void map_gen_simplify_segments()
 				if((biggest_max_z == map_min_z || biggest_min_z == map_max_z) && biggest_min_x == map_min_x && biggest_max_x == map_max_x)
 				{
 					map_segment merged_segment = {};
-					merged_segment.pos = vec2(biggest_segment.pos.x, glm::min(biggest_segment.pos.y, map_seg.pos.y));
+					merged_segment.pos = vec2(biggest_segment.pos.x, min(biggest_segment.pos.y, map_seg.pos.y));
 					merged_segment.scale = vec2(biggest_segment.scale.x, biggest_segment.scale.y + map_seg.scale.y);
 
 					// erase both the merging segments
@@ -321,7 +390,7 @@ void map_gen_simplify_segments()
 				if((biggest_max_x == map_min_x || biggest_min_x == map_max_x) && biggest_min_z == map_min_z && biggest_max_z == map_max_z)
 				{
 					map_segment merged_segment = {};
-					merged_segment.pos = vec2(glm::min(biggest_segment.pos.x, map_seg.pos.x), biggest_segment.pos.y);
+					merged_segment.pos = vec2(min(biggest_segment.pos.x, map_seg.pos.x), biggest_segment.pos.y);
 					merged_segment.scale = vec2(biggest_segment.scale.x + map_seg.scale.x, biggest_segment.scale.y);
 
 					// erase both the merging segments
@@ -406,7 +475,7 @@ void map_gen_biomes()
 		map_segment seg = *(map_segment*) dynarray_get(map_segments, i);
 
 		// must be > 20 on each side and not be more than 3x wide than long and vise versa
-		if(seg.scale.x > MIN_BUILDING_SIZE && seg.scale.y > MIN_BUILDING_SIZE 
+		if(seg.scale.x > MIN_BUILDING_SIZE && seg.scale.y > MIN_BUILDING_SIZE
 			&& max(seg.scale.x, seg.scale.y) / min(seg.scale.x, seg.scale.y) <= BUILDING_MAX_WIDTH_LENGTH_RATIO)
 		{
 			map_gen_building(seg);
@@ -416,10 +485,10 @@ void map_gen_biomes()
 
 void map_gen_building(map_segment seg)
 {
-	u32 x_pad_1 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.x / BUILDING_MAX_PAD_RATIO));
-	u32 x_pad_2 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.x / BUILDING_MAX_PAD_RATIO));
-	u32 z_pad_1 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.y / BUILDING_MAX_PAD_RATIO));
-	u32 z_pad_2 = max(2, (((double) rand() / RAND_MAX)) * (seg.scale.y / BUILDING_MAX_PAD_RATIO));
+	u32 x_pad_1 = max((u32) 2, (u32) ((((double) rand() / RAND_MAX)) * (seg.scale.x / BUILDING_MAX_PAD_RATIO)));
+	u32 x_pad_2 = max((u32) 2, (u32) ((((double) rand() / RAND_MAX)) * (seg.scale.x / BUILDING_MAX_PAD_RATIO)));
+	u32 z_pad_1 = max((u32) 2, (u32) ((((double) rand() / RAND_MAX)) * (seg.scale.y / BUILDING_MAX_PAD_RATIO)));
+	u32 z_pad_2 = max((u32) 2, (u32) ((((double) rand() / RAND_MAX)) * (seg.scale.y / BUILDING_MAX_PAD_RATIO)));
 
 	u32 building_width = (seg.scale.x - x_pad_1 - x_pad_2);
 	u32 building_length = (seg.scale.y - z_pad_1 - z_pad_2);
@@ -458,9 +527,10 @@ void map_gen_building(map_segment seg)
 	}
 
 	// gen second wall along z in a random direction to make a room
-	double random = (double) rand() / RAND_MAX;
+	bool left_side_wall = ((double) rand() / RAND_MAX) > 0.5f;
+	bool right_side_wall = (((double) rand() / RAND_MAX) > 0.5f) || !left_side_wall;
 
-	if (random > 0.5f)
+	if (left_side_wall)
 	{
 		// gen along left side
 		for (u32 z = seg.pos.y + z_pad_1; z <= seg.pos.y + z_pad_1 + z_pos; z++)
@@ -468,12 +538,47 @@ void map_gen_building(map_segment seg)
 			map_set_cover(vec3(seg.pos.x + x_pad_1 + x_len, 0.0f, z), 2);
 		}
 	}
-	else
+
+	if(right_side_wall)
 	{
 		// gen along right side
 		for (u32 z = seg.pos.y + z_pad_1 + z_pos; z <= seg.pos.y + z_pad_1 + building_length; z++)
 		{
 			map_set_cover(vec3(seg.pos.x + x_pad_1 + x_len, 0.0f, z), 2);
+		}
+	}
+
+	// gen external doors
+	u32 door_x_left;
+
+	while ((door_x_left = 2 + (((double) rand() / RAND_MAX)) * (building_width - 4)) < x_len + 2 && door_x_left > x_len - 2 && left_side_wall);
+	map_set_cover(vec3(seg.pos.x + x_pad_1 + door_x_left, 0.0f, seg.pos.y + z_pad_1), 0);
+
+	u32 door_x_right;
+
+	while ((door_x_right = 2 + (((double) rand() / RAND_MAX)) * (building_width - 4)) < x_len + 2 && door_x_right > x_len - 2 && right_side_wall);
+	map_set_cover(vec3(seg.pos.x + x_pad_1 + door_x_right, 0.0f, seg.pos.y + z_pad_1 + building_length), 0);
+
+	// gen internal doors
+	bool door_on_first_internal = ((double) rand() / RAND_MAX) > 0.5f;
+
+	if(door_on_first_internal)
+	{
+		map_set_cover(vec3(seg.pos.x + x_pad_1 + 2, 0.0f, seg.pos.y + z_pad_1 + z_pos), 0);
+	}
+
+	if(!door_on_first_internal || (left_side_wall && right_side_wall))
+	{
+		if(left_side_wall)
+		{
+			u32 wall = 2 + (((double) rand() / RAND_MAX)) * (z_pos - 4);
+			map_set_cover(vec3(seg.pos.x + x_pad_1 + x_len, 0.0f, seg.pos.y + z_pad_1 + wall), 0);
+		}
+
+		if (right_side_wall)
+		{
+			u32 wall = 2 + (((double) rand() / RAND_MAX)) * (building_length - z_pos - 4);
+			map_set_cover(vec3(seg.pos.x + x_pad_1 + x_len, 0.0f, seg.pos.y + z_pad_1 + building_length - wall), 0);
 		}
 	}
 }

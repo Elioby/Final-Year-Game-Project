@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 
 #include <glm/glm.hpp>
 
@@ -38,6 +39,8 @@ void button_end_turn_all(button* this_button)
 
 int main()
 {
+	srand((u32) time(0));
+
 	window_init();
 	graphics_init(WINDOW_WIDTH, WINDOW_HEIGHT);
 	input_init();
@@ -123,7 +126,7 @@ void draw()
 	gui_draw_button(b);
 
 	// draw selected tile
-	if(!map_is_cover(input_mouse_block_pos))
+	if(!map_is_cover(input_mouse_block_pos) && (action_get_action_mode() == ACTION_MODE_SELECT_UNITS || action_get_action_mode() == ACTION_MODE_MOVE))
 	{
 		graphics_draw_mesh(asset_manager_get_mesh("cube"), graphics_create_model_matrix(input_mouse_block_pos, 0.0f, vec3(1.0f), vec3(1.0f, 0.1f, 1.0f)));
 	}

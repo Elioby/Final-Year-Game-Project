@@ -43,4 +43,4 @@ void gui_draw_text(font* font, char* text, vec4 color, u32 x, u32 y, float scale
 void gui_draw_text(font* font, dynstr* text, vec4 color, u32 x, u32 y, float scale);
 
 button* gui_create_button();
-void gui_destroy_button(button* button);
+void gui_destroy_button(button* b);

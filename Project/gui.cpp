@@ -10,7 +10,7 @@
 #include "graphics.h"
 #include "dynarray.h"
 
-dynarray* buttons = dynarray_create(10, sizeof(button));
+dynarray* buttons = dynarray_create(10, sizeof(button*));
 
 bool handled_click = false;
 bool has_gui_update_happened_this_frame = false;
@@ -27,7 +27,7 @@ void gui_update()
 
 	for(u32 i = 0; i < buttons->len; i++)
 	{
-		button* butt = (button*) dynarray_get(buttons, i);
+		button* butt = *((button**) dynarray_get(buttons, i));
 		if(butt->visible && input_mouse_x >= butt->x 
 			&& input_mouse_x <= butt->x + butt->width && input_mouse_y >= butt->y && input_mouse_y <= butt->y + butt->height)
 		{
@@ -67,12 +67,32 @@ bool gui_handled_click()
 
 button* gui_create_button()
 {
-	button b = { 0 };
-	b.visible = true;
+	button* b = (button*) debug_calloc(1, sizeof(button));
+	b->visible = true;
 
-	button* butt = (button*) dynarray_add(buttons, &b);
+	button* butt = *((button**) dynarray_add(buttons, &b));
 
 	return butt; 
+}
+
+void gui_destroy_button(button* b)
+{
+	for (u32 i = 0; i < buttons->len; i++)
+	{
+		button* butt = *((button**) dynarray_get(buttons, i));
+
+		if(butt == b)
+		{
+			b->hovering = false;
+			if (b->hover_callback) b->hover_callback(b);
+
+			dynarray_remove(buttons, i);
+			free(butt);
+			return;
+		}
+	}
+
+	debug_assert(false, "Failed to find button to destroy");
 }
 
 void gui_draw_colored_rect(vec4 color, u32 x, u32 y, u32 width, u32 height)
@@ -158,8 +178,6 @@ void gui_draw_button(button* button)
 void gui_draw_text(font* font, char* text, u16 text_len, vec4 color, u32 x, u32 y, float scale)
 {
 	bgfx_set_uniform(graphics_tint_color, &color, 1);
-
-	scale /= 2.0f;
 
 	float x1 = 0;
 	float y1 = 0;

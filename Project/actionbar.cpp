@@ -2,7 +2,6 @@
 
 #include "graphics.h"
 #include "asset_manager.h"
-#include "action.h"
 #include "entity.h"
 #include "map.h"
 #include "dynarray.h"
@@ -36,10 +35,12 @@ dynstr* combat_log_text = dynstr_create(200);
 void action_move_mode(button* this_button);
 void action_shoot_mode(button* this_button);
 void action_throw_mode(button* this_button);
-void action_end_turn(button* this_button);
+void action_do_nothing(button* this_button);
 
 void action_shoot_unit_button_click(button* this_button);
 void action_shoot_unit_button_hover(button* this_button);
+
+void clear_shot_targets();
 
 void actionbar_init()
 {
@@ -90,7 +91,7 @@ void actionbar_init()
 	end_button->icon_img = asset_manager_get_image("action_end");
 	end_button->bg_img = bg;
 	end_button->hover_bg_img = hover;
-	end_button->click_callback = action_end_turn;
+	end_button->click_callback = action_do_nothing;
 	action_buttons[2] = end_button;
 
 	float padding = 0.5f;
@@ -112,17 +113,15 @@ void actionbar_update(float dt)
 	actionbar_msg.seconds_since_start += dt;
 }
 
-// @Todo: temp
-std::vector<vec3> poses;
-
 void actionbar_draw()
 {
 	// @Todo: why is this in action bar?
-	for (u32 i = 0; i < poses.size(); i++)
+	for (u32 i = 0; i < action_move_targets->len; i++)
 	{
-		vec3 ve = poses[i];
-		ve.y = 0.15f;
-		graphics_draw_mesh(asset_manager_get_mesh("plane"), graphics_create_model_matrix(ve, 90.0f, vec3(1.0f, 0.0f, 0.0f), vec3(0.5f)), vec4(0.0f, 0.492f, 0.901f, 0.3f));
+		vec3 pos = *(vec3*) dynarray_get(action_move_targets, i);
+		pos.y = 0.15f;
+		graphics_draw_mesh(asset_manager_get_mesh("plane"), graphics_create_model_matrix(pos, 90.0f, vec3(1.0f, 0.0f, 0.0f), 
+			vec3(0.5f)), vec4(0.0f, 0.492f, 0.901f, 0.3f));
 	}
 
 	font* inconsolata_font = asset_manager_get_font("inconsolata");
@@ -130,15 +129,15 @@ void actionbar_draw()
 	if(selected_entity)
 	{
 		// draw top action bar 
-		if (current_action_mode != ACTION_MODE_SELECT_UNITS)
+		if (action_get_action_mode() != ACTION_MODE_SELECT_UNITS)
 		{
 			char* text;
 
-			if (current_action_mode == ACTION_MODE_SHOOT)
+			if (action_get_action_mode() == ACTION_MODE_SHOOT)
 			{
 				text = "Shoot Mode";
 			}
-			else if (current_action_mode == ACTION_MODE_THROW)
+			else if (action_get_action_mode() == ACTION_MODE_THROW)
 			{
 				text = "Throw Mode";
 			}
@@ -153,9 +152,9 @@ void actionbar_draw()
 			gui_draw_image(asset_manager_get_image("actionbar_top_bg"), graphics_projection_width / 2 - bar_width / 2, graphics_projection_height - bar_height, bar_width, bar_height);
 
 			// bar text
-			float scale = 0.5f;
-			u32 text_width = (u32)font_get_text_width(inconsolata_font, text, scale);
-			u32 text_height = (u32)(128.0f * scale);
+			float scale = 0.25f;
+			u32 text_width = (u32) font_get_text_width(inconsolata_font, text, scale);
+			u32 text_height = (u32) inconsolata_font->pixel_height * scale;
 
 			gui_draw_text(inconsolata_font, text, vec4(1.0f, 1.0f, 1.0f, 1.0f), graphics_projection_width / 2 - text_width / 2, graphics_projection_height - text_height, scale);
 		}
@@ -167,7 +166,7 @@ void actionbar_draw()
 		dynstr_clear(ap_text);
 
 		dynstr_append(ap_text, "AP: %i / %i", selected_entity->ap, selected_entity->max_ap);
-		gui_draw_text(inconsolata_font, ap_text, vec4(0.0f, 0.0f, 0.0f, 1.0f), (graphics_projection_width / 2) - (actionbar_width / 2) + 15, 15, 0.25f);
+		gui_draw_text(inconsolata_font, ap_text, vec4(0.0f, 0.0f, 0.0f, 1.0f), (graphics_projection_width / 2) - (actionbar_width / 2) + 15, 15, 0.125f);
 	}
 
 	// draw action buttons
@@ -178,35 +177,48 @@ void actionbar_draw()
 		gui_draw_button(b);
 	}
 
+	u32 target_button_width = 80;
+	u32 target_button_height = 40;
+
+	u32 target_button_padding = 50;
+
+	u32 target_button_total_width = ((shoot_target_buttons->len) * (target_button_width + target_button_padding)) - target_button_padding;
+
 	// draw shoot target buttons
 	for (u32 i = 0; i < shoot_target_buttons->len; i++)
 	{
 		shot_target* st = (shot_target*) dynarray_get(shoot_target_buttons, i);
 
-		st->button->x = i * 40;
+		st->button->width = target_button_width;
+		st->button->height = target_button_height;
+		st->button->x = i * (st->button->width + target_button_padding) + (graphics_projection_width / 2.0f) - (target_button_total_width / 2);
+		st->button->y = 150;
 		
 		gui_draw_button(st->button);
 
 		dynstr_clear(button_shoot_text);
-		dynstr_append(button_shoot_text, "%i%%", (int) st->shot_chance);
+		dynstr_append(button_shoot_text, "%i%%", (u32) round(st->shot_chance * 100.0f));
 
-		gui_draw_text(inconsolata_font, button_shoot_text, vec4(1.0f, 0.0f, 0.0f, 1.0f), i * 40, 20, 0.1f);
+		float scale = 0.125f;
+
+		gui_draw_text(inconsolata_font, button_shoot_text, vec4(0.306f, 0.306f, 0.314f, 1.0f),
+			st->button->x + ((st->button->width / 2.0f) - (font_get_text_width(inconsolata_font, button_shoot_text, scale) / 2.0f)), st->button->y + ((st->button->height / 2.0f) - ((inconsolata_font->pixel_height * scale) / 4.0f)), scale);
 	}
 
 	// draw action bar text
 	if (actionbar_msg.seconds_since_start < actionbar_msg.show_seconds)
 	{
-		u32 width = font_get_text_width(inconsolata_font, actionbar_msg.msg, 0.25f);
+		u32 width = font_get_text_width(inconsolata_font, actionbar_msg.msg, 0.125f);
 
-		gui_draw_text(inconsolata_font, actionbar_msg.msg, vec4(glm::min(0.8f - actionbar_msg.seconds_since_start * 0.75f, 1.0f), 0.0f, 0.0f, 
-			glm::min(actionbar_msg.show_seconds - actionbar_msg.seconds_since_start, 1.0f)), graphics_projection_width / 2 - width / 2, graphics_projection_height / 7, 0.25f);
+		gui_draw_text(inconsolata_font, actionbar_msg.msg, vec4(min(0.8f - actionbar_msg.seconds_since_start * 0.75f, 1.0f), 0.0f, 0.0f, 
+			min(actionbar_msg.show_seconds - actionbar_msg.seconds_since_start, 1.0f)), graphics_projection_width / 2 - width / 2, graphics_projection_height / 7, 0.125f);
 	}
 
 	// draw combat log
 	u32 log_box_height = 300;
 	gui_draw_image(asset_manager_get_image("combat_log_bg"), 10, 20, 400, log_box_height);
 
-	float scale = 0.15f;
+	float scale = 0.075f;
 	u32 log_end = combat_log_text->len - 1;
 	u32 log_y = 0;
 	u32 log_text_y_pad = 30;
@@ -230,6 +242,18 @@ void actionbar_draw()
 
 			if(log_y > log_box_height - log_text_y_pad) break;
 		}
+	}
+}
+
+void actionbar_switch_off_mode(action_mode old_mode)
+{
+	if(old_mode == ACTION_MODE_SHOOT)
+	{
+		clear_shot_targets();
+	}
+	else if (old_mode == ACTION_MODE_MOVE)
+	{
+		dynarray_clear(action_move_targets);
 	}
 }
 
@@ -257,42 +281,57 @@ void actionbar_combatlog_add(char* format, ...)
 
 void action_move_mode(button* this_button)
 {
-	current_action_mode = ACTION_MODE_MOVE;
+	if (selected_entity->ap <= 0)
+	{
+		actionbar_set_msg("No action points remaining", 3.0f);
+		return;
+	}
+
+	action_switch_mode(ACTION_MODE_MOVE);
 
 	u32 last_target_index = 0;
-	vec3 target;
 
-	while(actions[0].get_next_target(selected_entity, &last_target_index, &target))
-	{
-		poses.push_back(target);
-	}
+	dynarray_clear(action_move_targets);
+
+	actions[0].get_targets(selected_entity, action_move_targets, false);
 }
 
 void action_shoot_mode(button* this_button)
 {
-	dynarray_clear(shoot_target_buttons);
-
-	u32 i = 0;
-	vec3 target_pos;
-	while(action_shoot.get_next_target(selected_entity, &i, &target_pos))
+	if(selected_entity->ap <= 0)
 	{
-		entity* target = map_get_entity_at_block(target_pos);
+		actionbar_set_msg("No action points remaining", 3.0f);
+		return;
+	}
+
+	dynarray* targets = dynarray_create(100, sizeof(vec3));
+	action_shoot.get_targets(selected_entity, targets, false);
+
+	for(u32 i = 0; i < targets->len; i++)
+	{
+		vec3 target_pos = *(vec3*) dynarray_get(targets, i);
+
+		entity* target_entity = map_get_entity_at_block(target_pos);
 
 		button* b = gui_create_button();
 
-		b->width = 40;
-		b->height = 40;
 		b->click_callback = action_shoot_unit_button_click;
 		b->hover_callback = action_shoot_unit_button_hover;
 		b->bg_img = asset_manager_get_image("action_button");
 		b->hover_bg_img = asset_manager_get_image("action_button_hover");
 
-		dynarray_add(shoot_target_buttons, &b);
+		shot_target st;
+
+		st.button = b;
+		st.target_entity = target_entity;
+		st.shot_chance = map_get_los_angle(selected_entity, target_entity);
+
+		dynarray_add(shoot_target_buttons, &st);
 	}
 
 	if(shoot_target_buttons->len > 0)
 	{
-		current_action_mode = ACTION_MODE_SHOOT;
+		action_switch_mode(ACTION_MODE_SHOOT);
 	}
 	else
 	{
@@ -302,67 +341,83 @@ void action_shoot_mode(button* this_button)
 
 void action_throw_mode(button* this_button)
 {
-	current_action_mode = ACTION_MODE_THROW;
+	action_switch_mode(ACTION_MODE_THROW);
 }
 
-void action_end_turn(button* this_button)
+void action_do_nothing(button* this_button)
 {
 	selected_entity->ap = 0;
 	selected_entity = NULL;
-	current_action_mode = ACTION_MODE_SELECT_UNITS;
+	action_switch_mode(ACTION_MODE_SELECT_UNITS);
 }
 
 void action_shoot_unit_button_click(button* this_button)
 {
 	u32 i;
+	shot_target* shot;
 
 	for (i = 0; i < shoot_target_buttons->len; i++)
 	{
-		button* b = *((button**)dynarray_get(shoot_target_buttons, i));
-		if (b == this_button) break;
+		shot_target* st = (shot_target*) dynarray_get(shoot_target_buttons, i);
+		if (st->button == this_button)
+		{
+			shot = st;
+			break;
+		}
 	}
 
-	printf("%i\n", i);
+	debug_assert(shot, "Failed to find target entity for unit shot");
 
-	u32 j = 0;
-	vec3 target_pos;
-	for (u32 k = 0; k <= i; k++)
-	{
-		action_shoot.get_next_target(selected_entity, &j, &target_pos);
-	}
+	entity* target = shot->target_entity;
 
-	entity* target = map_get_entity_at_block(target_pos);
-
-	action_shoot.perform(selected_entity, target_pos, false);
+	action_shoot.perform(selected_entity, target->pos, false);
 
 	if(target->dead)
 	{
 		dynarray_remove(shoot_target_buttons, i);
 
-		// @Todo: we should really have a way of destroying buttons..
-		this_button->visible = false;
+		gui_destroy_button(this_button);
+	}
+
+	selected_entity->ap -= 1;
+
+	if(selected_entity->ap <= 0)
+	{
+		action_switch_mode(ACTION_MODE_SELECT_UNITS);
 	}
 }
 
 void action_shoot_unit_button_hover(button* this_button)
 {
-	u32 i;
+	shot_target* shot;
 
-	for(i = 0; i < shoot_target_buttons->len; i++)
+	for(u32 i = 0; i < shoot_target_buttons->len; i++)
 	{
-		button* b = *((button**) dynarray_get(shoot_target_buttons, i));
-		if (b == this_button) break;
+		shot_target* st = (shot_target*) dynarray_get(shoot_target_buttons, i);
+		if (st->button == this_button)
+		{
+			shot = st;
+			break;
+		}
 	}
 
-	u32 j = 0;
-	vec3 target_pos;
-	for (u32 k = 0; k <= i; k++)
-	{
-		action_shoot.get_next_target(selected_entity, &j, &target_pos);
-	}
+	debug_assert(shot && !shot->target_entity->dead, "Failed to find target entity for unit shot");
 
-	entity* target = map_get_entity_at_block(target_pos);
+	entity* target = shot->target_entity;
 
 	if (this_button->hovering) targeted_entity = target;
 	else if (targeted_entity == target) targeted_entity = NULL;
+}
+
+void clear_shot_targets()
+{
+	while(shoot_target_buttons->len > 0)
+	{
+		u32 i = shoot_target_buttons->len - 1;
+		shot_target* st = (shot_target*) dynarray_get(shoot_target_buttons, i);
+		
+		gui_destroy_button(st->button);
+
+		dynarray_remove(shoot_target_buttons, i);
+	}
 }

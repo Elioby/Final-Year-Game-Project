@@ -15,7 +15,7 @@ void board_eval_build_cache()
 
 	for (u32 i = 0; i < total; i++)
 	{
-		if (((entity*) dynarray_get(entities, i))->team != team)
+		if ((*((entity**) dynarray_get(entities, i)))->team != team)
 		{
 			enemies++;
 		}
@@ -28,12 +28,12 @@ void board_eval_build_cache()
 	u32 index = 0;
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* enemy = (entity*) dynarray_get(entities, i);
+		entity* enemy = *((entity**) dynarray_get(entities, i));
 		if (enemy->team != team)
 		{
 			for (u32 j = 0; j < entities->len; j++)
 			{
-				entity* friendly = (entity*) dynarray_get(entities, i);
+				entity* friendly = *((entity**) dynarray_get(entities, i));
 				if (friendly->team == team)
 				{
 					bool result = map_has_los(enemy, friendly);
@@ -64,12 +64,12 @@ float evaluate_shot_chance(team team)
 	// @Todo: abstract this out for use in UI code as well as AI code
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* enemy = (entity*) dynarray_get(entities, i);
+		entity* enemy = *((entity**) dynarray_get(entities, i));
 		if (!enemy->dead && enemy->team != team)
 		{
 			for (u32 j = 0; j < entities->len; j++)
 			{
-				entity* friendly = (entity*) dynarray_get(entities, j);
+				entity* friendly = *((entity**) dynarray_get(entities, j));
 				if (!friendly->dead && friendly->team == team)
 				{
 					bool has_los;
@@ -128,7 +128,7 @@ float evaluate_health(team team)
 
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = (entity*) dynarray_get(entities, i);
+		entity* ent = *((entity**) dynarray_get(entities, i));
 
 		float entity_eval = (float) ent->health / ent->max_health;
 
@@ -163,7 +163,7 @@ float evaluate_distance_to_enemy(team team)
 
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* friendly = (entity*) dynarray_get(entities, i);
+		entity* friendly = *((entity**) dynarray_get(entities, i));
 		if (!friendly->dead && friendly->team == team)
 		{
 			bool anyone_alive = false;
@@ -171,7 +171,7 @@ float evaluate_distance_to_enemy(team team)
 
 			for (u32 j = 0; j < entities->len; j++)
 			{
-				entity* enemy = (entity*) dynarray_get(entities, j);
+				entity* enemy = *((entity**) dynarray_get(entities, j));
 				if (!enemy->dead && enemy->team != team)
 				{
 					float distance = map_distance_squared(enemy->pos, friendly->pos);
@@ -198,12 +198,12 @@ float evaluate_cover(team team)
 	float eval = 0.0f;
 
 	float in_cover_no_enemy_in_direction_weight = 0.01f;
-	float in_cover_enemy_in_direction_weight = 1.0f;
+	float in_cover_enemy_in_direction_weight = 0.25f;
 
 	// check if they are in cover from each angle (and prefer being in cover if there is an enemy in that direction)
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* friendly = (entity*) dynarray_get(entities, i);
+		entity* friendly = *((entity**) dynarray_get(entities, i));
 
 		if (!friendly->dead && friendly->team == team)
 		{
@@ -223,7 +223,7 @@ float evaluate_cover(team team)
 
 						for (u32 j = 0; j < entities->len; j++)
 						{
-							entity* enemy = (entity*) dynarray_get(entities, j);
+							entity* enemy = *((entity**) dynarray_get(entities, j));
 
 							if(!enemy->dead && enemy->team != team)
 							{

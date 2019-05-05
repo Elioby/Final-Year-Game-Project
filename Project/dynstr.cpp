@@ -82,7 +82,7 @@ dynstr* dynstr_ensure_buflen(dynstr* dstr, u32 min_len)
 
 	if(dstr->buf_len < min_len)
 	{
-		dynstr_set_buflen(dstr, max(min_len, dstr->buf_len * 2 + 2));
+		dynstr_set_buflen(dstr, max(min_len, (u32) (dstr->buf_len * 2 + 2)));
 	}
 
 	return dstr;

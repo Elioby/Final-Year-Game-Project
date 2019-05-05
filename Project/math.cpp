@@ -33,6 +33,26 @@ u64 min(u64 a, u64 b)
 	return abstract_min(a, b);
 }
 
+s8 min(s8 a, s8 b)
+{
+	return abstract_min(a, b);
+}
+
+s16 min(s16 a, s16 b)
+{
+	return abstract_min(a, b);
+}
+
+s32 min(s32 a, s32 b)
+{
+	return abstract_min(a, b);
+}
+
+s64 min(s64 a, s64 b)
+{
+	return abstract_min(a, b);
+}
+
 float max(float a, float b)
 {
 	return abstract_max(a, b);
@@ -59,6 +79,26 @@ u32 max(u32 a, u32 b)
 }
 
 u64 max(u64 a, u64 b)
+{
+	return abstract_max(a, b);
+}
+
+s8 max(s8 a, s8 b)
+{
+	return abstract_max(a, b);
+}
+
+s16 max(s16 a, s16 b)
+{
+	return abstract_max(a, b);
+}
+
+s32 max(s32 a, s32 b)
+{
+	return abstract_max(a, b);
+}
+
+s64 max(s64 a, s64 b)
 {
 	return abstract_max(a, b);
 }

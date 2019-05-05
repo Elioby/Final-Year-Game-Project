@@ -71,7 +71,7 @@ void dynarray_remove(dynarray* arr, u32 index)
 	debug_assert(index < internal_arr->len, "Dynamic array remove index out of range");
 	
 	// move any later elements back
-	if(index < internal_arr->len)
+	if(index < internal_arr->len - 1)
 	{
 		memcpy(internal_arr->data + (index * internal_arr->element_size), internal_arr->data + ((index + 1) * internal_arr->element_size),
 			((arr->len - index) * internal_arr->element_size));

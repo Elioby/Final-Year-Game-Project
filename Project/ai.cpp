@@ -6,7 +6,7 @@
 #include "turn.h"
 #include "minimax.h"
 
-void ai_perform_entity(entity* ent)
+void ai_perform_entity(entity* ent, u32 depth)
 {
 	team team = ent->team;
 
@@ -16,7 +16,7 @@ void ai_perform_entity(entity* ent)
 
 	board_eval_build_cache();
 
-	best_eval = minimax_search(ent, best_eval, 2, 2, team, team, -FLT_MAX, +FLT_MAX); 
+	best_eval = minimax_search(ent, best_eval, depth, depth, team, team, -FLT_MAX, +FLT_MAX);
 	
 	best_action = best_eval.action;
 
@@ -30,16 +30,16 @@ void ai_perform_entity(entity* ent)
 	best_action.perform(ent, best_eval.target, false);
 }
 
-void ai_perform_team(team team)
+void ai_perform_team(team team, u32 depth)
 {
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = (entity*) dynarray_get(entities, i);
+		entity* ent = *((entity**) dynarray_get(entities, i));
 
 		if (ent->team == team && !ent->dead)
 		{
-			ai_perform_entity(ent);
-			ai_perform_entity(ent);
+			ai_perform_entity(ent, depth);
+			ai_perform_entity(ent, depth);
 		}
 	}
 }

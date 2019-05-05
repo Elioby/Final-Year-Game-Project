@@ -28,15 +28,21 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 star
 
 	chosen_act.eval = extreme_eval;
 
+	dynarray* targets = dynarray_create(200, sizeof(vec3));
+
 	for(u32 action_index = 0; action_index < stack_array_length(actions); action_index++)
 	{
 		action act = actions[action_index];
 
 		u32 last_target_index = 0;
-		vec3 target;
 
-		while(act.get_next_target(ent, &last_target_index, &target))
+		dynarray_clear(targets);
+		act.get_targets(ent, targets, true);
+
+		for(u32 i = 0; i < targets->len; i++)
 		{
+			vec3 target = *(vec3*) dynarray_get(targets, i);
+
 			bool cutoff = false;
 			action_undo_data* undo_data = act.gather_undo_data(ent, target);
 
@@ -84,6 +90,8 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 star
 	}
 
 	out_of_node_search:
+
+	dynarray_destory(targets);
 
 	return chosen_act;
 }

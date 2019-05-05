@@ -38,7 +38,7 @@ void input_update()
 
 	input_mouse_ray = calculate_mouse_ray();
 
-	vec3 intersection = physics_plane_intersection_with_ray(camera_pos, input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	vec3 intersection = physics_plane_intersection_with_ray(camera_get_pos(), input_mouse_ray, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 	if(!map_pos_equal(intersection, vec3(-1.0f)))
 	{

@@ -4,7 +4,7 @@
 #include "map.h"
 #include "actionbar.h"
 
-dynarray* entities = dynarray_create(10, sizeof(entity));
+dynarray* entities = dynarray_create(10, sizeof(entity*));
 
 entity* selected_entity;
 entity* targeted_entity;
@@ -17,30 +17,40 @@ void entity_update()
 
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = (entity*) dynarray_get(entities, i);
+		entity* ent = *((entity**) dynarray_get(entities, i));
 
 		if (ent->dead) 
 		{
 			dynarray_remove(entities, i);
+			free(ent);
 			i--;
 		}
 	}
 }
 
-entity* entity_add(vec3 pos, team team)
+entity* entity_create(vec3 pos, team team)
 {
-	entity ent = { 0 };
-	ent.id = last_entity_id++;
-	ent.pos = pos;
-	ent.rotation = 180.0f;
-	ent.mesh = asset_manager_get_mesh("robot");
-	ent.max_health = 10;
-	ent.health = ent.max_health;
-	ent.max_ap = 2;
-	ent.ap = 0;
-	ent.dead = false;
-	ent.team = team;
-	return (entity*) dynarray_add(entities, &ent);
+	entity* ent = (entity*) debug_calloc(1, sizeof(entity));
+	ent->id = last_entity_id++;
+	ent->pos = pos;
+	ent->rotation = 180.0f;
+	ent->mesh = asset_manager_get_mesh("robot");
+	ent->max_health = 10;
+	ent->health = ent->max_health;
+	ent->max_ap = 2;
+	ent->ap = 0;
+	ent->dead = false;
+	ent->team = team;
+
+	dynarray_add(entities, &ent);
+
+	return ent;
+}
+
+void entity_move(entity* ent, vec3 pos)
+{
+	map_update_entity_pos(ent, pos);
+	ent->pos = pos;
 }
 
 void entity_kill(entity* ent)

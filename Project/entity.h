@@ -32,7 +32,9 @@ extern entity* targeted_entity;
 
 void entity_update();
 
-entity* entity_add(vec3 pos, team t);
+entity* entity_create(vec3 pos, team t);
+
+void entity_move(entity* ent, vec3 pos);
 
 void entity_health_change(entity* ent, entity* inflict_ent, s32 amount);
 void entity_health_change(entity* ent, entity* inflict_ent, s32 amount, bool temp);

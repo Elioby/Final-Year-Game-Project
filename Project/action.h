@@ -13,7 +13,7 @@ struct action
 	void (*perform)(entity* ent, vec3 target, bool temp);
 	void (*undo)(entity* ent, action_undo_data* undo_data);
 
-	bool (*get_next_target)(entity* ent, u32* last_index, vec3* result);
+	void(*get_targets)(entity* ent, dynarray* targets, bool monte_carlo);
 };
 
 typedef enum action_mode
@@ -43,7 +43,15 @@ extern action action_nothing;
 extern action action_move;
 extern action action_shoot;
 
-extern action_mode current_action_mode;
+extern dynarray* action_move_targets;
 
 void action_init();
 void action_update();
+
+action_mode action_get_action_mode();
+void action_switch_mode(action_mode mode);
+
+#define ACTION_SHOOT_DAMAGE 6
+#define ACTION_MOVE_RADIUS 10
+#define ACTION_GRENADE_RADIUS 3
+#define ACTION_GRENADE_DAMAGE 4

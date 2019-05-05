@@ -16,7 +16,7 @@ void turn_start(team team)
 	// reset ap
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = (entity*) dynarray_get(entities, i);
+		entity* ent = *((entity**) dynarray_get(entities, i));
 
 		if (ent->team == team) ent->ap = ent->max_ap;
 		else enemies_alive = true;
@@ -32,17 +32,22 @@ void turn_start(team team)
 
 	if (team == TEAM_ENEMY)
 	{
-		ai_perform_team(team);
+		ai_perform_team(team, 3);
 		turn_end();
 	}
 }
 
 void turn_end()
 {
+	if(action_get_action_mode() != ACTION_MODE_SELECT_UNITS)
+	{
+		action_switch_mode(ACTION_MODE_SELECT_UNITS);
+	}
+
 	u32 enemies_alive = 0;
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = (entity*) dynarray_get(entities, i);
+		entity* ent = *((entity**) dynarray_get(entities, i));
 
 		if (ent->team == turn_team) ent->ap = 0;
 		else enemies_alive++;
@@ -71,7 +76,7 @@ bool turn_is_complete(team team)
 
 	for (u32 i = 0; i < entities->len; i++)
 	{
-		entity* ent = (entity*) dynarray_get(entities, i);
+		entity* ent = *((entity**) dynarray_get(entities, i));
 
 		if (ent->team == team)
 		{

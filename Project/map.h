@@ -29,12 +29,17 @@ vec3 map_get_block_pos(vec3 pos);
 bool map_pos_equal(vec3 pos1, vec3 pos2);
 float map_distance_squared(vec3 pos1, vec3 pos2);
 
+void map_update_entity_pos(entity* ent, vec3 new_pos);
+
 void map_set_cover(vec3 block_pos, u8 height);
-void map_clear_cover();
+void map_clear_blocks();
 bool map_is_cover(vec3 block_pos);
 u8 map_get_cover_height(vec3 block_pos);
 entity* map_get_entity_at_block(vec3 block_pos);
 
+bool map_is_movable(vec3 pos);
+
+bool map_is_adjacent_to_cover(vec3 pos);
 vec3 map_get_adjacent_cover(vec3 start, vec3 closest_to);
 
 // @Todo: these have bad names

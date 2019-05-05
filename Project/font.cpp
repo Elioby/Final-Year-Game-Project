@@ -37,20 +37,22 @@ font* load_font(char* asset_id, char* filename)
 	unsigned char* font_data = (unsigned char*) file->data;
 	unsigned char* pixels = (unsigned char*) (((char*) fnt->char_data) + char_data_bytes);
 
-	stbtt_BakeFontBitmap(font_data, 0, 512.0f, pixels, baked_width, baked_height, 32, char_count, fnt->char_data);
+	fnt->pixel_height = 256.0f;
+
+	stbtt_BakeFontBitmap(font_data, 0, fnt->pixel_height * 2.0f, pixels, baked_width, baked_height, 32, char_count, fnt->char_data);
 
 	fnt->img = create_image(pixels, baked_width, baked_height, 1, BGFX_TEXTURE_FORMAT_A8);
 
 	return fnt;
 }
 
-u32 font_get_text_width(font* font, char* text, u16 text_len, float scale)
+u32 font_get_text_width(font* font, char* text, u32 text_len, float scale)
 {
 	u32 i = 0;
 
-	scale /= 4.0f;
+	double total_width = 0.0f;
 
-	float total_width = 0.0f;
+	scale /= 2.0f;
 
 	stbtt_bakedchar *baked_start = font->char_data - 32;
 
@@ -58,21 +60,21 @@ u32 font_get_text_width(font* font, char* text, u16 text_len, float scale)
 	{
 		char c = text[i++];
 
-		if (c == 0 || i >= text_len) break;
+		if (c == 0 || i > text_len) break;
 		stbtt_bakedchar* b = baked_start + c;
-		total_width += b->xadvance * scale;
+		total_width += b->xadvance;
 	}
 
-	return (u32) total_width;
+	return (u32) (total_width * scale);
 }
 
 u32 font_get_text_width(font* font, char* text, float scale)
 {
 	size_t len = strlen(text);
 
-	debug_assert(len <= UINT16_MAX, "Text len must be shorter than u16 max");
+	debug_assert(len <= UINT32_MAX, "Text len must be shorter than u32 max");
 
-	return font_get_text_width(font, text, (u16) len, scale);
+	return font_get_text_width(font, text, (u32) len, scale);
 }
 
 u32 font_get_text_width(font* font, dynstr* text, float scale)
