@@ -71,7 +71,7 @@ void turn_start(team team)
 
 	if (team == TEAM_ENEMY)
 	{
-		ai_perform_team(team, 2);
+		ai_perform_team(team, 3);
 		turn_end();
 	}
 	else
