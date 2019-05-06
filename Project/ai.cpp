@@ -13,6 +13,7 @@ void ai_perform_entity(entity* ent, u32 depth)
 	// start with nothing action, anything better than doing nothing we do
 	action best_action;
 	action_evaluation best_eval = { 0 };
+	best_eval.chance = 1.0;
 
 	board_eval_build_cache();
 
@@ -24,7 +25,7 @@ void ai_perform_entity(entity* ent, u32 depth)
 
 	board_eval_destroy_cache();
 
-	printf("Entity %i performing action %s on target (%f, %f)\n", ent->id, best_action.name, best_eval.target.x, best_eval.target.z);
+	//printf("Entity %i on team %s performing action %s on target (%f, %f) with chance %f\n", ent->id, team_get_name(ent->team), best_action.name, best_eval.target.x, best_eval.target.z, best_eval.chance);
 	board_evaluation_print(best_eval.eval);
 
 	best_action.perform(ent, best_eval.target, false);
@@ -39,7 +40,7 @@ void ai_perform_team(team team, u32 depth)
 		if (ent->team == team && !ent->dead)
 		{
 			ai_perform_entity(ent, depth);
-			ai_perform_entity(ent, depth);
+			//ai_perform_entity(ent, depth);
 		}
 	}
 }

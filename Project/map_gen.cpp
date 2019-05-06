@@ -91,7 +91,7 @@ void map_gen()
 	}
 	else
 	{
-		printf("Retried %i times, current coverage: %f\n", regen_tries, building_coverage / (double) (map_max_x * map_max_z));
+		//printf("Retried %i times, current coverage: %f\n", regen_tries, building_coverage / (double) (map_max_x * map_max_z));
 		regen_tries = 0;
 	}
 }

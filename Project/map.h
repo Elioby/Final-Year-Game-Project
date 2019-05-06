@@ -25,6 +25,8 @@ struct cover {
 void map_init();
 void map_draw();
 
+void map_resetup();
+
 vec3 map_get_block_pos(vec3 pos);
 bool map_pos_equal(vec3 pos1, vec3 pos2);
 float map_distance_squared(vec3 pos1, vec3 pos2);

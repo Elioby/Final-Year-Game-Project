@@ -3,12 +3,47 @@
 #include "entity.h"
 #include "actionbar.h"
 #include "ai.h"
+#include "map.h"
 
 u32 turn_number = 1;
 team turn_team;
 
+float simulate_game_count = 100;
+
+float total_games = 0;
+float drawn_games = 0;
+float friendly_won_games = 0;
+
+void go_agane()
+{
+	if(total_games++ > simulate_game_count)
+	{
+		printf("Finished games!\n");
+
+		printf("Friendly winrate: %f\n Enemy winrate: %f\nDraw rate: %f\n", (friendly_won_games / total_games) * 100.0f, ((total_games - friendly_won_games - drawn_games) / total_games) * 100.0f, (drawn_games / total_games) * 100.0f);
+
+		while (true);
+	}
+
+	map_resetup();
+
+	turn_number = 1;
+	turn_team = TEAM_FRIENDLY;
+
+	//turn_start(turn_team);
+}
+
 void turn_start(team team)
 {
+	if(turn_number > 100)
+	{
+		printf("Turn limit reached, draw!\n");
+		actionbar_combatlog_add("Turn limit reached, draw!");
+		drawn_games++;
+		go_agane();
+		return;
+	}
+
 	turn_team = team;
 
 	bool enemies_alive = false;
@@ -19,12 +54,16 @@ void turn_start(team team)
 		entity* ent = *((entity**) dynarray_get(entities, i));
 
 		if (ent->team == team) ent->ap = ent->max_ap;
-		else enemies_alive = true;
+		else if(ent->health > 0) enemies_alive = true;
 	}
 
 	if(!enemies_alive)
 	{
+		if (team == TEAM_FRIENDLY) friendly_won_games++;
+
+		printf("%s team won!\n", team_get_name(team));
 		actionbar_combatlog_add("%s team won!", team_get_name(team));
+		go_agane();
 		return;
 	}
 
@@ -32,7 +71,12 @@ void turn_start(team team)
 
 	if (team == TEAM_ENEMY)
 	{
-		ai_perform_team(team, 3);
+		ai_perform_team(team, 2);
+		turn_end();
+	}
+	else
+	{
+		ai_perform_team(team, 1);
 		turn_end();
 	}
 }

@@ -6,7 +6,7 @@
 #include "map.h"
 #include "dynarray.h"
 
-#define ENABLE_COMBAT_LOG true
+#define ENABLE_COMBAT_LOG false
 
 struct actionbar_msg_show
 {

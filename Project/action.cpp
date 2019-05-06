@@ -25,19 +25,19 @@ struct action_undo_data_shoot : action_undo_data
 
 // nothing functions
 action_undo_data* gather_undo_data_nothing(entity* ent, vec3 target) { return NULL; }
-void perform_nothing(entity* ent, vec3 target, bool temp) {}
+double perform_nothing(entity* ent, vec3 target, bool temp) { return 1.0;  }
 void undo_nothing(entity* ent, action_undo_data* undo_data) {}
 void get_targets_nothing(entity* ent, dynarray* targets, bool monte_carlo) {};
 
 // move functions
 action_undo_data* gather_undo_data_move(entity* ent, vec3 target);
-void perform_move(entity* ent, vec3 target, bool temp);
+double perform_move(entity* ent, vec3 target, bool temp);
 void undo_move(entity* ent, action_undo_data* undo_data);
 void get_targets_move(entity* ent, dynarray* targets, bool monte_carlo);
 
 // shoot functions
 action_undo_data* gather_undo_data_shoot(entity* ent, vec3 target);
-void perform_shoot(entity* ent, vec3 target, bool temp);
+double perform_shoot(entity* ent, vec3 target, bool temp);
 void undo_shoot(entity* ent, action_undo_data* undo_data);
 void get_targets_shoot(entity* ent, dynarray* targets, bool monte_carlo);
 
@@ -86,9 +86,11 @@ action_undo_data* gather_undo_data_move(entity* ent, vec3 target)
 	return undo_data;
 }
 
-void perform_move(entity* ent, vec3 target, bool temp)
+double perform_move(entity* ent, vec3 target, bool temp)
 {
 	entity_move(ent, target);
+
+	return 1.0;
 }
 
 void undo_move(entity* ent, action_undo_data* undo_data)
@@ -209,9 +211,11 @@ action_undo_data* gather_undo_data_shoot(entity* ent, vec3 target)
 	return undo_data;
 }
 
-void perform_shoot(entity* ent, vec3 target, bool temp)
+double perform_shoot(entity* ent, vec3 target, bool temp)
 {
 	entity* target_ent = map_get_entity_at_block(target);
+
+	float los_amount = map_get_los_angle(ent, target_ent);
 
 	if (temp)
 	{
@@ -219,10 +223,8 @@ void perform_shoot(entity* ent, vec3 target, bool temp)
 	}
 	else
 	{
-		float los_amount = map_get_los_angle(ent, target_ent);
 		if (los_amount > 0.0f)
 		{
-
 			double random = (double) rand() / (double) RAND_MAX;
 
 			if (random <= los_amount)
@@ -235,6 +237,8 @@ void perform_shoot(entity* ent, vec3 target, bool temp)
 			}
 		}
 	}
+
+	return los_amount;
 }
 
 void undo_shoot(entity* ent, action_undo_data* undo_data)

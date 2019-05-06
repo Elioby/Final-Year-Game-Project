@@ -10,10 +10,15 @@ struct action
 {
 	char* name;
 	action_undo_data* (*gather_undo_data)(entity* ent, vec3 target);
-	void (*perform)(entity* ent, vec3 target, bool temp);
+
+	// does the action and returns the chance that it succeeds
+	double (*perform)(entity* ent, vec3 target, bool temp);
+
+	// undoes the action using previously gathered undo_data
 	void (*undo)(entity* ent, action_undo_data* undo_data);
 
-	void(*get_targets)(entity* ent, dynarray* targets, bool monte_carlo);
+	// adds targets to a dynarray passed to it
+	void (*get_targets)(entity* ent, dynarray* targets, bool monte_carlo);
 };
 
 typedef enum action_mode
@@ -32,6 +37,9 @@ struct action_evaluation
 	// the evaluation function after the action is taken, will be FLT_MIN if invalid
 	evaluation eval;
 	vec3 target;
+
+	// what's the chance we get here?
+	double chance;
 
 	// if we can actually use the action or not
 	bool valid;

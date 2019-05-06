@@ -18,8 +18,6 @@ extern mat4 graphics_projection_matrix;
 extern u32 graphics_projection_width;
 extern u32 graphics_projection_height;
 
-extern u32 graphics_fps_cap;
-
 extern bgfx_uniform_handle_t graphics_texture_sampler;
 extern bgfx_uniform_handle_t graphics_tint_color;
 

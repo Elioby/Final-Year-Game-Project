@@ -121,10 +121,10 @@ float evaluate_health(team team)
 	float health_enemy_weight = -1.0f;
 
 	float dead_friendly_weight = -1.0f;
-	float dead_enemy_weight = 6.0f;
+	float dead_enemy_weight = 0.0f;
 
-	float alive_friendly_weight = 1.0f;
-	float alive_enemy_weight = -4.0f;
+	float alive_friendly_weight = 0.0f;
+	float alive_enemy_weight = 0.0f;
 
 	for (u32 i = 0; i < entities->len; i++)
 	{
@@ -159,7 +159,7 @@ float evaluate_distance_to_enemy(team team)
 	float eval = 0.0f;
 
 	// @Weight: the further away you are (squared) the worse
-	float per_distance_sq_weight = -0.0005f;
+	float per_distance_sq_weight = -0.001f;
 
 	for (u32 i = 0; i < entities->len; i++)
 	{
@@ -266,5 +266,5 @@ evaluation board_evaluate(team team)
 
 void board_evaluation_print(evaluation eval)
 {
-	printf("Board eval %f: shot chance: %f, health: %f, distance: %f, cover: %f\n", eval.total, eval.shot_chance, eval.health, eval.distance, eval.cover);
+	//printf("Board eval %f: shot chance: %f, health: %f, distance: %f, cover: %f\n", eval.total, eval.shot_chance, eval.health, eval.distance, eval.cover);
 }

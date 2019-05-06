@@ -39,12 +39,19 @@ dynarray* map_segments = dynarray_create(20, sizeof(map_segment));
 dynarray* map_road_segments = dynarray_create(20, sizeof(map_road_segment));
 
 void map_add_entity(entity* ent);
+void map_setup();
+
 
 void map_init()
 {
 	u32 next_power_of_2 = math_u32_next_power_of_2(max(map_max_x, map_max_z));
 	blocks = (block*) debug_calloc(next_power_of_2 * next_power_of_2, sizeof(block));
 
+	map_setup();
+}
+
+void map_setup()
+{
 	map_gen();
 
 	map_road_segment* first_road_segment = ((map_road_segment*) dynarray_get(map_road_segments, 0));
@@ -94,9 +101,24 @@ void map_init()
 	enemy->rotation = enemy_facing_direction;
 	map_add_entity(enemy);
 
-	enemy = entity_create(vec3(5, 0, 54), TEAM_ENEMY);
+	/*enemy = entity_create(vec3(5, 0, 54), TEAM_ENEMY);
 	enemy->rotation = enemy_facing_direction;
-	map_add_entity(enemy);
+	map_add_entity(enemy);*/
+}
+
+void map_resetup()
+{
+	map_clear_blocks();
+
+	// clear entities
+	for(u32 i = 0; i < entities->len; i++)
+	{
+		free(*(entity**) dynarray_get(entities, i));
+	}
+
+	dynarray_clear(entities);
+
+	map_setup();
 }
 
 void map_draw()
