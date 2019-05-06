@@ -35,7 +35,7 @@ void go_agane()
 
 void turn_start(team team)
 {
-	if(turn_number > 100)
+	if(turn_number > 200)
 	{
 		printf("Turn limit reached, draw!\n");
 		actionbar_combatlog_add("Turn limit reached, draw!");
@@ -71,7 +71,7 @@ void turn_start(team team)
 
 	if (team == TEAM_ENEMY)
 	{
-		ai_perform_team(team, 2);
+		ai_perform_team(team, 3);
 		turn_end();
 	}
 	else
