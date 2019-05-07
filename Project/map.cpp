@@ -233,8 +233,16 @@ void map_set_cover(vec3 block_pos, u8 height)
 {
 	block b = {};
 
-	b.type = BLOCK_TYPE_COVER;
-	b.data.cover_height = height;
+	if(height > 0)
+	{
+		b.type = BLOCK_TYPE_COVER;
+		b.data.cover_height = height;
+	}
+	else
+	{
+		b.type = BLOCK_TYPE_NOTHING;
+		b.data.cover_height = 0;
+	}
 
 	blocks[libmorton::morton2D_32_encode((u32) block_pos.x, (u32) block_pos.z)] = b;
 }

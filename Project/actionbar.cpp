@@ -401,7 +401,7 @@ void action_shoot_unit_button_hover(button* this_button)
 		}
 	}
 
-	debug_assert(shot && !shot->target_entity->dead, "Failed to find target entity for unit shot");
+	if (!shot || shot->target_entity->dead) return;
 
 	entity* target = shot->target_entity;
 

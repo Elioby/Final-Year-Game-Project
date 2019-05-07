@@ -1,11 +1,29 @@
 ﻿#include "minimax.h"
 
 #include "board_eval.h"
+#include "map.h"
+
+entity* closest_enemy(entity* ent)
+{
+	entity* closest = NULL;
+	float closest_distance_squared = -1.0f;
+	for(u32 i = 0; i < entities->len; i++)
+	{
+		entity* enemy = *(entity**) dynarray_get(entities, i);
+		float distance = map_distance_squared(ent->pos, enemy->pos);
+
+		if(enemy->team != ent->team && !enemy->dead && (closest == NULL || distance < closest_distance_squared))
+		{
+			closest = enemy;
+			closest_distance_squared = distance;
+		}
+	}
+
+	return closest;
+}
 
 double get_chanced_eval(action_evaluation eval)
 {
-	//return eval.eval.total;
-
 	if (eval.eval.total > 0) return eval.eval.total * eval.chance;
 
 	return eval.eval.total / eval.chance;
@@ -13,8 +31,13 @@ double get_chanced_eval(action_evaluation eval)
 
 action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 start_depth, u32 depth, team maximizing_team, team current_team, float alpha, float beta)
 {
-	// @Todo: check if the game is over at this point? although i doubt we ever get that far
-	if(depth == 0)
+	bool maximizing = maximizing_team == current_team;
+
+	entity* cur_ent = ent;
+
+	if (!maximizing) cur_ent = closest_enemy(ent);
+
+	if(depth == 0 || ent->dead || !cur_ent)
 	{
 		action_evaluation eval = { 0 };
 		eval.eval = board_evaluate(maximizing_team);
@@ -22,7 +45,6 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 star
 		return eval;
 	}
 
-	bool maximizing = maximizing_team == current_team;
 	team opposite_team = team_get_opposite(current_team);
 
 	action_evaluation chosen_act = { 0 };
@@ -48,16 +70,16 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 star
 		u32 last_target_index = 0;
 
 		dynarray_clear(targets);
-		act.get_targets(ent, targets, true);
+		act.get_targets(cur_ent, targets, true);
 
 		for(u32 i = 0; i < targets->len; i++)
 		{
 			vec3 target = *(vec3*) dynarray_get(targets, i);
 
 			bool cutoff = false;
-			action_undo_data* undo_data = act.gather_undo_data(ent, target);
+			action_undo_data* undo_data = act.gather_undo_data(cur_ent, target);
 
-			double chance = act.perform(ent, target, true);
+			double chance = act.perform(cur_ent, target, true);
 
 			if(maximizing)
 			{
@@ -96,7 +118,7 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 star
 				if(alpha >= beta) cutoff = true; // alpha cut off
 			}
 
-			act.undo(ent, undo_data);
+			act.undo(cur_ent, undo_data);
 			free(undo_data);
 
 			if(cutoff) goto out_of_node_search;
