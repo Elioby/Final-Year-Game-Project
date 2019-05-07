@@ -8,7 +8,7 @@
 u32 turn_number = 1;
 team turn_team;
 
-float simulate_game_count = 100;
+float simulate_game_count = 1000;
 
 float total_games = 0;
 float drawn_games = 0;
@@ -16,11 +16,11 @@ float friendly_won_games = 0;
 
 void go_agane()
 {
-	if(total_games++ > simulate_game_count)
+	if(total_games++ - drawn_games >= simulate_game_count)
 	{
 		printf("Finished games!\n");
 
-		printf("Friendly winrate: %f\n Enemy winrate: %f\nDraw rate: %f\n", (friendly_won_games / total_games) * 100.0f, ((total_games - friendly_won_games - drawn_games) / total_games) * 100.0f, (drawn_games / total_games) * 100.0f);
+		printf("Friendly winrate: %f\n Enemy winrate: %f\n", (friendly_won_games / (total_games - drawn_games)) * 100.0f, 100.0f - ((friendly_won_games / (total_games - drawn_games)) * 100.0f), (drawn_games / total_games) * 100.0f);
 
 		while (true);
 	}
@@ -35,7 +35,7 @@ void go_agane()
 
 void turn_start(team team)
 {
-	if(turn_number > 200)
+	if(turn_number > 100)
 	{
 		printf("Turn limit reached, draw!\n");
 		actionbar_combatlog_add("Turn limit reached, draw!");
@@ -61,7 +61,7 @@ void turn_start(team team)
 	{
 		if (team == TEAM_FRIENDLY) friendly_won_games++;
 
-		printf("%s team won!\n", team_get_name(team));
+		printf("%s team won! %f\n", team_get_name(team), total_games - drawn_games);
 		actionbar_combatlog_add("%s team won!", team_get_name(team));
 		go_agane();
 		return;
