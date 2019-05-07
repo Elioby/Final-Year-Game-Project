@@ -101,9 +101,9 @@ void map_setup()
 	enemy->rotation = enemy_facing_direction;
 	map_add_entity(enemy);
 
-	/*enemy = entity_create(vec3(5, 0, 54), TEAM_ENEMY);
+	enemy = entity_create(vec3(5, 0, 54), TEAM_ENEMY);
 	enemy->rotation = enemy_facing_direction;
-	map_add_entity(enemy);*/
+	map_add_entity(enemy);
 }
 
 void map_resetup()

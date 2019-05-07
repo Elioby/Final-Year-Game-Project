@@ -389,7 +389,7 @@ void action_shoot_unit_button_click(button* this_button)
 
 void action_shoot_unit_button_hover(button* this_button)
 {
-	shot_target* shot;
+	shot_target* shot = NULL;
 
 	for(u32 i = 0; i < shoot_target_buttons->len; i++)
 	{
@@ -415,9 +415,11 @@ void clear_shot_targets()
 	{
 		u32 i = shoot_target_buttons->len - 1;
 		shot_target* st = (shot_target*) dynarray_get(shoot_target_buttons, i);
-		
-		gui_destroy_button(st->button);
+
+		button* b = st->button;
 
 		dynarray_remove(shoot_target_buttons, i);
+		
+		gui_destroy_button(b);
 	}
 }
