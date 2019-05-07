@@ -58,7 +58,7 @@ float evaluate_shot_chance(team team)
 {
 	float eval = 0.0f;
 
-	float friendly_hit_enemy_weight = 2.0f;
+	float friendly_hit_enemy_weight = 4.0f;
 	float enemy_hit_friendly_weight = -1.0f;
 
 	// @Todo: abstract this out for use in UI code as well as AI code
@@ -118,7 +118,7 @@ float evaluate_health(team team)
 	float eval = 0.0f;
 
 	float health_friendly_weight = 1.0f;
-	float health_enemy_weight = -1.0f;
+	float health_enemy_weight = -2.0f;
 
 	float dead_friendly_weight = -1.0f;
 	float dead_enemy_weight = 0.0f;

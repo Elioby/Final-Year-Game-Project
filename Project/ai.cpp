@@ -40,7 +40,7 @@ void ai_perform_team(team team, u32 depth)
 		if (ent->team == team && !ent->dead)
 		{
 			ai_perform_entity(ent, depth);
-			//ai_perform_entity(ent, depth);
+			ai_perform_entity(ent, depth);
 		}
 	}
 }
