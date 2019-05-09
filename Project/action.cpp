@@ -220,6 +220,8 @@ double perform_shoot(entity* ent, vec3 target, bool temp)
 	if (temp)
 	{
 		entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
+
+		return los_amount;
 	}
 	else
 	{
@@ -230,15 +232,17 @@ double perform_shoot(entity* ent, vec3 target, bool temp)
 			if (random <= los_amount)
 			{
 				entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
+
+				return 1;
 			}
 			else
 			{
 				actionbar_combatlog_add("Entity %i missed a shot on entity %i", ent->id, target_ent->id);
+
+				return 0;
 			}
 		}
 	}
-
-	return los_amount;
 }
 
 void undo_shoot(entity* ent, action_undo_data* undo_data)
@@ -388,7 +392,7 @@ void action_update()
 
 					dynarray_clear(action_move_targets);
 
-					if (selected_entity->ap > 0)
+					if (selected_entity->ap > 0 || TESTING_MODE)
 					{
 						action_move_mode(0);
 					}
