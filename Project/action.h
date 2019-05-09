@@ -11,7 +11,7 @@ struct action
 	char* name;
 	action_undo_data* (*gather_undo_data)(entity* ent, vec3 target);
 
-	// does the action and returns the chance that it succeeds
+	// does the action and returns: the chance that it will succeed if temp, else 1 if succeeded 0 if failed
 	double (*perform)(entity* ent, vec3 target, bool temp);
 
 	// undoes the action using previously gathered undo_data
