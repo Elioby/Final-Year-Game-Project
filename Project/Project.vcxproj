@@ -113,6 +113,8 @@
     <Link>
       <AdditionalLibraryDirectories>..\..\Libraries\glfw\lib-vc2015;..\..\Libraries\bgfx\.build\win32_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>bgfxDebug.lib;bxDebug.lib;bimg_decodeDebug.lib;bimgDebug.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -127,6 +129,8 @@
     <Link>
       <AdditionalDependencies>bgfxDebug.lib;bxDebug.lib;bimg_decodeDebug.lib;bimgDebug.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\Libraries\glfw64\lib-vc2015;..\..\Libraries\bgfx\.build\win64_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -149,6 +153,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>bgfxRelease.lib;bxRelease.lib;bimg_decodeRelease.lib;bimgRelease.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\Libraries\glfw\lib-vc2015;..\..\Libraries\bgfx\.build\win32_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profiling|Win32'">
@@ -171,6 +177,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>bgfxRelease.lib;bxRelease.lib;bimg_decodeRelease.lib;bimgRelease.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\Libraries\glfw\lib-vc2015;..\..\Libraries\bgfx\.build\win32_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -189,6 +197,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>bgfxRelease.lib;bxRelease.lib;bimg_decodeRelease.lib;bimgRelease.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\Libraries\glfw64\lib-vc2015;..\..\Libraries\bgfx\.build\win64_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profiling|x64'">
@@ -208,6 +218,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>bgfxRelease.lib;bxRelease.lib;bimg_decodeRelease.lib;bimgRelease.lib;glfw3.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\Libraries\glfw64\lib-vc2015;..\..\Libraries\bgfx\.build\win64_vs2017\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
