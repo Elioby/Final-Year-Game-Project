@@ -3,6 +3,7 @@
 #include "hashtable.h"
 #include "map.h"
 #include "team.h"
+#include "turn.h"
 
 hashtable* los_cache_table;
 
@@ -58,8 +59,8 @@ float evaluate_shot_chance(team team)
 {
 	float eval = 0.0f;
 
-	float friendly_hit_enemy_weight = 4.0f;
-	float enemy_hit_friendly_weight = -5.0f;
+	float friendly_hit_enemy_weight = 1.0f;
+	float enemy_hit_friendly_weight = -3.0f;
 
 	// @Todo: abstract this out for use in UI code as well as AI code
 	for (u32 i = 0; i < entities->len; i++)
