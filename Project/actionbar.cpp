@@ -327,7 +327,7 @@ void action_shoot_mode(button* this_button)
 
 		st.button = b;
 		st.target_entity = target_entity;
-		st.shot_chance = map_get_los_angle(selected_entity, target_entity);
+		st.shot_chance = map_get_shot_chance(selected_entity, target_entity);
 
 		dynarray_add(shoot_target_buttons, &st);
 	}
@@ -428,4 +428,6 @@ void clear_shot_targets()
 		
 		gui_destroy_button(b);
 	}
+
+	targeted_entity = NULL;
 }

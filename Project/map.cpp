@@ -101,7 +101,11 @@ void map_setup()
 	enemy->rotation = enemy_facing_direction;
 	map_add_entity(enemy);
 
-	enemy = entity_create(vec3(5, 0, 54), TEAM_ENEMY);
+	enemy = entity_create(vec3(5, 0, 53), TEAM_ENEMY);
+	enemy->rotation = enemy_facing_direction;
+	map_add_entity(enemy);
+
+	enemy = entity_create(vec3(5, 0, 55), TEAM_ENEMY);
 	enemy->rotation = enemy_facing_direction;
 	map_add_entity(enemy);
 }
@@ -461,4 +465,10 @@ entity* map_get_entity_at_block(vec3 block_pos)
 	}
 
 	return NULL;
+}
+
+float map_get_shot_chance(entity* inflict_ent, entity* target_ent)
+{
+	return map_get_los_angle(inflict_ent, target_ent) * min(1.0f, ((map_max_x / 8)
+		/ sqrt(map_distance_squared(inflict_ent->pos, target_ent->pos))));
 }

@@ -40,7 +40,7 @@ void turn_start(team team)
 		printf("Turn limit reached, draw!\n");
 		actionbar_combatlog_add("Turn limit reached, draw!");
 		drawn_games++;
-		go_agane();
+		//go_agane();
 		return;
 	}
 
@@ -63,7 +63,7 @@ void turn_start(team team)
 
 		printf("%s team won! %f\n", team_get_name(team), total_games - drawn_games);
 		actionbar_combatlog_add("%s team won!", team_get_name(team));
-		go_agane();
+		//go_agane();
 		return;
 	}
 
@@ -76,6 +76,7 @@ void turn_start(team team)
 	}
 	else
 	{
+		return;
 		ai_perform_team(team, 2);
 		turn_end();
 	}

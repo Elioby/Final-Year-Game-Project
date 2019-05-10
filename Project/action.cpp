@@ -215,21 +215,21 @@ double perform_shoot(entity* ent, vec3 target, bool temp)
 {
 	entity* target_ent = map_get_entity_at_block(target);
 
-	float los_amount = map_get_los_angle(ent, target_ent);
+	float shot = map_get_shot_chance(ent, target_ent);
 
 	if (temp)
 	{
 		entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
 
-		return los_amount;
+		return shot;
 	}
 	else
 	{
-		if (los_amount > 0.0f)
+		if (shot > 0.0f)
 		{
 			double random = (double) rand() / (double) RAND_MAX;
 
-			if (random <= los_amount)
+			if (random <= shot)
 			{
 				entity_health_change(target_ent, ent, -ACTION_SHOOT_DAMAGE, temp);
 

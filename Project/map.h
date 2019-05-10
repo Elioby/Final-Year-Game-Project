@@ -52,3 +52,5 @@ bool map_has_los(entity* ent1, entity* ent2);
 
 // Returns a floating point value between 0.0f and 1.0f (0.0f = 100% covered, 0.5f = 50% covered, 1.0f = no blocking cover)
 float map_get_los_angle(entity* inflict_ent, entity* target_ent);
+
+float map_get_shot_chance(entity* inflict_ent, entity* target_ent);

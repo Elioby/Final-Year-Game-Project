@@ -59,7 +59,7 @@ float evaluate_shot_chance(team team)
 	float eval = 0.0f;
 
 	float friendly_hit_enemy_weight = 4.0f;
-	float enemy_hit_friendly_weight = -1.0f;
+	float enemy_hit_friendly_weight = -5.0f;
 
 	// @Todo: abstract this out for use in UI code as well as AI code
 	for (u32 i = 0; i < entities->len; i++)
@@ -98,11 +98,11 @@ float evaluate_shot_chance(team team)
 					if (has_los)
 					{
 						// calculate the chance our enemy can hit us and subtract from eval (it's our disadvantage)
-						float enemy_hit_friendly = enemy_hit_friendly_weight * map_get_los_angle(enemy, friendly);
+						float enemy_hit_friendly = enemy_hit_friendly_weight * map_get_shot_chance(enemy, friendly);
 						eval += enemy_hit_friendly;
 
 						// calculate the chance we can hit our enemy and add it to our eval (it's our advantage)
-						float friendly_hit_enemy = friendly_hit_enemy_weight * map_get_los_angle(friendly, enemy);
+						float friendly_hit_enemy = friendly_hit_enemy_weight * map_get_shot_chance(friendly, enemy);
 						eval += friendly_hit_enemy;
 					}
 				}
@@ -121,7 +121,7 @@ float evaluate_health(team team)
 	float health_enemy_weight = -2.0f;
 
 	float dead_friendly_weight = -1.0f;
-	float dead_enemy_weight = 0.0f;
+	float dead_enemy_weight = 3.0f;
 
 	float alive_friendly_weight = 0.0f;
 	float alive_enemy_weight = 0.0f;
@@ -159,7 +159,7 @@ float evaluate_distance_to_enemy(team team)
 	float eval = 0.0f;
 
 	// @Weight: the further away you are (squared) the worse
-	float per_distance_sq_weight = -0.001f;
+	float per_distance_sq_weight = -0.0001f;
 
 	for (u32 i = 0; i < entities->len; i++)
 	{
