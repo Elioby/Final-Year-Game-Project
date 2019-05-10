@@ -553,11 +553,13 @@ void map_gen_building(map_segment seg)
 
 	while ((door_x_left = 2 + (((double) rand() / RAND_MAX)) * (building_width - 4)) < x_len + 2 && door_x_left > x_len - 2 && left_side_wall);
 	map_set_cover(vec3(seg.pos.x + x_pad_1 + door_x_left, 0.0f, seg.pos.y + z_pad_1), 0);
+	map_set_cover(vec3(seg.pos.x + x_pad_1 + door_x_left + 1, 0.0f, seg.pos.y + z_pad_1), 0);
 
 	u32 door_x_right;
 
 	while ((door_x_right = 2 + (((double) rand() / RAND_MAX)) * (building_width - 4)) < x_len + 2 && door_x_right > x_len - 2 && right_side_wall);
 	map_set_cover(vec3(seg.pos.x + x_pad_1 + door_x_right, 0.0f, seg.pos.y + z_pad_1 + building_length), 0);
+	map_set_cover(vec3(seg.pos.x + x_pad_1 + door_x_right - 1, 0.0f, seg.pos.y + z_pad_1 + building_length), 0);
 
 	// gen internal doors
 	bool door_on_first_internal = ((double) rand() / RAND_MAX) > 0.5f;

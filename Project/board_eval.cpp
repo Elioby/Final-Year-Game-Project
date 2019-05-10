@@ -59,8 +59,8 @@ float evaluate_shot_chance(team team)
 {
 	float eval = 0.0f;
 
-	float friendly_hit_enemy_weight = 1.0f;
-	float enemy_hit_friendly_weight = -3.0f;
+	float friendly_hit_enemy_weight = 3.0f;
+	float enemy_hit_friendly_weight = -2.5f;
 
 	// @Todo: abstract this out for use in UI code as well as AI code
 	for (u32 i = 0; i < entities->len; i++)
@@ -121,7 +121,7 @@ float evaluate_health(team team)
 	float health_friendly_weight = 1.0f;
 	float health_enemy_weight = -2.0f;
 
-	float dead_friendly_weight = -1.0f;
+	float dead_friendly_weight = -2.0f;
 	float dead_enemy_weight = 3.0f;
 
 	float alive_friendly_weight = 0.0f;
