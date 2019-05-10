@@ -15,7 +15,7 @@
 #define stack_array_length(arr) sizeof(arr) / sizeof(arr[0])
 
 // testing mode removes ap checks, move distance checks, etc
-#define TESTING_MODE false
+#define TESTING_MODE true
 
 using glm::vec2;
 using glm::vec3;
