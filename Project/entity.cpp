@@ -21,6 +21,7 @@ void entity_update()
 
 		if (ent->dead) 
 		{
+			map_set_cover(ent->pos, 0);
 			dynarray_remove(entities, i);
 			free(ent);
 			i--;
@@ -35,7 +36,7 @@ entity* entity_create(vec3 pos, team team)
 	ent->pos = pos;
 	ent->rotation = 180.0f;
 	ent->mesh = asset_manager_get_mesh("robot");
-	ent->max_health = 10;
+	ent->max_health = 15;
 	ent->health = ent->max_health;
 	ent->max_ap = 2;
 	ent->ap = 0;

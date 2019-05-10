@@ -35,8 +35,6 @@ action_evaluation minimax_search(entity* ent, action_evaluation parent, u32 star
 
 	entity* cur_ent = ent;
 
-	// if (!maximizing) cur_ent = closest_enemy(ent);
-
 	if(depth == 0 || ent->dead || !cur_ent)
 	{
 		action_evaluation eval = { 0 };

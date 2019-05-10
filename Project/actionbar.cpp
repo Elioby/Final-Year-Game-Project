@@ -6,7 +6,7 @@
 #include "map.h"
 #include "dynarray.h"
 
-#define ENABLE_COMBAT_LOG false
+#define ENABLE_COMBAT_LOG true
 
 struct actionbar_msg_show
 {
@@ -210,8 +210,11 @@ void actionbar_draw()
 	{
 		u32 width = font_get_text_width(inconsolata_font, actionbar_msg.msg, 0.125f);
 
+		u32 bump = shoot_target_buttons->len == 0 ? 0 : 75;
+
 		gui_draw_text(inconsolata_font, actionbar_msg.msg, vec4(min(0.8f - actionbar_msg.seconds_since_start * 0.75f, 1.0f), 0.0f, 0.0f, 
-			min(actionbar_msg.show_seconds - actionbar_msg.seconds_since_start, 1.0f)), graphics_projection_width / 2 - width / 2, graphics_projection_height / 7, 0.125f);
+			min(actionbar_msg.show_seconds - actionbar_msg.seconds_since_start, 1.0f)), graphics_projection_width / 2 - width / 2, 
+			graphics_projection_height / 7 + bump, 0.125f);
 	}
 
 	// draw combat log
@@ -281,7 +284,7 @@ void actionbar_combatlog_add(char* format, ...)
 
 void action_move_mode(button* this_button)
 {
-	if (selected_entity->ap <= 0)
+	if (selected_entity->ap <= 0 && !TESTING_MODE)
 	{
 		actionbar_set_msg("No action points remaining", 3.0f);
 		return;
@@ -298,7 +301,7 @@ void action_move_mode(button* this_button)
 
 void action_shoot_mode(button* this_button)
 {
-	if(selected_entity->ap <= 0)
+	if(selected_entity->ap <= 0 && !TESTING_MODE)
 	{
 		actionbar_set_msg("No action points remaining", 3.0f);
 		return;
@@ -324,7 +327,7 @@ void action_shoot_mode(button* this_button)
 
 		st.button = b;
 		st.target_entity = target_entity;
-		st.shot_chance = map_get_los_angle(selected_entity, target_entity);
+		st.shot_chance = map_get_shot_chance(selected_entity, target_entity);
 
 		dynarray_add(shoot_target_buttons, &st);
 	}
@@ -370,7 +373,10 @@ void action_shoot_unit_button_click(button* this_button)
 
 	entity* target = shot->target_entity;
 
-	action_shoot.perform(selected_entity, target->pos, false);
+	if(!action_shoot.perform(selected_entity, target->pos, false))
+	{
+		actionbar_set_msg("Missed shot!", 3.0f);
+	}
 
 	if(target->dead)
 	{
@@ -381,7 +387,7 @@ void action_shoot_unit_button_click(button* this_button)
 
 	selected_entity->ap -= 1;
 
-	if(selected_entity->ap <= 0)
+	if(selected_entity->ap <= 0 && !TESTING_MODE)
 	{
 		action_switch_mode(ACTION_MODE_SELECT_UNITS);
 	}
@@ -389,7 +395,7 @@ void action_shoot_unit_button_click(button* this_button)
 
 void action_shoot_unit_button_hover(button* this_button)
 {
-	shot_target* shot;
+	shot_target* shot = NULL;
 
 	for(u32 i = 0; i < shoot_target_buttons->len; i++)
 	{
@@ -415,9 +421,13 @@ void clear_shot_targets()
 	{
 		u32 i = shoot_target_buttons->len - 1;
 		shot_target* st = (shot_target*) dynarray_get(shoot_target_buttons, i);
-		
-		gui_destroy_button(st->button);
+
+		button* b = st->button;
 
 		dynarray_remove(shoot_target_buttons, i);
+		
+		gui_destroy_button(b);
 	}
+
+	targeted_entity = NULL;
 }
